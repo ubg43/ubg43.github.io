@@ -137,16 +137,16 @@
 
 <style id="personalized-recommendation-style">
   .search-recommendations-header{align-items:center;position:relative}
-  .recommendation-arrow{width:36px;height:36px;flex:0 0 36px;border:1px solid rgba(255,255,255,.35);border-radius:10px;background:rgba(0,54,150,.84);color:#fff;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font-size:22px;line-height:1;box-shadow:0 5px 15px rgba(0,15,55,.2);transition:transform .16s ease,background .16s ease,box-shadow .16s ease}
-  .recommendation-arrow:hover:not(:disabled){transform:translateX(2px) scale(1.06);background:rgba(0,64,170,.95);box-shadow:0 8px 19px rgba(0,15,55,.28)}
-  .recommendation-arrow:active:not(:disabled){transform:translateX(1px) scale(.97)}
-  .recommendation-arrow:disabled{opacity:.42;cursor:default}
-  .recommendation-arrow.is-hidden{display:none}
-  #searchRecommendationsGrid.recommendation-track{display:flex;overflow:hidden;gap:13px;width:100%;grid-template-columns:none}
-  #searchRecommendationsGrid.recommendation-track .search-recommendation{flex:0 0 calc((100% - 39px)/4);min-width:0;transition:transform .22s ease,box-shadow .18s ease;will-change:transform}
-  #searchRecommendationsGrid.recommendation-track .search-recommendation.is-shifted{transform:translateX(calc(-100% - 13px));}
-  @media(max-width:900px){#searchRecommendationsGrid.recommendation-track .search-recommendation{flex-basis:calc((100% - 26px)/3)}.recommendation-arrow{width:34px;height:34px;flex-basis:34px}}
-  @media(max-width:570px){#searchRecommendationsGrid.recommendation-track .search-recommendation{flex-basis:calc((100% - 13px)/2)}}
+  .recommendation-controls{display:flex;align-items:center;gap:7px}
+  .recommendation-arrow{width:34px;height:34px;flex:0 0 34px;border:1px solid rgba(255,255,255,.34);border-radius:10px;background:rgba(0,54,150,.84);color:#fff;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font-size:20px;line-height:1;box-shadow:0 5px 15px rgba(0,15,55,.2);transition:transform .16s ease,background .16s ease,box-shadow .16s ease,opacity .16s ease}
+  .recommendation-arrow:hover:not(:disabled){transform:translateY(-1px) scale(1.05);background:rgba(0,64,170,.95);box-shadow:0 8px 19px rgba(0,15,55,.28)}
+  .recommendation-arrow:active:not(:disabled){transform:scale(.96)}
+  .recommendation-arrow:disabled{opacity:.35;cursor:default}
+  .recommendation-track{display:grid!important;grid-template-rows:repeat(2,minmax(0,1fr));grid-auto-flow:column;grid-auto-columns:calc((100% - 39px)/4);grid-template-columns:none!important;gap:13px;overflow-x:auto;overflow-y:hidden;width:100%;scroll-behavior:smooth;scrollbar-width:none;padding:2px 2px 5px}
+  .recommendation-track::-webkit-scrollbar{display:none}
+  .recommendation-track .search-recommendation{width:100%;min-width:0;height:100%}
+  @media(max-width:900px){.recommendation-track{grid-auto-columns:calc((100% - 26px)/3)}.recommendation-arrow{width:32px;height:32px;flex-basis:32px}}
+  @media(max-width:570px){.recommendation-track{grid-auto-columns:calc((100% - 13px)/2)}.recommendation-arrow{width:31px;height:31px;flex-basis:31px}}
 </style>
 </head>
 <body>
@@ -268,28 +268,7 @@
     openSearch();
   }
 
-  function renderRecommendations(query){
-    if(!recWrap||!recGrid)return;
-    if(!query){recGrid.innerHTML='';recWrap.classList.remove('is-visible');return;}
-    const topSet=new Set(matched(query).slice(0,5).map(g=>g.card));
-    const qWords=normalize(query).split(/\s+/).filter(Boolean);
-    const pool=scrapeGames().filter(g=>!topSet.has(g.card));
-    const picks=pool.map(g=>{
-      const words=normalize(g.title).split(/\s+/);
-      const overlap=qWords.reduce((n,w)=>n+(words.some(x=>x.includes(w))?1:0),0);
-      return {...g,overlap,r:Math.random()};
-    }).sort((a,b)=>b.overlap-a.overlap||b.r-a.r).slice(0,6);
-    recGrid.innerHTML='';
-    picks.forEach(game=>{
-      const button=document.createElement('button');button.type='button';button.className='search-recommendation';
-      const img=document.createElement('img');img.loading='lazy';img.src=game.image;img.alt=game.title;
-      const span=document.createElement('span');span.textContent=game.title;
-      button.append(img,span);
-      button.addEventListener('click',()=>{clickSound();game.card.click();});
-      recGrid.appendChild(button);
-    });
-    recWrap.classList.toggle('is-visible',picks.length>0);
-  }
+  function renderRecommendations(query){}
 
   searchBar.addEventListener('input',()=>{
     const query=searchBar.value.trim();
@@ -469,93 +448,133 @@
     const recGrid=document.getElementById('searchRecommendationsGrid');
     const gameGridEl=document.getElementById('gameGrid');
     const searchInput=document.getElementById('searchBar');
-    if(!recSection||!recGrid||!gameGridEl||!searchInput)return;
+    const recHeader=recSection?.querySelector('.search-recommendations-header');
+    if(!recSection||!recGrid||!gameGridEl||!searchInput||!recHeader)return;
 
-    const HISTORY_KEY='ubg_play_history_v2';
-    const HISTORY_LIMIT=80;
-    const normalizeText=s=>(s||'').toString().toLowerCase().replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim();
-    const stopWords=new Set(['the','and','for','with','game','games','play','new','online','3d','io','html','html5']);
-    const tokens=s=>normalizeText(s).split(' ').filter(w=>w.length>1&&!stopWords.has(w));
-    const gameKey=g=>normalizeText(g.title)+'|'+g.image;
+    const PLAY_KEY='ubg_play_history_v2';
+    const SEARCH_KEY='ubg_search_history_v1';
+    const LIMIT=100;
+    const STOP=new Set(['the','and','for','with','game','games','play','new','online','3d','io','html','html5','a']);
+    const norm=s=>(s||'').toString().toLowerCase().replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim();
+    const tokens=s=>norm(s).split(' ').filter(x=>x.length>1&&!STOP.has(x));
+    const key=g=>norm(g.title)+'|'+(g.image||'');
 
-    function readHistory(){try{return JSON.parse(localStorage.getItem(HISTORY_KEY)||'{}')||{};}catch(_){return {};}}
-    function writeHistory(history){try{localStorage.setItem(HISTORY_KEY,JSON.stringify(history));}catch(_){}
-    }
-    function recordGame(game){
-      if(!game||!game.title)return;
-      const history=readHistory(); const key=gameKey(game);
-      const item=history[key]||{title:game.title,image:game.image,plays:0,lastPlayed:0,tokens:tokens(game.title)};
-      item.title=game.title; item.image=game.image; item.tokens=tokens(game.title); item.plays+=1; item.lastPlayed=Date.now(); history[key]=item;
-      const keys=Object.keys(history).sort((a,b)=>(history[b].lastPlayed||0)-(history[a].lastPlayed||0)).slice(0,HISTORY_LIMIT);
-      const trimmed={}; keys.forEach(k=>trimmed[k]=history[k]); writeHistory(trimmed);
-    }
-    function scrape(){
-      return Array.from(gameGridEl.querySelectorAll(':scope > .game-card')).map((card,index)=>({
-        card,index,title:(card.querySelector('h3')?.textContent||card.querySelector('img')?.alt||'Game').trim(),image:card.querySelector('img')?.currentSrc||card.querySelector('img')?.src||''
-      })).filter(g=>g.title).map(g=>({...g,key:gameKey(g)}));
+    function read(keyName){try{return JSON.parse(localStorage.getItem(keyName)||'{}')||{};}catch(_){return {};}}
+    function write(keyName,value){try{localStorage.setItem(keyName,JSON.stringify(value));}catch(_){} }
+    function games(){
+      return Array.from(gameGridEl.querySelectorAll(':scope > .game-card')).map(card=>{
+        const img=card.querySelector('img');
+        return {card,title:(card.querySelector('h3')?.textContent||img?.alt||'Game').trim(),image:img?.currentSrc||img?.src||''};
+      }).filter(g=>g.title).map(g=>({...g,key:key(g)}));
     }
     function overlap(a,b){
-      const A=new Set(tokens(a)),B=new Set(tokens(b)); if(!A.size||!B.size)return 0; let hit=0; A.forEach(x=>{if(B.has(x))hit++;}); return hit/Math.sqrt(A.size*B.size);
+      const A=new Set(tokens(a)),B=new Set(tokens(b));
+      if(!A.size||!B.size)return 0;
+      let hit=0;A.forEach(x=>{if(B.has(x))hit++;});
+      return hit/Math.sqrt(A.size*B.size);
     }
-    function daysSince(ts){return ts?Math.max(0,(Date.now()-ts)/86400000):999;}
-    function scoreCandidate(game,query,history,maxPlays){
-      const played=Object.values(history), total=played.reduce((n,x)=>n+(x.plays||0),0), qSim=query?overlap(game.title,query):0;
-      const weights={}; played.forEach(item=>{const w=Math.sqrt(item.plays||0); (item.tokens||tokens(item.title)).forEach(t=>weights[t]=(weights[t]||0)+w);});
-      const gameTokens=tokens(game.title); let affinityRaw=0; gameTokens.forEach(t=>affinityRaw+=weights[t]||0);
-      const maxWeight=Math.max(1,...Object.values(weights));
-      const taste=total?Math.min(1,affinityRaw/(maxWeight*Math.max(1,gameTokens.length))):0;
-      let recentRaw=0; played.forEach(item=>{const sim=overlap(game.title,item.title); if(sim>0)recentRaw+=sim*(item.plays||0)*Math.exp(-daysSince(item.lastPlayed)/14);});
-      const recent=total?Math.min(1,recentRaw/Math.max(1,total)):0;
-      const plays=history[game.key]?.plays||0;
-      const popularity=maxPlays?Math.log1p(plays)/Math.log1p(maxPlays):0;
-      const exploration=1/Math.sqrt(1+plays);
-      if(!played.length)return qSim*.60+exploration*.25+popularity*.15;
-      return taste*.38+qSim*.25+recent*.22+popularity*.10+exploration*.05;
+    function recordSearch(query){
+      const q=norm(query);if(!q)return;
+      const h=read(SEARCH_KEY);const item=h[q]||{count:0,last:0,tokens:tokens(q)};
+      item.count++;item.last=Date.now();item.tokens=tokens(q);h[q]=item;
+      const entries=Object.entries(h).sort((a,b)=>(b[1].last||0)-(a[1].last||0)).slice(0,50);
+      write(SEARCH_KEY,Object.fromEntries(entries));
+    }
+    function recordPlay(game){
+      if(!game?.title)return;
+      const h=read(PLAY_KEY);const k=game.key;const item=h[k]||{title:game.title,image:game.image,plays:0,lastPlayed:0,tokens:tokens(game.title)};
+      item.title=game.title;item.image=game.image;item.plays++;item.lastPlayed=Date.now();item.tokens=tokens(game.title);h[k]=item;
+      const entries=Object.entries(h).sort((a,b)=>(b[1].lastPlayed||0)-(a[1].lastPlayed||0)).slice(0,LIMIT);
+      write(PLAY_KEY,Object.fromEntries(entries));
     }
 
-    let offset=0, items=[];
-    function ensureArrow(){
-      const header=recSection.querySelector('.search-recommendations-header'); if(!header)return;
-      if(document.getElementById('recommendationNext'))return;
-      const next=document.createElement('button'); next.type='button'; next.id='recommendationNext'; next.className='recommendation-arrow'; next.setAttribute('aria-label','Show more recommendations'); next.innerHTML='<span aria-hidden="true">→</span>';
-      header.appendChild(next);
-      next.addEventListener('click',()=>{offset=Math.min(Math.max(0,items.length-visibleCount()),offset+visibleCount()); paint();});
-    }
+    let page=0,pageCount=1,currentItems=[];
     function visibleCount(){return window.innerWidth<=570?2:(window.innerWidth<=900?3:4);}
-    function paint(){
-      const cards=[...recGrid.children], visible=visibleCount();
-      cards.forEach((card,i)=>card.classList.toggle('is-shifted',i<offset));
-      const next=document.getElementById('recommendationNext');
-      if(next){next.disabled=offset>=Math.max(0,items.length-visible); next.classList.toggle('is-hidden',items.length<=visible);}
+    function pageSize(){return visibleCount()*2;}
+    function buildControls(){
+      if(recHeader.querySelector('.recommendation-controls'))return;
+      const wrap=document.createElement('div');wrap.className='recommendation-controls';
+      const left=document.createElement('button');left.type='button';left.className='recommendation-arrow';left.id='recommendationPrev';left.setAttribute('aria-label','Previous recommendations');left.textContent='←';
+      const right=document.createElement('button');right.type='button';right.className='recommendation-arrow';right.id='recommendationNext';right.setAttribute('aria-label','More recommendations');right.textContent='→';
+      wrap.append(left,right);recHeader.appendChild(wrap);
+      left.addEventListener('click',()=>goToPage(page-1));
+      right.addEventListener('click',()=>goToPage(page+1));
     }
-    function renderPersonalized(query){
-      const games=scrape();
-      if(!query||!games.length){recSection.classList.remove('is-visible');recGrid.innerHTML='';items=[];offset=0;return;}
-      ensureArrow();
-      const history=readHistory(), playedKeys=new Set(Object.keys(history));
-      const top=new Set((typeof matched==='function'?matched(query):[]).slice(0,5).map(x=>gameKey(x)));
-      const maxPlays=Math.max(1,...Object.values(history).map(x=>x.plays||0));
-      items=games.filter(g=>!top.has(g.key)).map(g=>({...g,score:scoreCandidate(g,query,history,maxPlays),played:playedKeys.has(g.key)})).sort((a,b)=>b.score-a.score||a.title.localeCompare(b.title));
-      recGrid.innerHTML=''; offset=0;
-      items.slice(0,20).forEach(game=>{
-        const button=document.createElement('button'); button.type='button'; button.className='search-recommendation';
-        const img=document.createElement('img'); img.loading='lazy'; img.src=game.image; img.alt=game.title;
-        const span=document.createElement('span'); span.textContent=game.title; button.append(img,span);
-        button.addEventListener('click',()=>game.card.click()); recGrid.appendChild(button);
+    function paintControls(){
+      const prev=document.getElementById('recommendationPrev'),next=document.getElementById('recommendationNext');
+      if(!prev||!next)return;
+      prev.disabled=page<=0;next.disabled=page>=pageCount-1;
+      const enough=currentItems.length>pageSize();
+      prev.style.display=enough?'inline-flex':'none';next.style.display=enough?'inline-flex':'none';
+    }
+    function goToPage(target){
+      page=Math.max(0,Math.min(pageCount-1,target));
+      recGrid.scrollTo({left:page*recGrid.clientWidth,behavior:'smooth'});
+      paintControls();
+    }
+    function score(game,query,plays,searches){
+      const qScore=overlap(game.title,query);
+      let playScore=0,recentScore=0;
+      const playEntries=Object.values(plays);
+      const totalPlays=playEntries.reduce((n,x)=>n+(x.plays||0),0);
+      if(totalPlays){
+        let raw=0;
+        playEntries.forEach(item=>{raw+=overlap(game.title,item.title)*Math.sqrt(item.plays||0);});
+        playScore=Math.min(1,raw/Math.max(1,totalPlays));
+        let recent=0;
+        playEntries.forEach(item=>{const sim=overlap(game.title,item.title);if(sim){const age=(Date.now()-(item.lastPlayed||0))/86400000;recent+=sim*(item.plays||0)*Math.exp(-Math.max(0,age)/21);}});
+        recentScore=Math.min(1,recent/Math.max(1,totalPlays));
+      }
+      let searchScore=0;
+      const searchEntries=Object.values(searches);
+      const totalSearches=searchEntries.reduce((n,x)=>n+(x.count||0),0);
+      if(totalSearches){
+        let raw=0;searchEntries.forEach(item=>raw+=overlap(game.title,(item.tokens||[]).join(' '))*(item.count||0));
+        searchScore=Math.min(1,raw/Math.max(1,totalSearches));
+      }
+      const alreadyPlayed=plays[game.key]?.plays||0;
+      const exploration=1/Math.sqrt(1+alreadyPlayed);
+      return qScore*.28+playScore*.34+searchScore*.23+recentScore*.10+exploration*.05;
+    }
+    function render(query){
+      const gs=games();
+      if(!query||!gs.length){recSection.classList.remove('is-visible');recGrid.innerHTML='';currentItems=[];page=0;pageCount=1;paintControls();return;}
+      buildControls();
+      const plays=read(PLAY_KEY),searches=read(SEARCH_KEY);
+      currentItems=gs.map(g=>({...g,score:score(g,query,plays,searches),played:!!plays[g.key]})).sort((a,b)=>b.score-a.score||a.title.localeCompare(b.title));
+      const topKeys=new Set((typeof matched==='function'?matched(query):[]).slice(0,5).map(g=>key(g)));
+      const filtered=currentItems.filter(g=>!topKeys.has(g.key));
+      currentItems=filtered.length?filtered:currentItems.filter(g=>!topKeys.has(g.key)).slice(0,1);
+      recGrid.innerHTML='';
+      currentItems.slice(0,32).forEach(game=>{
+        const button=document.createElement('button');button.type='button';button.className='search-recommendation';
+        const img=document.createElement('img');img.loading='lazy';img.src=game.image;img.alt=game.title;
+        const span=document.createElement('span');span.textContent=game.title;button.append(img,span);
+        button.addEventListener('click',()=>{clickSound();game.card.click();recordPlay(game);});
+        recGrid.appendChild(button);
       });
-      recSection.classList.add('is-visible'); paint();
+      page=0;pageCount=Math.max(1,Math.ceil(currentItems.length/pageSize()));
+      recGrid.scrollLeft=0;recSection.classList.add('is-visible');paintControls();
     }
 
     document.addEventListener('click',event=>{
       const card=event.target.closest('#gameGrid > .game-card');
-      if(card){const game=scrape().find(g=>g.card===card); if(game)recordGame(game);}
+      if(card){
+        const game=games().find(g=>g.card===card);if(game)recordPlay(game);
+      }
     },true);
-    let last='';
-    const refresh=()=>{const q=searchInput.value.trim(); if(q===last)return; last=q; renderPersonalized(q);};
-    searchInput.addEventListener('input',()=>{last='';setTimeout(refresh,0);});
-    searchInput.addEventListener('change',()=>{last='';refresh();});
-    window.addEventListener('resize',()=>{if(items.length)paint();});
-    new MutationObserver(()=>{if(searchInput.value.trim())renderPersonalized(searchInput.value.trim());}).observe(gameGridEl,{childList:true});
+    let lastQuery='';let timer=0;
+    const refresh=()=>{
+      const q=searchInput.value.trim();
+      if(q===lastQuery){paintControls();return;}
+      lastQuery=q;
+      if(q)recordSearch(q);
+      render(q);
+    };
+    searchInput.addEventListener('input',()=>{lastQuery='';clearTimeout(timer);timer=setTimeout(refresh,80);});
+    searchInput.addEventListener('change',refresh);
+    window.addEventListener('resize',()=>{const old=page;page=0;pageCount=Math.max(1,Math.ceil(currentItems.length/pageSize()));goToPage(Math.min(old,pageCount-1));});
+    new MutationObserver(()=>{if(searchInput.value.trim())render(searchInput.value.trim());}).observe(gameGridEl,{childList:true});
     refresh();
   })();
 
