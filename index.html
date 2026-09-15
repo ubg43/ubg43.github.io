@@ -549,7 +549,8 @@
 
     function render(query){
       const gs=games();
-      if(!query||!gs.length){recSection.classList.remove('is-visible');recGrid.innerHTML='';currentItems=[];page=0;updateControls();return;}
+      recGrid.classList.add('recommendation-track');
+      if(!query||!gs.length){recSection.classList.remove('is-visible');recGrid.classList.remove('recommendation-track');recGrid.innerHTML='';currentItems=[];page=0;updateControls();return;}
       ensureControls();
       const plays=read(PLAY_KEY,{}),searches=read(SEARCH_KEY,{});
       const exact=typeof matched==='function'?matched(query):[];
@@ -576,10 +577,11 @@
 
     document.addEventListener('click',e=>{const card=e.target.closest('#gameGrid > .game-card');if(card){const game=games().find(g=>g.card===card);if(game)recordPlay(game);}},true);
     let lastQuery='',timer=0;
-    const refresh=()=>{const q=searchInput.value.trim();if(q===lastQuery){updateControls();return;}lastQuery=q;if(q)recordSearch(q);render(q);};
-    searchInput.addEventListener('input',()=>{lastQuery='';clearTimeout(timer);timer=setTimeout(refresh,120);});
+    const refresh=()=>{const q=searchInput.value.trim();if(q===lastQuery){updateControls();return;}lastQuery=q;if(q.length>=2)recordSearch(q);render(q);};
+    searchInput.addEventListener('input',()=>{lastQuery='';clearTimeout(timer);timer=setTimeout(refresh,280);});
     searchInput.addEventListener('change',refresh);
-    window.addEventListener('resize',()=>{page=0;updateControls();});
+    let resizeTimer=0;
+    window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{page=0;recGrid.scrollLeft=0;updateControls();},120);});
     new MutationObserver(()=>{if(searchInput.value.trim())render(searchInput.value.trim());}).observe(gameGridEl,{childList:true});
     setTimeout(refresh,150);
   })();
