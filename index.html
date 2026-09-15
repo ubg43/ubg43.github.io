@@ -242,6 +242,51 @@
             transform: rotate(-15deg) scale(0.95) translateY(0px);
         }
     }
+  
+/* Premium compact random-game button */
+.button[data-dynamic-random-button]{
+  position:absolute;
+  top:50%;
+  left:360px;
+  transform:translateY(-50%);
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  min-width:158px;
+  height:40px;
+  padding:0 15px;
+  box-sizing:border-box;
+  border:1px solid rgba(255,255,255,.38);
+  border-radius:11px;
+  background:rgba(0,55,190,.28);
+  color:#fff;
+  font:700 14px/1 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  letter-spacing:.1px;
+  cursor:pointer;
+  box-shadow:0 5px 15px rgba(0,35,110,.22),inset 0 1px 0 rgba(255,255,255,.2);
+  transition:transform .16s ease,background .16s ease,box-shadow .16s ease;
+  white-space:nowrap;
+}
+.button[data-dynamic-random-button]:hover{
+  transform:translateY(calc(-50% - 2px));
+  background:rgba(0,43,155,.46);
+  box-shadow:0 8px 20px rgba(0,35,110,.3),inset 0 1px 0 rgba(255,255,255,.24);
+}
+.button[data-dynamic-random-button]:active{
+  transform:translateY(-50%) scale(.97);
+  box-shadow:0 3px 9px rgba(0,35,110,.24),inset 0 1px 2px rgba(0,0,0,.16);
+}
+.random-die{font-size:16px;line-height:1;filter:drop-shadow(0 1px 1px rgba(0,0,0,.25))}
+@media(max-width:760px){
+  .button[data-dynamic-random-button]{left:auto;right:16px;min-width:145px;height:38px;padding:0 12px;font-size:13px}
+}
+@media(max-width:560px){
+  .button[data-dynamic-random-button]{position:relative;top:auto;right:auto;left:auto;transform:none;margin:8px auto 0}
+  .button[data-dynamic-random-button]:hover{transform:translateY(-2px)}
+  .button[data-dynamic-random-button]:active{transform:scale(.97)}
+}
+
   </style>
   
 </head>
@@ -254,7 +299,7 @@
     <h1 class="form">Report Problem/Game Suggestion</h1>
   </div>
 
-  <button onclick="openRandom()" class="button">🎮 Play Random Game</button>
+  <button onclick="openRandom()" class="button" data-dynamic-random-button type="button"><span class="random-die" aria-hidden="true">🎲</span><span>Random Game</span></button>
 <div class="mc-text">Lil croak was here!</div>
 </header>
 <div class="game-grid" id="gameGrid">
@@ -1702,7 +1747,25 @@ function openGame(url, title) {
     </head>
     <body>
       <iframe src="${url}" frameborder="0"></iframe>
-    </body>
+    
+<script>
+(() => {
+  function getLiveGames() {
+    return Array.from(document.querySelectorAll('#gameGrid > .game-card')).filter(card => {
+      const title = card.querySelector('h3')?.textContent?.trim();
+      return !!title;
+    });
+  }
+  window.openRandom = function () {
+    const games = getLiveGames();
+    if (!games.length) return;
+    const game = games[Math.floor(Math.random() * games.length)];
+    game.click();
+  };
+})();
+</script>
+
+</body>
     </html>
   `);
   newTab.document.close();
