@@ -1,24 +1,170 @@
 from pathlib import Path
-p=Path('index.html')
-s=p.read_text(encoding='utf-8')
-start=s.find('    const CATEGORY_RULES=[')
-if start<0: raise SystemExit('CATEGORY_RULES start not found')
-end=s.find('    ];',start)
-if end<0: raise SystemExit('CATEGORY_RULES end not found')
-end += len('    ];')
-new='''    const CATEGORY_RULES=[\n      ['Action',['action','shooter','combat','battle','fight','war','zombie','ninja','stickman','assassin','gun','sniper','strike','rush','arena','brawler','fighter','hero']],\n      ['Adventure',['adventure','quest','platform','dungeon','maze','escape','explore','survival','island','parkour','treasure','mystery']],\n      ['Arcade',['arcade','flappy','runner','run','jump','brick','ball','bubble','match','pinball','snake','pong','breakout','stack','tap']],\n      ['Puzzle',['puzzle','logic','sudoku','2048','mahjong','word','memory','connect','block','brain','sort','merge','numbers','crossword','jigsaw']],\n      ['Racing',['racing','race','drift','car','cars','motor','bike','bmx','kart','traffic','drive','rally','formula','truck','rider']],\n      ['Sports',['football','soccer','basketball','baseball','golf','tennis','hockey','volleyball','bowling','pool','sports','skate','ski','boxing','wrestling','cricket']],\n      ['Strategy',['strategy','tower','defense','defence','battle','td','idle','tycoon','manager','kingdom','chess','checkers','warcraft','empire','tactics']],\n      ['Simulation',['simulator','simulation','farming','farm','restaurant','cooking','shop','business','city','hotel','airport','life','house','doctor','hospital','school','job']],\n      ['Multiplayer',['multiplayer','2 player','2p','io','agar','slither','online','versus','vs','co-op','coop']],\n      ['Casual',['clicker','idle','dress','makeup','color','drawing','quiz','trivia','fun','cute','music','piano','matching','decorate']]\n    ];'''
-s=s[:start]+new+s[end:]
-# Make the automatic system always rebuild category counts after games load/change.
-anchor="    function render(){\n      const gs=games();"
-if anchor not in s: raise SystemExit('category render anchor not found')
-# Add a small status subtitle and icons without requiring per-game edits.
-s=s.replace(anchor,"    function render(){\n      const gs=games();",1)
-# Strengthen the categorization fallback and scoring so existing and future games are handled consistently.
-old="""    function categoryFor(title){\n      const text=normalize(title);\n      let best='Casual',bestScore=0;\n      CATEGORY_RULES.forEach(([name,words])=>{\n        const score=words.reduce((n,w)=>n+(text.includes(normalize(w))?1:0),0);\n        if(score>bestScore){best=name;bestScore=score;}\n      });\n      return best;\n    }"""
-newcat="""    function categoryFor(title){\n      const text=normalize(title);\n      let best='Casual',bestScore=0;\n      CATEGORY_RULES.forEach(([name,words])=>{\n        let score=0;\n        words.forEach(word=>{\n          const w=normalize(word);\n          if(!w)return;\n          if(text===w)score+=4;\n          else if((` ${text} `).includes(` ${w} `))score+=3;\n          else if(text.includes(w))score+=1;\n        });\n        if(score>bestScore){best=name;bestScore=score;}\n      });\n      return best;\n    }"""
-if oldcat in s: s=s.replace(oldcat,newcat,1)
-# Ensure dynamic imports/new games cause immediate recategorization and preserve current selection.
-oldobs="""    const observer=new MutationObserver(()=>render());\n    observer.observe(grid,{childList:true});\n    render();"""
-newobs="""    const observer=new MutationObserver(()=>{render();});\n    observer.observe(grid,{childList:true});\n    window.addEventListener('load',()=>render());\n    render();"""
-if oldobs in s: s=s.replace(oldobs,newobs,1)
-p.write_text(s,encoding='utf-8')
+import html
+import json
+import re
+import urllib.request
+
+INDEX = Path('index.html')
+LEGACY = Path('legacy-index.html')
+
+CATEGORY_RULES = '''    const CATEGORY_RULES=[
+      ['Action',['action','shooter','combat','battle','fight','war','zombie','ninja','stickman','assassin','gun','sniper','strike','rush','arena','brawler','fighter','hero']],
+      ['Adventure',['adventure','quest','platform','dungeon','maze','escape','explore','survival','island','parkour','treasure','mystery']],
+      ['Arcade',['arcade','flappy','runner','run','jump','brick','ball','bubble','match','pinball','snake','pong','breakout','stack','tap']],
+      ['Puzzle',['puzzle','logic','sudoku','2048','mahjong','word','memory','connect','block','brain','sort','merge','numbers','crossword','jigsaw']],
+      ['Racing',['racing','race','drift','car','cars','motor','bike','bmx','kart','traffic','drive','rally','formula','truck','rider']],
+      ['Sports',['football','soccer','basketball','baseball','golf','tennis','hockey','volleyball','bowling','pool','sports','skate','ski','boxing','wrestling','cricket']],
+      ['Strategy',['strategy','tower','defense','defence','battle','td','idle','tycoon','manager','kingdom','chess','checkers','warcraft','empire','tactics']],
+      ['Simulation',['simulator','simulation','farming','farm','restaurant','cooking','shop','business','city','hotel','airport','life','house','doctor','hospital','school','job']],
+      ['Multiplayer',['multiplayer','2 player','2p','io','agar','slither','online','versus','vs','co-op','coop']],
+      ['Casual',['clicker','idle','dress','makeup','color','drawing','quiz','trivia','fun','cute','music','piano','matching','decorate']]
+    ];'''
+
+START = '<!-- TRENDING-GAMES-START -->'
+END = '<!-- TRENDING-GAMES-END -->'
+ZONES_URL = 'https://cdn.jsdelivr.net/gh/gn-math/assets@main/zones.json'
+POPULARITY_URL = 'https://data.jsdelivr.com/v1/stats/packages/gh/gn-math/html@main/files?period=year'
+COVER_ROOT = 'https://cdn.jsdelivr.net/gh/gn-math/covers@main'
+HTML_ROOT = 'https://rawcdn.githack.com/gn-math/html/main'
+
+
+def fetch_json(url):
+    req = urllib.request.Request(url, headers={'User-Agent': 'ubg43-trending-updater/1.0'})
+    with urllib.request.urlopen(req, timeout=25) as r:
+        return json.loads(r.read().decode('utf-8'))
+
+
+def normalize(s):
+    return re.sub(r'[^a-z0-9]+', ' ', (s or '').lower()).strip()
+
+
+def extract_titles(text):
+    return {normalize(x) for x in re.findall(r'<h3[^>]*>(.*?)</h3>', text, flags=re.I | re.S) if normalize(x)}
+
+
+def strip_tags(s):
+    return html.unescape(re.sub(r'<[^>]+>', '', s)).strip()
+
+
+def zone_url(zone):
+    url = str(zone.get('url', ''))
+    if '{HTML_URL}' in url:
+        suffix = url.replace('{HTML_URL}', '').lstrip('/')
+        return f'{HTML_ROOT}/{suffix}'
+    return url
+
+
+def zone_cover(zone):
+    cover = str(zone.get('cover', ''))
+    if '{COVER_URL}' in cover:
+        suffix = cover.replace('{COVER_URL}', '').lstrip('/')
+        return f'{COVER_ROOT}/{suffix}'
+    return cover
+
+
+def popularity_map(data):
+    out = {}
+    for item in data if isinstance(data, list) else []:
+        name = str(item.get('name', ''))
+        hits = item.get('hits', {})
+        total = hits.get('total', 0) if isinstance(hits, dict) else 0
+        m = re.search(r'/(\d+)(?:-[^/]*)?\.html$', name)
+        if m:
+            out[int(m.group(1))] = max(out.get(int(m.group(1)), 0), int(total or 0))
+    return out
+
+
+def build_cards(zones, pop, existing):
+    by_name = {}
+    for z in zones:
+        name = strip_tags(str(z.get('name', '')))
+        if not name or int(z.get('id', -999999)) < 0:
+            continue
+        key = normalize(name)
+        if key and key not in by_name:
+            by_name[key] = z
+
+    # Explicitly requested titles, resolved to the GN-Math ports/covers.
+    forced = []
+    for wanted in ["Granny", "Five Nights at Freddy's"]:
+        z = by_name.get(normalize(wanted))
+        if z:
+            forced.append(z)
+
+    # Rank by the current public jsDelivr request totals for GN-Math's HTML package.
+    ranked = sorted(
+        zones,
+        key=lambda z: (pop.get(int(z.get('id', -999999)), 0), -int(z.get('id', 999999))),
+        reverse=True,
+    )
+
+    chosen = []
+    seen = set(existing)
+    for z in forced + ranked:
+        name = strip_tags(str(z.get('name', '')))
+        key = normalize(name)
+        if not name or not key or key in seen:
+            continue
+        url = zone_url(z)
+        cover = zone_cover(z)
+        if not url.startswith(('http://', 'https://')):
+            continue
+        if not cover.startswith(('http://', 'https://')):
+            continue
+        # Skip obvious utility/Discord entries.
+        low = key
+        if low.startswith('suggest games'):
+            continue
+        chosen.append((name, url, cover))
+        seen.add(key)
+        if len(chosen) >= 120:
+            break
+    return chosen
+
+
+def card_html(name, url, cover):
+    title = html.escape(name, quote=True)
+    safe_url = html.escape(url, quote=True)
+    safe_cover = html.escape(cover, quote=True)
+    return (
+        f'  <div class="game-card" onclick="openGame(\'{safe_url}\')">\n'
+        f'    <img loading="lazy" src="{safe_cover}" alt="{title}" referrerpolicy="no-referrer">\n'
+        f'    <h3>{title}</h3>\n'
+        f'  </div>'
+    )
+
+
+s = INDEX.read_text(encoding='utf-8')
+legacy = LEGACY.read_text(encoding='utf-8') if LEGACY.exists() else ''
+
+# Keep the category engine current.
+start = s.find('    const CATEGORY_RULES=[')
+end = s.find('    ];', start)
+if start < 0 or end < 0:
+    raise SystemExit('CATEGORY_RULES block not found')
+s = s[:start] + CATEGORY_RULES + s[end + len('    ];'):]
+
+existing = extract_titles(legacy) | extract_titles(s)
+zones = fetch_json(ZONES_URL)
+pop = popularity_map(fetch_json(POPULARITY_URL))
+cards = build_cards(zones, pop, existing)
+
+if len(cards) < 100:
+    raise SystemExit(f'Only found {len(cards)} new eligible trending games; refusing partial update')
+if normalize('Granny') not in {normalize(x[0]) for x in cards}:
+    raise SystemExit('Granny was not found in the new-game set')
+if normalize("Five Nights at Freddy's") not in {normalize(x[0]) for x in cards}:
+    raise SystemExit("Five Nights at Freddy's was not found in the new-game set")
+
+block = START + '\n' + '\n'.join(card_html(*c) for c in cards) + '\n' + END
+if START in s and END in s:
+    a, b = s.index(START), s.index(END) + len(END)
+    s = s[:a] + block + s[b:]
+else:
+    anchor = '<div class="game-grid" id="gameGrid">'
+    if anchor not in s:
+        raise SystemExit('game grid anchor not found')
+    s = s.replace(anchor, anchor + '\n' + block, 1)
+
+INDEX.write_text(s, encoding='utf-8')
+print(f'Generated {len(cards)} new trending game cards; Granny and FNAF included; existing games were excluded.')
