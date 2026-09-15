@@ -17,8 +17,8 @@ CATEGORY_RULES = '''    const CATEGORY_RULES=[
       ['Sports',['football','soccer','basketball','baseball','golf','tennis','hockey','volleyball','bowling','pool','sports','skate','ski','boxing','wrestling','cricket']],
       ['Strategy',['strategy','tower','defense','defence','battle','td','idle','tycoon','manager','kingdom','chess','checkers','warcraft','empire','tactics']],
       ['Simulation',['simulator','simulation','farming','farm','restaurant','cooking','shop','business','city','hotel','airport','life','house','doctor','hospital','school','job']],
-      ['Same Device Multiplayer',['2 player','2-player','2p','local multiplayer','local co op','local co-op','same device','versus local','player 1','player 2','player one','player two']],
-      ['Multiplayer',['multiplayer','online multiplayer','io','agar','slither','online','versus','vs','co-op','coop']],
+      ['Multiplayer',['2 player','2-player','2p','local multiplayer','local co op','local co-op','same device','versus local','player 1','player 2','player one','player two','two players','two-player']],
+      ['Online Multiplayer',['multiplayer','online multiplayer','io','agar','slither','online','versus','vs','co-op','coop']],
       ['Casual',['clicker','idle','dress','makeup','color','drawing','quiz','trivia','fun','cute','music','piano','matching','decorate']]
     ];'''
 
@@ -88,7 +88,6 @@ def fetch_html(url):
 def is_local_multiplayer(name, content):
     text = (content or '').lower()
     n = normalize(name)
-    # Require explicit local/same-device/two-player signals in the game page where possible.
     strong = [
         'local multiplayer', 'local co-op', 'local co op', 'same device',
         'player 1', 'player 2', 'player one', 'player two',
@@ -97,11 +96,10 @@ def is_local_multiplayer(name, content):
     ]
     if any(x in text for x in strong):
         return True
-    # Names with well-established same-device control wording are also accepted.
+    # Well-known local same-device game titles.
     local_title_terms = [
-        '2 player', '2-player', 'two player', 'multiplayer local',
-        'supreme duelist', 'boxing random', 'basket random', 'stick duel',
-        'get on top', 'rooftop snipers', 'party', 'battle wheels',
+        'supreme duelist', 'boxing random', 'basket random', 'get on top',
+        'rooftop snipers', 'stick duel', 'battle wheels', 'party',
     ]
     return any(x in n for x in local_title_terms)
 
@@ -162,60 +160,63 @@ def card_html(item):
     )
 
 
-s = INDEX.read_text(encoding='utf-8')
+index = INDEX.read_text(encoding='utf-8')
 legacy = LEGACY.read_text(encoding='utf-8') if LEGACY.exists() else ''
 
-start = s.find('    const CATEGORY_RULES=[')
-end = s.find('    ];', start)
+# Replace the category rule block in the current homepage regardless of its older version.
+start = index.find('    const CATEGORY_RULES=[')
+end = index.find('    ];', start)
 if start < 0 or end < 0:
     raise SystemExit('CATEGORY_RULES block not found')
-s = s[:start] + CATEGORY_RULES + s[end + len('    ];'):]
+index = index[:start] + CATEGORY_RULES + index[end + len('    ];'):]
 
-# Teach the live category UI to use the explicit same-device marker before title keywords.
-old_cat = """    function categoryFor(title){\n      const text=normalize(title);\n      let best='Casual',bestScore=0;\n      CATEGORY_RULES.forEach(([name,words])=>{\n        const score=words.reduce((n,w)=>n+(text.includes(normalize(w))?1:0),0);\n        if(score>bestScore){best=name;bestScore=score;}\n      });\n      return best;\n    }"""
-new_cat = """    function categoryFor(title,card){\n      if(card?.dataset.localMultiplayer==='true')return 'Same Device Multiplayer';\n      const text=normalize(title);\n      let best='Casual',bestScore=0;\n      CATEGORY_RULES.forEach(([name,words])=>{\n        let score=0;\n        words.forEach(word=>{\n          const w=normalize(word);\n          if(!w)return;\n          if(text===w)score+=4;\n          else if((` ${text} `).includes(` ${w} `))score+=3;\n          else if(text.includes(w))score+=1;\n        });\n        if(score>bestScore){best=name;bestScore=score;}\n      });\n      return best;\n    }"""
-if old_cat not in s:
+# Use the current homepage's actual categoryFor function shape.
+pattern = re.compile(r"    function categoryFor\(title\)\{.*?\n    \}", re.S)
+match = pattern.search(index)
+if not match:
     raise SystemExit('categoryFor function not found')
-s = s.replace(old_cat, new_cat, 1)
-s = s.replace('counts[categoryFor(g.title)]++;', 'counts[categoryFor(g.title,g.card)]++;', 1)
-s = s.replace('categoryFor(g.title)===c', 'categoryFor(g.title,g.card)===c', 1)
+new_cat = """    function categoryFor(title,card){\n      if(card?.dataset.localMultiplayer==='true')return 'Multiplayer';\n      const text=normalize(title);\n      let best='Casual',bestScore=0;\n      CATEGORY_RULES.forEach(([name,words])=>{\n        let score=0;\n        words.forEach(word=>{\n          const w=normalize(word);\n          if(!w)return;\n          if(text===w)score+=4;\n          else if((` ${text} `).includes(` ${w} `))score+=3;\n          else if(text.includes(w))score+=1;\n        });\n        if(score>bestScore){best=name;bestScore=score;}\n      });\n      return best;\n    }"""
+index = index[:match.start()] + new_cat + index[match.end():]
+index = index.replace('counts[categoryFor(g.title)]++;', 'counts[categoryFor(g.title,g.card)]++;', 1)
+index = index.replace('categoryFor(g.title)===c', 'categoryFor(g.title,g.card)===c', 1)
 
-existing = extract_titles(legacy) | extract_titles(s)
+existing = extract_titles(legacy) | extract_titles(index)
 zones = fetch_json(ZONES_URL)
 pop = popularity_map(fetch_json(POPULARITY_URL))
 base_cards = build_cards(zones, pop, existing, limit=1200)
-
 if len(base_cards) < 1000:
     raise SystemExit(f'Only found {len(base_cards)} new eligible games; refusing to publish fewer than 1000 new games')
 
-# Inspect the selected game pages concurrently and tag genuine same-device/two-player games.
 local_flags = {}
-with ThreadPoolExecutor(max_workers=24) as pool:
+with ThreadPoolExecutor(max_workers=32) as pool:
     futures = {pool.submit(fetch_html, url): (name, url) for name, url, _ in base_cards}
     for fut in as_completed(futures):
         name, url = futures[fut]
-        content = fut.result()
-        local_flags[normalize(name)] = is_local_multiplayer(name, content)
+        local_flags[normalize(name)] = is_local_multiplayer(name, fut.result())
 
 items = [(name, url, cover, bool(local_flags.get(normalize(name), False))) for name, url, cover in base_cards]
 local_count = sum(1 for x in items if x[3])
-
 if local_count < 100:
     raise SystemExit(f'Only verified {local_count} same-device multiplayer games; refusing to publish a misleading 100-game category')
 
+names = {normalize(x[0]) for x in items}
 for wanted in ['Granny', "Five Nights at Freddy's"]:
-    if normalize(wanted) not in {normalize(x[0]) for x in items}:
+    if normalize(wanted) not in names:
         raise SystemExit(f'{wanted} was not included')
 
-block = START + '\n' + '\n'.join(card_html(x) for x in items) + '\n' + END
-if START in s and END in s:
-    a, b = s.index(START), s.index(END) + len(END)
-    s = s[:a] + block + s[b:]
+# New games belong in legacy-index.html because index.html imports and rebuilds its game grid from that file.
+new_block = START + '\n' + '\n'.join(card_html(x) for x in items) + '\n' + END
+if START in legacy and END in legacy:
+    a, b = legacy.index(START), legacy.index(END) + len(END)
+    legacy = legacy[:a] + new_block + legacy[b:]
 else:
-    anchor = '<div class="game-grid" id="gameGrid">'
-    if anchor not in s:
-        raise SystemExit('game grid anchor not found')
-    s = s.replace(anchor, anchor + '\n' + block, 1)
+    anchor = '\n\t\t</div>\n\t\t<footer>'
+    if anchor not in legacy:
+        anchor = '\n\t</div>\n\t<footer>'
+    if anchor not in legacy:
+        raise SystemExit('legacy game-grid/footer anchor not found')
+    legacy = legacy.replace(anchor, '\n' + new_block + anchor, 1)
 
-INDEX.write_text(s, encoding='utf-8')
-print(f'Published {len(items)} new games and verified {local_count} same-device multiplayer games; Granny and FNAF included.')
+INDEX.write_text(index, encoding='utf-8')
+LEGACY.write_text(legacy, encoding='utf-8')
+print(f'Published {len(items)} new games, including Granny and FNAF, with {local_count} verified same-device multiplayer games.')
