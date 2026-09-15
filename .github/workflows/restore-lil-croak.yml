@@ -1,0 +1,40 @@
+name: Restore Lil Croak styling
+
+on:
+  push:
+    paths:
+      - '.github/workflows/restore-lil-croak.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore original styling
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          old = r'\.mc-text\{[^}]*\}'
+          new = r'.mc-text{font-family:"Pixelify Sans",sans-serif;font-optical-sizing:auto;font-weight:400;font-style:normal;color:#ffff00;display:inline-block;position:absolute;left:1070px;top:35px;white-space:nowrap;text-shadow:1px 1px 0 #000;transform:rotate(-15deg);animation:splash 1.2s infinite ease-in-out}'
+          s2, n = re.subn(old, new, s, count=1)
+          if n != 1:
+              raise SystemExit(f'Expected 1 .mc-text rule, found {n}')
+          if '@keyframes splash' not in s2:
+              splash = '''\n    @keyframes splash {\n      0% { transform: rotate(-15deg) scale(0.95) translateY(0px); }\n      25% { transform: rotate(-15deg) scale(1.15) translateY(0px); }\n      50% { transform: rotate(-15deg) scale(0.95) translateY(0px); }\n      75% { transform: rotate(-15deg) scale(1.2) translateY(0px); }\n      100% { transform: rotate(-15deg) scale(0.95) translateY(0px); }\n    }\n'''
+              s2 = s2.replace('</style>', splash + '</style>', 1)
+          p.write_text(s2, encoding='utf-8')
+          PY
+      - name: Commit homepage change
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git commit -m 'Restore original Lil Croak styling'
+          git push
