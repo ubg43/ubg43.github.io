@@ -114,6 +114,31 @@
       75% { transform: rotate(-15deg) scale(1.2) translateY(0px); }
       100% { transform: rotate(-15deg) scale(0.95) translateY(0px); }
     }
+
+    .category-toggle{height:38px;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:0 12px;border:1px solid rgba(255,255,255,.42);border-radius:11px;background:#0849b6;color:#fff;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap;box-shadow:0 5px 14px rgba(0,30,100,.20),inset 0 1px 0 rgba(255,255,255,.18);transition:transform .16s ease,background .16s ease,box-shadow .16s ease}
+    .category-toggle:hover{transform:translateY(-2px) scale(1.035);background:#063f9f;box-shadow:0 9px 21px rgba(0,30,100,.28),inset 0 1px 0 rgba(255,255,255,.26)}
+    .category-toggle:active{transform:translateY(1px) scale(.98)}
+    .category-toggle-icon{font-size:15px;line-height:1}
+    .category-overlay{position:fixed;inset:0;background:rgba(1,9,28,.48);backdrop-filter:blur(2px);z-index:1090;opacity:0;transition:opacity .2s ease}
+    .category-overlay.is-open{opacity:1}
+    .category-sidebar{position:fixed;top:0;right:0;height:100vh;width:min(350px,88vw);background:linear-gradient(180deg,#061734 0%,#0b2350 100%);color:#fff;z-index:1100;box-shadow:-18px 0 42px rgba(0,10,35,.35);transform:translateX(102%);transition:transform .24s cubic-bezier(.2,.8,.2,1);display:flex;flex-direction:column}
+    .category-sidebar.is-open{transform:none}
+    .category-sidebar-header{padding:24px 20px 16px;display:flex;align-items:flex-start;justify-content:space-between;gap:14px;border-bottom:1px solid rgba(255,255,255,.1)}
+    .category-kicker{font-size:11px;text-transform:uppercase;letter-spacing:.13em;color:rgba(255,255,255,.55);font-weight:800;margin-bottom:4px}
+    .category-sidebar-header h2{margin:0;font-size:22px;line-height:1.2;font-weight:850}
+    .category-close{width:34px;height:34px;border:1px solid rgba(255,255,255,.2);border-radius:10px;background:rgba(255,255,255,.06);color:#fff;font-size:25px;line-height:1;cursor:pointer;transition:background .15s ease,transform .15s ease}
+    .category-close:hover{background:rgba(255,255,255,.12);transform:scale(1.05)}
+    .category-list{padding:14px 12px 20px;overflow:auto}
+    .category-item{width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 13px;margin:4px 0;border:1px solid transparent;border-radius:12px;background:transparent;color:#fff;text-align:left;cursor:pointer;transition:background .15s ease,border-color .15s ease,transform .15s ease}
+    .category-item:hover{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.09);transform:translateX(-2px)}
+    .category-item.is-active{background:rgba(37,115,255,.24);border-color:rgba(76,146,255,.34)}
+    .category-item-main{display:flex;align-items:center;gap:10px;min-width:0}
+    .category-dot{width:9px;height:9px;border-radius:50%;background:#4d91ff;box-shadow:0 0 0 4px rgba(77,145,255,.12);flex:0 0 auto}
+    .category-name{font-size:14px;font-weight:780;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .category-count{min-width:30px;height:24px;padding:0 8px;border-radius:999px;background:rgba(255,255,255,.1);color:rgba(255,255,255,.76);display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:800}
+    body.category-locked{overflow:hidden}
+    @media(max-width:830px){.category-toggle-label{display:none}.category-toggle{width:42px;padding:0}.header-actions{margin-left:auto}}
+    @media(max-width:570px){.category-toggle{width:100%;height:38px}.header-actions{margin-left:0}}
 </style>
 
 <style id="personalized-recommendation-style">
@@ -143,9 +168,20 @@
         <button class="header-action" id="randomGameButton" type="button"><span class="action-icon" aria-hidden="true">🎲</span><span>Random Game</span></button>
         <button class="header-action" id="reportGameButton" type="button"><span class="action-icon" aria-hidden="true">📝</span><span>Report / Suggest</span></button>
       </nav>
-      <div class="mc-text">Lil croak was here!</div>
     </div>
   </header>
+
+  <div class="category-overlay" id="categoryOverlay" hidden></div>
+  <aside class="category-sidebar" id="categorySidebar" aria-label="Game categories" aria-hidden="true">
+    <div class="category-sidebar-header">
+      <div>
+        <div class="category-kicker">Browse</div>
+        <h2>Game Categories</h2>
+      </div>
+      <button class="category-close" id="categoryClose" type="button" aria-label="Close categories">×</button>
+    </div>
+    <div class="category-list" id="categoryList"></div>
+  </aside>
 
   <main class="page-wrap">
     <div id="loadingCard" class="loading-card">Loading games...</div>
@@ -321,6 +357,61 @@
   }
 
   loadLegacyGames();
+
+
+  /* Automatic game categories */
+  (function(){
+    const toggle=document.getElementById('categoryToggle');
+    const close=document.getElementById('categoryClose');
+    const sidebar=document.getElementById('categorySidebar');
+    const overlay=document.getElementById('categoryOverlay');
+    const list=document.getElementById('categoryList');
+    const grid=document.getElementById('gameGrid');
+    if(!toggle||!close||!sidebar||!overlay||!list||!grid)return;
+
+    const CATEGORY_RULES=[
+      ['Action',['action','shooter','combat','battle','fight','war','zombie','ninja','stickman','assassin','gun','sniper','strike','rush']],
+      ['Adventure',['adventure','quest','platform','dungeon','maze','escape','explore','survival','island','parkour']],
+      ['Arcade',['arcade','flappy','runner','run','jump','brick','ball','bubble','match','pinball','snake']],
+      ['Puzzle',['puzzle','logic','sudoku','2048','mahjong','word','memory','connect','block','brain','sort','merge']],
+      ['Racing',['racing','race','drift','car','cars','motor','bike','bmx','kart','traffic','drive']],
+      ['Sports',['football','soccer','basketball','baseball','golf','tennis','hockey','volleyball','bowling','pool','sports','skate','ski']],
+      ['Strategy',['strategy','tower','defense','defence','battle','td','idle','tycoon','manager','kingdom','chess','checkers']],
+      ['Simulation',['simulator','simulation','farming','farm','restaurant','cooking','shop','business','city','hotel','airport','life','house']],
+      ['Multiplayer',['multiplayer','2 player','2p','io','agar','slither','online']],
+      ['Casual',['clicker','idle','dress','makeup','color','drawing','quiz','trivia','fun','cute']]
+    ];
+    const categories=['All Games',...CATEGORY_RULES.map(x=>x[0])];
+    let active='All Games';
+
+    const normalize=s=>(s||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+    function games(){return Array.from(grid.querySelectorAll(':scope > .game-card')).map(card=>({card,title:(card.querySelector('h3')?.textContent||card.querySelector('img')?.alt||'Game').trim()}));}
+    function categoryFor(title){
+      const text=' '+normalize(title)+' ';
+      const scores=CATEGORY_RULES.map(([name,words])=>[name,words.reduce((n,w)=>n+(text.includes(' '+normalize(w)+' ')?1:0),0)]);
+      const best=scores.sort((a,b)=>b[1]-a[1])[0];
+      return best&&best[1]>0?best[0]:'Casual';
+    }
+    function openSidebar(){sidebar.classList.add('is-open');overlay.hidden=false;requestAnimationFrame(()=>overlay.classList.add('is-open'));sidebar.setAttribute('aria-hidden','false');toggle.setAttribute('aria-expanded','true');document.body.classList.add('category-locked');render();}
+    function closeSidebar(){sidebar.classList.remove('is-open');overlay.classList.remove('is-open');sidebar.setAttribute('aria-hidden','true');toggle.setAttribute('aria-expanded','false');document.body.classList.remove('category-locked');setTimeout(()=>{if(!sidebar.classList.contains('is-open'))overlay.hidden=true;},220);}
+    function render(){
+      const gs=games();
+      const counts=Object.fromEntries(categories.map(c=>[c,0]));
+      gs.forEach(g=>counts[categoryFor(g.title)]++);
+      list.innerHTML='';
+      categories.forEach(c=>{
+        const btn=document.createElement('button');btn.type='button';btn.className='category-item'+(active===c?' is-active':'');
+        btn.innerHTML='<span class="category-item-main"><span class="category-dot" aria-hidden="true"></span><span class="category-name"></span></span><span class="category-count"></span>';
+        btn.querySelector('.category-name').textContent=c;btn.querySelector('.category-count').textContent=String(c==='All Games'?gs.length:counts[c]);
+        btn.addEventListener('click',()=>{active=c;gs.forEach(g=>{const match=c==='All Games'||categoryFor(g.title)===c;g.card.style.display=match?'':'none';});list.querySelectorAll('.category-item').forEach(x=>x.classList.remove('is-active'));btn.classList.add('is-active');});
+        list.appendChild(btn);
+      });
+    }
+    toggle.addEventListener('click',()=>sidebar.classList.contains('is-open')?closeSidebar():openSidebar());
+    close.addEventListener('click',closeSidebar);overlay.addEventListener('click',closeSidebar);document.addEventListener('keydown',e=>{if(e.key==='Escape'&&sidebar.classList.contains('is-open'))closeSidebar();});
+    new MutationObserver(()=>{render();}).observe(grid,{childList:true});
+    render();
+  })();
 
   /* Personalized recommendation carousel */
   (function(){
