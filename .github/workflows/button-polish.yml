@@ -7,4 +7,46 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: echo "button polish workflow is running"
+      - name: Apply button polish
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          if '/* Polished compact header actions */' in s:
+              print('Button polish already applied')
+              raise SystemExit(0)
+
+          css = '''
+
+/* Polished compact header actions */
+.header-actions{position:absolute;left:360px;top:50%;transform:translateY(-50%);display:flex;align-items:center;gap:8px;z-index:10}
+.header-actions .header-action{position:relative!important;inset:auto!important;transform:none!important;box-sizing:border-box;width:148px;height:36px;min-width:148px;padding:0 12px;display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid rgba(255,255,255,.38);border-radius:10px;background:linear-gradient(180deg,rgba(255,255,255,.18),rgba(0,45,150,.28));color:#fff;font:700 13px/1 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;letter-spacing:.1px;text-decoration:none;cursor:pointer;white-space:nowrap;box-shadow:0 5px 14px rgba(0,30,100,.22),inset 0 1px 0 rgba(255,255,255,.2);transition:transform .16s ease,background .16s ease,box-shadow .16s ease}
+.header-actions .header-action:hover{transform:translateY(-2px)!important;background:linear-gradient(180deg,rgba(255,255,255,.24),rgba(0,38,135,.42));box-shadow:0 8px 18px rgba(0,30,100,.3),inset 0 1px 0 rgba(255,255,255,.25)}
+.header-actions .header-action:active{transform:translateY(1px) scale(.98)!important;box-shadow:0 3px 8px rgba(0,30,100,.2),inset 0 1px 2px rgba(0,0,0,.14)}
+.header-actions .action-icon{font-size:15px;line-height:1;filter:drop-shadow(0 1px 1px rgba(0,0,0,.25))}
+@media(max-width:900px){.header-actions{left:auto;right:16px}.header-actions .header-action{width:140px;min-width:140px}}
+@media(max-width:680px){.header-actions{position:relative;left:auto;right:auto;top:auto;transform:none;margin:8px auto 0;width:max-content;max-width:calc(100% - 24px)}.header-actions .header-action{width:136px;min-width:136px;height:35px;font-size:12px}}
+'''
+          s = s.replace('</style>', css + '</style>', 1)
+
+          old = '''<div onclick="openGame('PLACEHOLDER', 'Google Docs')">
+    <h1 class="form">Report Problem/Game Suggestion</h1>
+  </div>
+
+  <button onclick="openRandom()" class="button" data-dynamic-random-button type="button"><span class="random-die" aria-hidden="true">🎲</span><span>Random Game</span></button>'''
+          new = '''<div class="header-actions" aria-label="Game actions">
+    <button onclick="openRandom()" class="header-action" data-dynamic-random-button type="button"><span class="action-icon" aria-hidden="true">🎲</span><span>Random Game</span></button>
+    <button onclick="openGame('PLACEHOLDER', 'Google Docs')" class="header-action" type="button"><span class="action-icon" aria-hidden="true">📝</span><span>Report / Suggest</span></button>
+  </div>'''
+          if old not in s:
+              raise SystemExit('Could not find the existing header button markup')
+          s = s.replace(old, new, 1)
+          p.write_text(s, encoding='utf-8')
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git commit -m 'Polish random and report buttons'
+          git push
