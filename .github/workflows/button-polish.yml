@@ -1,0 +1,10 @@
+name: Polish header buttons
+on: push
+permissions:
+  contents: write
+jobs:
+  polish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo "button polish workflow is running"
