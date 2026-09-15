@@ -8,8 +8,8 @@
   <link rel="shortcut icon" href="Docs.ico" type="image/ico">
   <style>
     :root{
-      --blue:#004dcc;
-      --blue-deep:#003ea8;
+      --blue:#0047bd;
+      --blue-deep:#003a96;
       --ink:#142039;
       --muted:#75829a;
       --panel:#ffffff;
@@ -77,11 +77,10 @@
     .search-result-copy{min-width:0}.search-result-title{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:800;line-height:1.25}.search-result-label{display:block;margin-top:2px;color:var(--muted);font-size:11px;font-weight:650}
     .search-empty{padding:14px 10px;color:var(--muted);font-size:13px;text-align:center}
     .header-actions{display:flex;align-items:center;gap:8px;flex:0 0 auto}
-    .header-action{width:148px;height:38px;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:0 12px;border:1px solid rgba(255,255,255,.42);border-radius:11px;background:#0849b6;color:#fff;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap;box-shadow:0 5px 14px rgba(0,30,100,.20),inset 0 1px 0 rgba(255,255,255,.18);transition:transform .16s ease,background .16s ease,box-shadow .16s ease}
-    .header-action:hover{transform:translateY(-2px) scale(1.035);background:#063f9f;box-shadow:0 9px 21px rgba(0,30,100,.28),inset 0 1px 0 rgba(255,255,255,.26)}
+    .header-action{width:148px;height:38px;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:0 12px;border:1px solid rgba(255,255,255,.42);border-radius:11px;background:#0744ab;color:#fff;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap;box-shadow:0 5px 14px rgba(0,30,100,.20),inset 0 1px 0 rgba(255,255,255,.18);transition:transform .16s ease,background .16s ease,box-shadow .16s ease}
+    .header-action:hover{transform:translateY(-2px) scale(1.035);background:#063a92;box-shadow:0 9px 21px rgba(0,30,100,.28),inset 0 1px 0 rgba(255,255,255,.26)}
     .header-action:active{transform:translateY(1px) scale(.98)}
     .action-icon{font-size:15px;line-height:1}
-    .mc-text{font-family:"Pixelify Sans",sans-serif;font-optical-sizing:auto;font-weight:400;font-style:normal;color:#ffff00;display:inline-block;position:absolute;left:1070px;top:35px;white-space:nowrap;text-shadow:1px 1px 0 #000;transform:rotate(-15deg);animation:splash 1.2s infinite ease-in-out}
     .page-wrap{width:min(1440px,100%);margin:0 auto}
     .loading-card,.error-card{margin:24px 22px;padding:22px;border-radius:14px;background:rgba(255,255,255,.96);box-shadow:var(--shadow);text-align:center;color:var(--muted)}
     .game-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:17px;padding:22px}
@@ -103,25 +102,17 @@
     .search-recommendation span{display:block;padding:9px 10px 11px;color:#1b2740;font-size:13px;font-weight:750;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     footer{background:var(--blue);color:#fff;text-align:center;padding:20px;font-size:14px}
     footer p{margin:4px 0}.footer-muted{opacity:.82}
-    @media(max-width:1050px){.search-shell{flex-basis:280px;width:280px;max-width:280px}.header-action{width:138px}.mc-text{font-size:14px}}
-    @media(max-width:830px){.header-inner{flex-wrap:wrap;padding:11px 14px}.search-shell{order:1;flex:1 1 100%;width:100%;max-width:none}.header-actions{order:2;flex:1 1 auto}.header-action{width:148px;min-width:0}.mc-text{order:3;margin-left:auto;margin-right:4px}}
-    @media(max-width:570px){.header-actions{width:100%;display:grid;grid-template-columns:1fr 1fr}.header-action{width:100%}.mc-text{display:none}.game-grid{grid-template-columns:repeat(2,minmax(0,1fr));padding:14px;gap:12px}.search-recommendations{padding-left:14px;padding-right:14px}.search-recommendations-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.search-recommendation img{height:92px}.game-card img{height:112px}}
+    @media(max-width:1050px){.search-shell{flex-basis:280px;width:280px;max-width:280px}.header-action{width:138px}}
+    @media(max-width:830px){.header-inner{flex-wrap:wrap;padding:11px 14px}.search-shell{order:1;flex:1 1 100%;width:100%;max-width:none}.header-actions{order:2;flex:1 1 auto}.header-action{width:148px;min-width:0}}
+    @media(max-width:570px){.header-actions{width:100%;display:grid;grid-template-columns:1fr 1fr}.header-action{width:100%}.game-grid{grid-template-columns:repeat(2,minmax(0,1fr));padding:14px;gap:12px}.search-recommendations{padding-left:14px;padding-right:14px}.search-recommendations-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.search-recommendation img{height:92px}.game-card img{height:112px}}
   
-    @keyframes splash {
-      0% { transform: rotate(-15deg) scale(0.95) translateY(0px); }
-      25% { transform: rotate(-15deg) scale(1.15) translateY(0px); }
-      50% { transform: rotate(-15deg) scale(0.95) translateY(0px); }
-      75% { transform: rotate(-15deg) scale(1.2) translateY(0px); }
-      100% { transform: rotate(-15deg) scale(0.95) translateY(0px); }
-    }
-
     .category-toggle{height:38px;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:0 12px;border:1px solid rgba(255,255,255,.42);border-radius:11px;background:#0849b6;color:#fff;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap;box-shadow:0 5px 14px rgba(0,30,100,.20),inset 0 1px 0 rgba(255,255,255,.18);transition:transform .16s ease,background .16s ease,box-shadow .16s ease}
     .category-toggle:hover{transform:translateY(-2px) scale(1.035);background:#063f9f;box-shadow:0 9px 21px rgba(0,30,100,.28),inset 0 1px 0 rgba(255,255,255,.26)}
     .category-toggle:active{transform:translateY(1px) scale(.98)}
     .category-toggle-icon{font-size:15px;line-height:1}
     .category-overlay{position:fixed;inset:0;background:rgba(1,9,28,.48);backdrop-filter:blur(2px);z-index:1090;opacity:0;transition:opacity .2s ease}
     .category-overlay.is-open{opacity:1}
-    .category-sidebar{position:fixed;top:0;right:0;height:100vh;width:min(350px,88vw);background:linear-gradient(180deg,#061734 0%,#0b2350 100%);color:#fff;z-index:1100;box-shadow:-18px 0 42px rgba(0,10,35,.35);transform:translateX(102%);transition:transform .24s cubic-bezier(.2,.8,.2,1);display:flex;flex-direction:column}
+    .category-sidebar{position:fixed;top:0;right:0;height:100vh;width:min(350px,88vw);background:linear-gradient(180deg,#05142f 0%,#092047 100%);color:#fff;z-index:1100;box-shadow:-18px 0 42px rgba(0,10,35,.35);transform:translateX(102%);transition:transform .24s cubic-bezier(.2,.8,.2,1);display:flex;flex-direction:column}
     .category-sidebar.is-open{transform:none}
     .category-sidebar-header{padding:24px 20px 16px;display:flex;align-items:flex-start;justify-content:space-between;gap:14px;border-bottom:1px solid rgba(255,255,255,.1)}
     .category-kicker{font-size:11px;text-transform:uppercase;letter-spacing:.13em;color:rgba(255,255,255,.55);font-weight:800;margin-bottom:4px}
@@ -136,6 +127,9 @@
     .category-dot{width:9px;height:9px;border-radius:50%;background:#4d91ff;box-shadow:0 0 0 4px rgba(77,145,255,.12);flex:0 0 auto}
     .category-name{font-size:14px;font-weight:780;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .category-count{min-width:30px;height:24px;padding:0 8px;border-radius:999px;background:rgba(255,255,255,.1);color:rgba(255,255,255,.76);display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:800}
+
+    .category-item.is-trending .category-dot{background:#5a9bff;box-shadow:0 0 0 4px rgba(90,155,255,.14),0 0 12px rgba(90,155,255,.18)}
+    .category-item.is-trending.is-active{background:rgba(28,94,205,.29);border-color:rgba(83,148,255,.42)}
     body.category-locked{overflow:hidden}
     @media(max-width:830px){.category-toggle-label{display:none}.category-toggle{width:42px;padding:0}.header-actions{margin-left:auto}}
     @media(max-width:570px){.category-toggle{width:100%;height:38px}.header-actions{margin-left:0}}
@@ -143,8 +137,8 @@
 
 <style id="personalized-recommendation-style">
   .search-recommendations-header{align-items:center;position:relative}
-  .recommendation-arrow{width:36px;height:36px;flex:0 0 36px;border:1px solid rgba(255,255,255,.35);border-radius:10px;background:rgba(0,58,160,.80);color:#fff;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font-size:22px;line-height:1;box-shadow:0 5px 15px rgba(0,15,55,.2);transition:transform .16s ease,background .16s ease,box-shadow .16s ease}
-  .recommendation-arrow:hover:not(:disabled){transform:translateX(2px) scale(1.06);background:rgba(0,68,182,.93);box-shadow:0 8px 19px rgba(0,15,55,.28)}
+  .recommendation-arrow{width:36px;height:36px;flex:0 0 36px;border:1px solid rgba(255,255,255,.35);border-radius:10px;background:rgba(0,54,150,.84);color:#fff;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font-size:22px;line-height:1;box-shadow:0 5px 15px rgba(0,15,55,.2);transition:transform .16s ease,background .16s ease,box-shadow .16s ease}
+  .recommendation-arrow:hover:not(:disabled){transform:translateX(2px) scale(1.06);background:rgba(0,64,170,.95);box-shadow:0 8px 19px rgba(0,15,55,.28)}
   .recommendation-arrow:active:not(:disabled){transform:translateX(1px) scale(.97)}
   .recommendation-arrow:disabled{opacity:.42;cursor:default}
   .recommendation-arrow.is-hidden{display:none}
@@ -385,32 +379,84 @@
       ['Multiplayer',['multiplayer','2 player','2p','io','agar','slither','online']],
       ['Casual',['clicker','idle','dress','makeup','color','drawing','quiz','trivia','fun','cute']]
     ];
-    const categories=['All Games',...CATEGORY_RULES.map(x=>x[0])];
+    const categories=['All Games','Trending',...CATEGORY_RULES.map(x=>x[0])];
     let active='All Games';
 
+    const TRENDING_LOG_KEY='ubg_trending_play_log_v1';
+    const TRENDING_CACHE_KEY='ubg_trending_cache_v1';
+    const THREE_DAYS=3*24*60*60*1000;
+    const MAX_TRENDING=25;
     const normalize=s=>(s||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
-    function games(){return Array.from(grid.querySelectorAll(':scope > .game-card')).map(card=>({card,title:(card.querySelector('h3')?.textContent||card.querySelector('img')?.alt||'Game').trim()}));}
-    function categoryFor(title){
-      const text=' '+normalize(title)+' ';
-      const scores=CATEGORY_RULES.map(([name,words])=>[name,words.reduce((n,w)=>n+(text.includes(' '+normalize(w)+' ')?1:0),0)]);
-      const best=scores.sort((a,b)=>b[1]-a[1])[0];
-      return best&&best[1]>0?best[0]:'Casual';
+    const gameKey=(title,image='')=>normalize(title)+'|'+image;
+    function readJSON(key,fallback){try{return JSON.parse(localStorage.getItem(key)||JSON.stringify(fallback));}catch(_){return fallback;}}
+    function writeJSON(key,value){try{localStorage.setItem(key,JSON.stringify(value));}catch(_){} }
+    function pruneTrendLog(log){
+      const cutoff=Date.now()-90*24*60*60*1000;
+      Object.keys(log).forEach(k=>{log[k]=(log[k]||[]).filter(ts=>Number(ts)>=cutoff).slice(-80);if(!log[k].length)delete log[k];});
+      return log;
+    }
+    function recordTrendingPlay(game){
+      if(!game||!game.title)return;
+      const log=pruneTrendLog(readJSON(TRENDING_LOG_KEY,{}));
+      const key=gameKey(game.title,game.image);
+      log[key]=log[key]||[];
+      log[key].push(Date.now());
+      writeJSON(TRENDING_LOG_KEY,pruneTrendLog(log));
+    }
+    function trendingKeys(){
+      const slot=Math.floor(Date.now()/THREE_DAYS);
+      const cached=readJSON(TRENDING_CACHE_KEY,{});
+      if(cached.slot===slot&&Array.isArray(cached.keys))return new Set(cached.keys.slice(0,MAX_TRENDING));
+      const gs=games();
+      const log=pruneTrendLog(readJSON(TRENDING_LOG_KEY,{}));
+      writeJSON(TRENDING_LOG_KEY,log);
+      const cutoff=Date.now()-THREE_DAYS;
+      const ranked=gs.map(g=>{
+        const key=gameKey(g.title,g.card.querySelector('img')?.currentSrc||g.card.querySelector('img')?.src||'');
+        const hits=(log[key]||[]).filter(ts=>Number(ts)>=cutoff);
+        return {g,n:hits.length,last:Math.max(0,...hits)};
+      }).filter(x=>x.n>0);
+      ranked.sort((a,b)=>b.n-a.n||b.last-a.last||a.g.title.localeCompare(b.g.title));
+      const keys=ranked.slice(0,MAX_TRENDING).map(x=>gameKey(x.g.title,x.g.card.querySelector('img')?.currentSrc||x.g.card.querySelector('img')?.src||''));
+      writeJSON(TRENDING_CACHE_KEY,{slot,keys});
+      return new Set(keys);
     }
     function openSidebar(){sidebar.classList.add('is-open');overlay.hidden=false;requestAnimationFrame(()=>overlay.classList.add('is-open'));sidebar.setAttribute('aria-hidden','false');toggle.setAttribute('aria-expanded','true');document.body.classList.add('category-locked');render();}
     function closeSidebar(){sidebar.classList.remove('is-open');overlay.classList.remove('is-open');sidebar.setAttribute('aria-hidden','true');toggle.setAttribute('aria-expanded','false');document.body.classList.remove('category-locked');setTimeout(()=>{if(!sidebar.classList.contains('is-open'))overlay.hidden=true;},220);}
     function render(){
       const gs=games();
+      const trend=trendingKeys();
       const counts=Object.fromEntries(categories.map(c=>[c,0]));
-      gs.forEach(g=>counts[categoryFor(g.title)]++);
+      gs.forEach(g=>{counts[categoryFor(g.title)]++;});
+      counts.Trending=trend.size;
       list.innerHTML='';
       categories.forEach(c=>{
-        const btn=document.createElement('button');btn.type='button';btn.className='category-item'+(active===c?' is-active':'');
+        const btn=document.createElement('button');btn.type='button';btn.className='category-item'+(active===c?' is-active':'')+(c==='Trending'?' is-trending':'');
         btn.innerHTML='<span class="category-item-main"><span class="category-dot" aria-hidden="true"></span><span class="category-name"></span></span><span class="category-count"></span>';
-        btn.querySelector('.category-name').textContent=c;btn.querySelector('.category-count').textContent=String(c==='All Games'?gs.length:counts[c]);
-        btn.addEventListener('click',()=>{active=c;gs.forEach(g=>{const match=c==='All Games'||categoryFor(g.title)===c;g.card.style.display=match?'':'none';});list.querySelectorAll('.category-item').forEach(x=>x.classList.remove('is-active'));btn.classList.add('is-active');});
+        btn.querySelector('.category-name').textContent=c;
+        btn.querySelector('.category-count').textContent=String(c==='All Games'?gs.length:counts[c]);
+        btn.addEventListener('click',()=>{
+          active=c;
+          const nowTrend=trendingKeys();
+          gs.forEach(g=>{
+            const key=gameKey(g.title,g.card.querySelector('img')?.currentSrc||g.card.querySelector('img')?.src||'');
+            const match=c==='All Games'||(c==='Trending'?nowTrend.has(key):categoryFor(g.title)===c);
+            g.card.style.display=match?'':'none';
+          });
+          list.querySelectorAll('.category-item').forEach(x=>x.classList.remove('is-active'));btn.classList.add('is-active');
+        });
         list.appendChild(btn);
       });
     }
+    document.addEventListener('click',event=>{
+      const card=event.target.closest('#gameGrid > .game-card');
+      if(card){
+        const img=card.querySelector('img');
+        recordTrendingPlay({title:(card.querySelector('h3')?.textContent||img?.alt||'Game').trim(),image:img?.currentSrc||img?.src||''});
+      }
+    },true);
+    window.addEventListener('storage',event=>{if(event.key===TRENDING_CACHE_KEY||event.key===TRENDING_LOG_KEY)render();});
+
     toggle.addEventListener('click',()=>sidebar.classList.contains('is-open')?closeSidebar():openSidebar());
     close.addEventListener('click',closeSidebar);overlay.addEventListener('click',closeSidebar);document.addEventListener('keydown',e=>{if(e.key==='Escape'&&sidebar.classList.contains('is-open'))closeSidebar();});
     new MutationObserver(()=>{render();}).observe(grid,{childList:true});
