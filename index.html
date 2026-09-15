@@ -63,11 +63,14 @@
       transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;
     }
     #searchBar::placeholder{color:#78849a;font-weight:500}
+    #searchBar::-webkit-search-cancel-button{appearance:none;-webkit-appearance:none;display:none}
+    #searchBar::-webkit-search-decoration{appearance:none;-webkit-appearance:none}
     #searchBar:focus{transform:translateY(-1px);border-color:#fff;box-shadow:0 10px 25px rgba(0,25,88,.26),0 0 0 4px rgba(255,255,255,.16)}
     .search-icon{position:absolute;left:15px;top:50%;width:16px;height:16px;transform:translateY(-58%);border:2px solid #6c7890;border-radius:50%;pointer-events:none}
     .search-icon:after{content:"";position:absolute;right:-5px;bottom:-2px;width:7px;height:2px;border-radius:2px;background:#6c7890;transform:rotate(45deg);transform-origin:left center}
     .search-clear{position:absolute;right:7px;top:50%;transform:translateY(-50%);display:none;width:30px;height:30px;border:0;border-radius:8px;background:transparent;color:#69758a;cursor:pointer;font-size:19px;font-weight:800;line-height:1;z-index:2;transition:transform .15s ease,background .15s ease}
-    .search-clear:hover{background:#eef3fb;transform:translateY(-50%) scale(1.05)}
+    .search-clear:hover{background:#eef2f8;color:#32415c;transform:translateY(-50%) scale(1.04)}
+    .search-clear:active{transform:translateY(-50%) scale(.96)}
     .search-results{position:absolute;left:0;top:calc(100% + 8px);display:none;width:100%;padding:6px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.99);box-shadow:0 18px 42px rgba(5,24,63,.28);overflow:hidden}
     .search-results.is-open{display:block;animation:dropIn .16s ease-out}
     @keyframes dropIn{from{opacity:0;transform:translateY(-5px) scale(.985)}to{opacity:1;transform:none}}
@@ -77,9 +80,9 @@
     .search-result-copy{min-width:0}.search-result-title{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:800;line-height:1.25}.search-result-label{display:block;margin-top:2px;color:var(--muted);font-size:11px;font-weight:650}
     .search-empty{padding:14px 10px;color:var(--muted);font-size:13px;text-align:center}
     .header-actions{display:flex;align-items:center;gap:8px;flex:0 0 auto}
-    .header-action{width:148px;height:38px;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:0 12px;border:1px solid rgba(255,255,255,.42);border-radius:11px;background:#0744ab;color:#fff;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap;box-shadow:0 5px 14px rgba(0,30,100,.20),inset 0 1px 0 rgba(255,255,255,.18);transition:transform .16s ease,background .16s ease,box-shadow .16s ease}
-    .header-action:hover{transform:translateY(-2px) scale(1.035);background:#063a92;box-shadow:0 9px 21px rgba(0,30,100,.28),inset 0 1px 0 rgba(255,255,255,.26)}
-    .header-action:active{transform:translateY(1px) scale(.98)}
+    .header-action{width:148px;height:38px;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:0 12px;border:1px solid rgba(255,255,255,.28);border-radius:10px;background:rgba(3,52,146,.84);color:#fff;font-size:13px;font-weight:750;cursor:pointer;white-space:nowrap;box-shadow:0 5px 14px rgba(0,30,100,.20),inset 0 1px 0 rgba(255,255,255,.18);transition:transform .16s ease,background .16s ease,box-shadow .16s ease}
+    .header-action:hover{transform:translateY(-2px);background:#063a92;border-color:rgba(255,255,255,.40);box-shadow:0 8px 18px rgba(0,20,75,.23),inset 0 1px 0 rgba(255,255,255,.18)}
+    .header-action:active{transform:translateY(0);box-shadow:0 3px 8px rgba(0,20,75,.18)}
     .action-icon{font-size:15px;line-height:1}
     .page-wrap{width:min(1440px,100%);margin:0 auto}
     .loading-card,.error-card{margin:24px 22px;padding:22px;border-radius:14px;background:rgba(255,255,255,.96);box-shadow:var(--shadow);text-align:center;color:var(--muted)}
@@ -109,9 +112,9 @@
     @media(max-width:830px){.header-inner{flex-wrap:wrap;padding:11px 14px}.search-shell{order:1;flex:1 1 100%;width:100%;max-width:none}.header-actions{order:2;flex:1 1 auto}.header-action{width:148px;min-width:0}}
     @media(max-width:570px){.header-actions{width:100%;display:grid;grid-template-columns:1fr 1fr}.header-action{width:100%}.game-grid{grid-template-columns:repeat(2,minmax(0,1fr));padding:14px;gap:12px}.search-recommendations{padding-left:14px;padding-right:14px}.search-recommendations-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.search-recommendation img{height:92px}.game-card img{height:112px}}
   
-    .category-toggle{height:38px;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:0 12px;border:1px solid rgba(255,255,255,.42);border-radius:11px;background:#0744ab;color:#fff;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap;box-shadow:0 5px 14px rgba(0,30,100,.20),inset 0 1px 0 rgba(255,255,255,.18);transition:transform .16s ease,background .16s ease,box-shadow .16s ease}
-    .category-toggle:hover{transform:translateY(-2px) scale(1.035);background:#063a92;box-shadow:0 9px 21px rgba(0,30,100,.28),inset 0 1px 0 rgba(255,255,255,.26)}
-    .category-toggle:active{transform:translateY(1px) scale(.98)}
+    .category-toggle{height:38px;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:0 12px;border:1px solid rgba(255,255,255,.28);border-radius:10px;background:rgba(3,52,146,.84);color:#fff;font-size:13px;font-weight:750;cursor:pointer;white-space:nowrap;box-shadow:0 5px 14px rgba(0,30,100,.20),inset 0 1px 0 rgba(255,255,255,.18);transition:transform .16s ease,background .16s ease,box-shadow .16s ease}
+    .category-toggle:hover{transform:translateY(-2px);background:#063a92;border-color:rgba(255,255,255,.40);box-shadow:0 8px 18px rgba(0,20,75,.23),inset 0 1px 0 rgba(255,255,255,.18)}
+    .category-toggle:active{transform:translateY(0);box-shadow:0 3px 8px rgba(0,20,75,.18)}
     .category-toggle-icon{font-size:15px;line-height:1}
     .category-overlay{position:fixed;inset:0;background:rgba(1,9,28,.48);backdrop-filter:blur(2px);z-index:1090;opacity:0;transition:opacity .2s ease}
     .category-overlay.is-open{opacity:1}
