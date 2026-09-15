@@ -67,8 +67,9 @@
     #searchBar::-webkit-search-decoration{appearance:none;-webkit-appearance:none}
     #searchBar:focus{transform:translateY(-1px);border-color:#fff;box-shadow:0 10px 25px rgba(0,25,88,.26),0 0 0 4px rgba(255,255,255,.16)}
     .search-icon{position:absolute;left:15px;top:50%;width:16px;height:16px;transform:translateY(-58%);border:2px solid #6c7890;border-radius:50%;pointer-events:none}
+    .search-shell:focus-within .search-icon{opacity:1;visibility:visible}
     .search-icon:after{content:"";position:absolute;right:-5px;bottom:-2px;width:7px;height:2px;border-radius:2px;background:#6c7890;transform:rotate(45deg);transform-origin:left center}
-    .search-clear{position:absolute;right:7px;top:50%;transform:translateY(-50%);display:none;width:30px;height:30px;border:0;border-radius:8px;background:transparent;color:#69758a;cursor:pointer;font-size:19px;font-weight:800;line-height:1;z-index:2;transition:transform .15s ease,background .15s ease}
+    .search-clear{position:absolute;right:7px;top:50%;transform:translateY(-50%);display:none;width:30px;height:30px;padding:0;border:0;border-radius:8px;background:transparent;color:#69758a;cursor:pointer;font-size:19px;font-weight:800;line-height:1;z-index:2;transition:transform .15s ease,background .15s ease;align-items:center;justify-content:center;text-align:center}
     .search-clear:hover{background:#eef2f8;color:#32415c;transform:translateY(-50%) scale(1.04)}
     .search-clear:active{transform:translateY(-50%) scale(.96)}
     .search-results{position:absolute;left:0;top:calc(100% + 8px);display:none;width:100%;padding:6px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.99);box-shadow:0 18px 42px rgba(5,24,63,.28);overflow:hidden}
@@ -112,7 +113,7 @@
     @media(max-width:830px){.header-inner{flex-wrap:wrap;padding:11px 14px}.search-shell{order:1;flex:1 1 100%;width:100%;max-width:none}.header-actions{order:2;flex:1 1 auto}.header-action{width:148px;min-width:0}}
     @media(max-width:570px){.header-actions{width:100%;display:grid;grid-template-columns:1fr 1fr}.header-action{width:100%}.game-grid{grid-template-columns:repeat(2,minmax(0,1fr));padding:14px;gap:12px}.search-recommendations{padding-left:14px;padding-right:14px}.search-recommendations-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.search-recommendation img{height:92px}.game-card img{height:112px}}
   
-    .category-toggle{height:38px;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:0 12px;border:1px solid rgba(255,255,255,.28);border-radius:10px;background:rgba(3,52,146,.84);color:#fff;font-size:13px;font-weight:750;cursor:pointer;white-space:nowrap;box-shadow:0 5px 14px rgba(0,30,100,.20),inset 0 1px 0 rgba(255,255,255,.18);transition:transform .16s ease,background .16s ease,box-shadow .16s ease}
+    .category-toggle{margin-left:auto;height:38px;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:0 12px;border:1px solid rgba(255,255,255,.28);border-radius:10px;background:rgba(3,52,146,.84);color:#fff;font-size:13px;font-weight:750;cursor:pointer;white-space:nowrap;box-shadow:0 5px 14px rgba(0,30,100,.20),inset 0 1px 0 rgba(255,255,255,.18);transition:transform .16s ease,background .16s ease,box-shadow .16s ease}
     .category-toggle:hover{transform:translateY(-2px);background:#063a92;border-color:rgba(255,255,255,.40);box-shadow:0 8px 18px rgba(0,20,75,.23),inset 0 1px 0 rgba(255,255,255,.18)}
     .category-toggle:active{transform:translateY(0);box-shadow:0 3px 8px rgba(0,20,75,.18)}
     .category-toggle-icon{font-size:15px;line-height:1}
@@ -123,7 +124,7 @@
     .category-sidebar-header{padding:24px 20px 16px;display:flex;align-items:flex-start;justify-content:space-between;gap:14px;border-bottom:1px solid rgba(255,255,255,.1)}
     .category-kicker{font-size:11px;text-transform:uppercase;letter-spacing:.13em;color:rgba(255,255,255,.55);font-weight:800;margin-bottom:4px}
     .category-sidebar-header h2{margin:0;font-size:22px;line-height:1.2;font-weight:850}
-    .category-close{width:34px;height:34px;border:1px solid rgba(255,255,255,.2);border-radius:10px;background:rgba(255,255,255,.06);color:#fff;font-size:25px;line-height:1;cursor:pointer;transition:background .15s ease,transform .15s ease}
+    .category-close{width:34px;height:34px;padding:0;border:1px solid rgba(255,255,255,.2);border-radius:10px;background:rgba(255,255,255,.06);color:#fff;font-size:25px;line-height:1;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;text-align:center;transition:background .15s ease,transform .15s ease}
     .category-close:hover{background:rgba(255,255,255,.12);transform:scale(1.05)}
     .category-list{padding:14px 12px 20px;overflow:auto}
     .category-item{width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 13px;margin:4px 0;border:1px solid transparent;border-radius:12px;background:transparent;color:#fff;text-align:left;cursor:pointer;transition:background .15s ease,border-color .15s ease,transform .15s ease}
@@ -142,8 +143,8 @@
     .search-recommendation:active{transform:translateY(-1px) scale(.995);}
     .recommendation-arrow{backdrop-filter:blur(6px);}
     body.category-locked{overflow:hidden}
-    @media(max-width:830px){.category-toggle-label{display:none}.category-toggle{width:42px;padding:0}.header-actions{margin-left:auto}}
-    @media(max-width:570px){.category-toggle{width:100%;height:38px}.header-actions{margin-left:0}}
+    @media(max-width:830px){.category-toggle-label{display:none}.category-toggle{width:42px;padding:0;margin-left:auto}.header-actions{margin-left:0}}
+    @media(max-width:570px){.category-toggle{width:42px;height:38px;margin-left:auto}.header-actions{margin-left:0}}
 </style>
 
 <style id="personalized-recommendation-style">
@@ -273,7 +274,7 @@
       const img=button.querySelector('img');img.src=game.image;img.alt=game.title;
       button.querySelector('.search-result-title').textContent=game.title;
       button.dataset.index=String(i);
-      button.addEventListener('click',()=>{clickSound();closeSearch();searchBar.value=game.title;searchClear.style.display='block';game.card.click();renderRecommendations(game.title);});
+      button.addEventListener('click',()=>{clickSound();closeSearch();searchBar.value=game.title;searchClear.style.display='flex';game.card.click();renderRecommendations(game.title);});
       searchResults.appendChild(button);
     });
     openSearch();
@@ -283,7 +284,7 @@
 
   searchBar.addEventListener('input',()=>{
     const query=searchBar.value.trim();
-    searchClear.style.display=query?'block':'none';
+    searchClear.style.display=query?'flex':'none';
     renderSuggestions(query);
     renderRecommendations(query);
     scrapeGames().forEach(g=>{g.card.style.display=!query||rank(g.title,query)<99?'':'none';});
