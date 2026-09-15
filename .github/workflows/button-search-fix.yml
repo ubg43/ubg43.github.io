@@ -1,0 +1,22 @@
+name: Fix search and button polish
+on:
+  push:
+    paths:
+      - '.github/button-search-fix.py'
+      - '.github/button-search-fix-trigger'
+permissions:
+  contents: write
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply fix
+        run: python3 .github/button-search-fix.py
+      - name: Commit homepage update
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git commit -m 'Fix duplicate search clear and refine buttons' || exit 0
+          git push
