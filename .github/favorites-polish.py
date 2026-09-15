@@ -1,32 +1,30 @@
 from pathlib import Path
-import re
 
 p=Path('index.html')
 s=p.read_text(encoding='utf-8')
 
-# Polished favorites styles.
-if '.favorites-filter{' not in s:
-    style_anchor='    .game-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:17px;padding:22px}'
-    styles='''    .favorite-toolbar{display:flex;align-items:center;padding:10px 22px 0;min-height:50px}\n    .favorites-filter{height:38px;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:0 14px;border:1px solid rgba(255,255,255,.30);border-radius:11px;background:rgba(3,52,146,.86);color:#fff;font-size:13px;font-weight:800;cursor:pointer;box-shadow:0 6px 16px rgba(0,30,100,.20),inset 0 1px 0 rgba(255,255,255,.18);transition:transform .16s ease,background .16s ease,box-shadow .16s ease}\n    .favorites-filter:hover{transform:translateY(-2px);background:#063a92;box-shadow:0 9px 20px rgba(0,20,75,.24)}\n    .favorites-filter:active{transform:translateY(0);box-shadow:0 3px 9px rgba(0,20,75,.18)}\n    .favorites-filter:focus-visible{outline:3px solid rgba(255,255,255,.55);outline-offset:2px}\n    .favorites-filter.is-active{background:#fff;color:#06419f;border-color:#fff}\n    .favorite-count{min-width:22px;padding:2px 7px;border-radius:999px;background:rgba(255,255,255,.16);font-size:11px;line-height:18px;text-align:center}\n    .favorites-filter.is-active .favorite-count{background:rgba(6,65,159,.10)}\n    .favorite-badge{position:absolute;top:8px;right:8px;z-index:4;width:34px;height:34px;border:1px solid rgba(255,255,255,.75);border-radius:50%;background:rgba(7,27,68,.82);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:19px;line-height:1;cursor:pointer;box-shadow:0 5px 13px rgba(0,0,0,.23);backdrop-filter:blur(3px);transition:transform .16s ease,background .16s ease,color .16s ease,box-shadow .16s ease}\n    .favorite-badge:hover{transform:scale(1.08);background:rgba(255,255,255,.96);color:#e2a400;box-shadow:0 7px 16px rgba(0,0,0,.23)}\n    .favorite-badge:focus-visible{outline:3px solid rgba(255,255,255,.8);outline-offset:2px}\n    .favorite-badge.is-favorite{background:#fff;color:#e2a400}\n    .favorite-empty{margin:8px 22px 22px;padding:30px 18px;border:1px dashed rgba(255,255,255,.28);border-radius:15px;color:rgba(255,255,255,.80);text-align:center;background:rgba(255,255,255,.07)}\n    .favorite-empty strong{display:block;color:#fff;font-size:17px;margin-bottom:5px}\n    .game-card[data-favorite="true"]{order:-1}\n    @media(max-width:570px){.favorite-toolbar{padding:10px 14px 0}.favorite-empty{margin-left:14px;margin-right:14px}}\n'''
-    if style_anchor not in s: raise SystemExit('game grid style not found')
-    s=s.replace(style_anchor,styles+style_anchor,1)
-
-# Favorites toolbar directly before the live game grid. Use regex so indentation/layout changes do not break the patch.
-if 'id="favoritesFilter"' not in s:
-    m=re.search(r'(?m)^(\s*)<div id="gameGrid" class="game-grid"></div>\s*$',s)
-    if not m: raise SystemExit('game grid element not found')
-    indent=m.group(1)
-    toolbar=(indent+'<div id="favoriteToolbar" class="favorite-toolbar" aria-label="Favorite games controls">\n'
-             +indent+'  <button id="favoritesFilter" class="favorites-filter" type="button" aria-pressed="false"><span aria-hidden="true">★</span><span>Favorites</span><span id="favoriteCount" class="favorite-count">0</span></button>\n'
-             +indent+'</div>\n'
-             +indent+'<div id="favoriteEmpty" class="favorite-empty" hidden><strong>No favorites yet</strong><span>Press the ★ on any game to save it here.</span></div>\n')
-    s=s[:m.start()]+toolbar+s[m.start():]
-
-# Runtime. Favorites stay compatible with search/category filters by only applying their own visibility when Favorites mode is active.
-if '/* Local favorites */' not in s:
-    marker='  /* Personalized recommendation carousel */\n'
-    if marker not in s: raise SystemExit('recommendation marker not found')
-    fav='''  /* Local favorites */\n  (function(){\n    const grid=document.getElementById('gameGrid');\n    const filter=document.getElementById('favoritesFilter');\n    const countEl=document.getElementById('favoriteCount');\n    const empty=document.getElementById('favoriteEmpty');\n    if(!grid||!filter||!countEl||!empty)return;\n    const KEY='ubg_favorites_v2';\n    const read=()=>{try{const v=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(v)?v:[]}catch(_){return[]}};\n    const write=v=>{try{localStorage.setItem(KEY,JSON.stringify(v));}catch(_){} };\n    const clean=s=>(s||'').toString().replace(/\\s+/g,' ').trim();\n    const norm=s=>clean(s).toLowerCase();\n    let favoriteMode=false;\n\n    function title(card){return clean(card.querySelector('h3')?.textContent||card.querySelector('img')?.alt||'Game');}\n    function key(card){const img=card.querySelector('img');return norm(title(card))+'|'+(img?.currentSrc||img?.src||'');}\n    function cards(){return Array.from(grid.querySelectorAll(':scope > .game-card'));}\n    function isFav(card,set){return set.has(key(card));}\n    function decorate(card){\n      let btn=card.querySelector(':scope > .favorite-badge');\n      if(btn)return btn;\n      btn=document.createElement('button');btn.type='button';btn.className='favorite-badge';btn.textContent='★';\n      btn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();toggle(card);});\n      card.appendChild(btn);return btn;\n    }\n    function update(){\n      const set=new Set(read());\n      const all=cards();\n      all.forEach(card=>{\n        const fav=isFav(card,set);\n        const btn=decorate(card);\n        btn.classList.toggle('is-favorite',fav);\n        btn.title=fav?'Remove from favorites':'Add to favorites';\n        btn.setAttribute('aria-label',fav?'Remove '+title(card)+' from favorites':'Add '+title(card)+' to favorites');\n        card.dataset.favorite=fav?'true':'false';\n        if(favoriteMode)card.style.display=fav?'':'none';\n      });\n      countEl.textContent=String(all.filter(c=>isFav(c,set)).length);\n      filter.classList.toggle('is-active',favoriteMode);\n      filter.setAttribute('aria-pressed',String(favoriteMode));\n      empty.hidden=!(favoriteMode&&all.length>0&&all.every(c=>c.style.display==='none'));\n    }\n    function toggle(card){\n      const next=read();const k=key(card);const i=next.indexOf(k);\n      if(i>=0)next.splice(i,1);else next.unshift(k);\n      write(next.slice(0,300));update();\n    }\n    filter.addEventListener('click',()=>{\n      favoriteMode=!favoriteMode;\n      if(!favoriteMode){\n        cards().forEach(card=>{card.style.display='';});\n        // Re-apply the normal search/category state after leaving favorites mode.\n        const q=(document.getElementById('searchBar')?.value||'').trim();\n        if(q&&typeof rank==='function')cards().forEach(card=>{card.style.display=rank(title(card),q)<99?'':'none';});\n      }\n      update();\n    });\n    new MutationObserver(()=>{\n      const was=favoriteMode;\n      update();\n      if(!was){cards().forEach(card=>{if(card.style.display==='none'&&new Set(read()).has(key(card)))card.style.display='';});}\n    }).observe(grid,{childList:true});\n    window.addEventListener('storage',e=>{if(e.key===KEY)update();});\n    update();\n  })();\n\n'''
-    s=s.replace(marker,fav+marker,1)
+old='.search-clear{position:absolute;right:7px;top:50%;transform:translateY(-50%);display:none;width:30px;height:30px;border:0;border-radius:8px;background:transparent;color:#69758a;cursor:pointer;font-size:19px;font-weight:800;line-height:1;z-index:2;transition:transform .15s ease,background .15s ease}'
+new='.search-clear{position:absolute;right:7px;top:50%;transform:translateY(-50%);display:none;width:30px;height:30px;padding:0;border:0;border-radius:8px;background:transparent;color:#69758a;cursor:pointer;font-size:19px;font-weight:800;line-height:1;z-index:2;transition:transform .15s ease,background .15s ease;align-items:center;justify-content:center;text-align:center}'
+if old not in s: raise SystemExit('search clear style anchor not found')
+s=s.replace(old,new,1)
+s=s.replace("searchClear.style.display=query?'block':'none';","searchClear.style.display=query?'flex':'none';",1)
+s=s.replace("searchClear.style.display='block';","searchClear.style.display='flex';",1)
+icon='.search-icon{position:absolute;left:15px;top:50%;width:16px;height:16px;transform:translateY(-58%);border:2px solid #6c7890;border-radius:50%;pointer-events:none}'
+if icon in s and '.search-shell:focus-within .search-icon' not in s:
+    s=s.replace(icon,icon+'\n    .search-shell:focus-within .search-icon{opacity:1;visibility:visible}',1)
+cat='.category-toggle{height:38px;display:inline-flex;'
+if cat in s and '.category-toggle{margin-left:auto;height:38px' not in s:
+    s=s.replace(cat,'.category-toggle{margin-left:auto;height:38px;display:inline-flex;',1)
+close='.category-close{width:34px;height:34px;border:1px solid rgba(255,255,255,.2);border-radius:10px;background:rgba(255,255,255,.06);color:#fff;font-size:25px;line-height:1;cursor:pointer;transition:background .15s ease,transform .15s ease}'
+close_new='.category-close{width:34px;height:34px;padding:0;border:1px solid rgba(255,255,255,.2);border-radius:10px;background:rgba(255,255,255,.06);color:#fff;font-size:25px;line-height:1;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;text-align:center;transition:background .15s ease,transform .15s ease}'
+if close not in s: raise SystemExit('category close style anchor not found')
+s=s.replace(close,close_new,1)
+s=s.replace('@media(max-width:830px){.category-toggle-label{display:none}.category-toggle{width:42px;padding:0}.header-actions{margin-left:auto}}','@media(max-width:830px){.category-toggle-label{display:none}.category-toggle{width:42px;padding:0;margin-left:auto}.header-actions{margin-left:0}}',1)
+s=s.replace('@media(max-width:570px){.category-toggle{width:100%;height:38px}.header-actions{margin-left:0}}','@media(max-width:570px){.category-toggle{width:42px;height:38px;margin-left:auto}.header-actions{margin-left:0}}',1)
+# Fix the two-row recommendation carousel class mismatch.
+if "recGrid.classList.add('recommendation-track')" not in s:
+    anchor="      recGrid.innerHTML='';"
+    if anchor not in s: raise SystemExit('recommendation render anchor not found')
+    s=s.replace(anchor,anchor+"\n      recGrid.classList.add('recommendation-track');",1)
 
 p.write_text(s,encoding='utf-8')
