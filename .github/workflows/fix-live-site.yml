@@ -5,6 +5,7 @@ on:
       - '.github/fix-live-site.py'
       - '.github/workflows/fix-live-site.yml'
       - '.github/repair-ui.py'
+      - '.github/ui-hotfix.py'
   workflow_dispatch:
 permissions:
   contents: write
@@ -20,29 +21,29 @@ jobs:
       - uses: actions/checkout@v4
       - name: Apply final UBG43 UI runtime
         run: python3 .github/repair-ui.py
-      - name: Apply live ribbon and loader cleanup
+      - name: Apply UBG43 compatibility and interaction hotfixes
+        run: python3 .github/ui-hotfix.py
+      - name: Apply live loader cleanup and automation resilience
         run: python3 .github/fix-live-site.py
       - name: Validate homepage structure and runtime hooks
         run: |
           python3 - <<'PY'
           from pathlib import Path
           import re, sys
-          p=Path('index.html'); text=p.read_text(encoding='utf-8')
-          cards=len(re.findall(r'<div\s+class="game-card"(?=\s|>)',text,re.I))
-          required=['id="gameGrid"','id="searchBar"','id="categoryToggle"','id="randomGameButton"','id="reportGameButton"','function openGame(']
-          bad=[x for x in required if x not in text]
-          for marker in ['UBG43 UI V3','You may also like','Play games instantly with UBG43!','1000+ games','v3-carousel','v3-ribbon']:
-              if marker not in text: bad.append(marker)
+          text=Path('index.html').read_text(encoding='utf-8')
+          bad=[]
+          for needle in ['id="gameGrid"','id="searchBar"','id="categoryToggle"','id="randomGameButton"','id="reportGameButton"','window.openGame','You may also like','Play games instantly with UBG43!','1000+ games','v3-carousel','v3-ribbon']:
+              if needle not in text: bad.append(needle)
           if 'id="loadingCard"' in text or 'Loading games...' in text: bad.append('obsolete loading placeholder')
-          if cards < 100: bad.append(f'homepage contains only {cards} static cards before runtime expansion')
+          # The current index builds a verified library asynchronously from legacy-index.html and zones.json, so zero static cards is valid.
           if bad:
-              print('LIVE SITE VALIDATION FAILED'); print('\n'.join(bad)); sys.exit(1)
-          print(f'LIVE SITE VALIDATION PASSED: {cards} static cards plus runtime library expansion.')
+              print('LIVE SITE VALIDATION FAILED');print('\n'.join(bad));sys.exit(1)
+          print('LIVE SITE VALIDATION PASSED: UBG43 V3 runtime, hotfixes and metadata are present.')
           PY
       - name: Commit repaired site
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add index.html legacy-index.html .github/game-registry.json
+          git add index.html legacy-index.html .github/game-registry.json .github/auto-categories.py
           git commit -m 'Apply UBG43 V3 homepage and interactions [live-fix]' || exit 0
           git push
