@@ -32,11 +32,6 @@ function wireScroll(){document.querySelectorAll('.v3-carousel').forEach(wheel)}
 function extractUrl(card){const a=card.getAttribute('onclick')||'',m=a.match(/openGame\(\s*['"]([^'"]+)['"]\s*\)/);return m?m[1]:''}
 function directOpen(url){if(!url)return;const w=window.open(url,'_blank');if(!w)window.location.href=url}
 function interceptGameClicks(){document.addEventListener('click',e=>{const card=e.target.closest('#gameGrid > .game-card');if(!card)return;const u=extractUrl(card);if(!u)return;e.preventDefault();e.stopImmediatePropagation();directOpen(u)},true)}
-function patchDynamicLoader(text){
-  const old="const rows=zones.filter(x=>Number(x.id)>=0).slice(0,1400);for(const x of rows){const url=String(x.url||'').replace('{HTML_URL}','https://raw.githubusercontent.com/gn-math/html/main');const image=String(x.cover||'').replace('{COVER_URL}','https://raw.githubusercontent.com/gn-math/covers/main');addGame({name:x.name,url,image,text:x.name,new:true,seed:all.length<18},seen)}"
-  const fresh="const rows=zones.filter(x=>Number(x.id)>=0&&x.url&&x.cover).slice(0,1400);for(let p=0;p<rows.length;p+=20){await Promise.all(rows.slice(p,p+20).map(async x=>{const url=String(x.url||'').replace('{HTML_URL}','https://raw.githubusercontent.com/gn-math/html/main');const image=String(x.cover||'').replace('{COVER_URL}','https://raw.githubusercontent.com/gn-math/covers/main');let ok=false;try{let r=await fetch(url,{method:'HEAD',cache:'force-cache',redirect:'follow'});ok=r.ok;if(!ok&&r.status===405){r=await fetch(url,{cache:'force-cache',redirect:'follow'});ok=r.ok}}catch(_){}if(ok)addGame({name:x.name,url,image,text:x.name,new:true,seed:all.length<18},seen)}))}"
-  return text.includes(old)?text.replace(old,fresh):text
-}
 function polishHero(){const v3=document.getElementById('v3Hero');if(v3)v3.remove();const h=document.querySelector('main .hero');if(!h)return;h.className='hero-copy';h.innerHTML='<h1>Play games instantly with UBG43!</h1><p>1000+ games, fresh releases, quick search, automatic categories and personalized picks — everything you need to find your next game fast.</p><span class="hero-stat">1000+ games • fresh additions • personalized recommendations</span>'}
 function init(){polishHero();wireCategories();wireScroll();interceptGameClicks();new MutationObserver(()=>{clearTimeout(renderTimer);renderTimer=setTimeout(()=>{renderCategories();wireScroll();apply()},120)}).observe(grid,{childList:true});apply();wireScroll()}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
@@ -52,14 +47,18 @@ new MutationObserver(inspect).observe(grid,{childList:true});inspect();
 })();</script>'''
 
 def patch(text):
-    text=patch_dynamic_loader(text)
+    # The GN-Math zones catalogue already supplies complete {HTML_URL}/{COVER_URL} URLs.
+    # Verify each candidate before it becomes a visible game card so 404s are not offered.
+    old="const rows=zones.filter(x=>Number(x.id)>=0).slice(0,1400);for(const x of rows){const url=String(x.url||'').replace('{HTML_URL}','https://raw.githubusercontent.com/gn-math/html/main');const image=String(x.cover||'').replace('{COVER_URL}','https://raw.githubusercontent.com/gn-math/covers/main');addGame({name:x.name,url,image,text:x.name,new:true,seed:all.length<18},seen)}"
+    new="const rows=zones.filter(x=>Number(x.id)>=0&&x.url&&x.cover).slice(0,1400);for(let p=0;p<rows.length;p+=24){await Promise.all(rows.slice(p,p+24).map(async x=>{const url=String(x.url||'').replace('{HTML_URL}','https://raw.githubusercontent.com/gn-math/html/main');const image=String(x.cover||'').replace('{COVER_URL}','https://raw.githubusercontent.com/gn-math/covers/main');let ok=false;try{let r=await fetch(url,{method:'HEAD',cache:'force-cache',redirect:'follow'});ok=r.ok;if(!ok&&r.status===405){r=await fetch(url,{cache:'force-cache',redirect:'follow'});ok=r.ok}}catch(_){}if(ok)addGame({name:x.name,url,image,text:x.name,new:true,seed:all.length<18},seen)}))}"
+    text=text.replace(old,new,1)
     text=re.sub(r'\s*<style id="ubg43-hotfix-style">.*?</style>\s*','\n',text,count=1,flags=re.S)
     text=re.sub(r'\s*<script id="ubg43-hotfix-runtime">.*?</script>\s*','\n',text,count=1,flags=re.S)
     text=re.sub(r'\s*<script id="ubg43-runtime-game-safety">.*?</script>\s*','\n',text,count=1,flags=re.S)
     text=re.sub(r'<title>.*?</title>',f'<title>{TITLE}</title>',text,count=1,flags=re.I|re.S)
     meta=f'<meta name="description" content="{DESCRIPTION}">'
-    if re.search(r'<meta\s+name="description"\s+content="[^"]*"\s*/?>',text,re.I): text=re.sub(r'<meta\s+name="description"\s+content="[^"]*"\s*/?>',meta,text,count=1,flags=re.I)
-    else: text=text.replace('</head>',meta+'\n</head>',1)
+    if re.search(r'<meta\s+name="description"\s+content="[^"]*"\s*/?>',text,re.I):text=re.sub(r'<meta\s+name="description"\s+content="[^"]*"\s*/?>',meta,text,count=1,flags=re.I)
+    else:text=text.replace('</head>',meta+'\n</head>',1)
     text=re.sub(r'\s*<section\s+class="featured">\s*<h2>Trending Now</h2>\s*<div[^>]+id="trendingStrip"[^>]*>.*?</div>\s*</section>\s*','\n',text,count=1,flags=re.I|re.S)
     text=re.sub(r'\s*<section\s+class="featured">\s*<h2>New Games</h2>\s*<div[^>]+id="newStrip"[^>]*>.*?</div>\s*</section>\s*','\n',text,count=1,flags=re.I|re.S)
     pos=text.lower().rfind('</head>');text=text[:pos]+CSS+'\n'+text[pos:] if pos!=-1 else CSS+text
