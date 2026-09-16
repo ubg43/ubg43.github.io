@@ -35,7 +35,6 @@ jobs:
           for needle in ['id="gameGrid"','id="searchBar"','id="categoryToggle"','id="randomGameButton"','id="reportGameButton"','window.openGame','You may also like','Play games instantly with UBG43!','1000+ games','v3-carousel','v3-ribbon']:
               if needle not in text: bad.append(needle)
           if 'id="loadingCard"' in text or 'Loading games...' in text: bad.append('obsolete loading placeholder')
-          # The current index builds a verified library asynchronously from legacy-index.html and zones.json, so zero static cards is valid.
           if bad:
               print('LIVE SITE VALIDATION FAILED');print('\n'.join(bad));sys.exit(1)
           print('LIVE SITE VALIDATION PASSED: UBG43 V3 runtime, hotfixes and metadata are present.')
@@ -44,6 +43,8 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add index.html legacy-index.html .github/game-registry.json .github/auto-categories.py
-          git commit -m 'Apply UBG43 V3 homepage and interactions [live-fix]' || exit 0
+          git add index.html legacy-index.html .github/auto-categories.py || true
+          git add index.html legacy-index.html .github/auto-categories.py 2>/dev/null || true
+          git diff --cached --quiet && exit 0
+          git commit -m 'Apply UBG43 V3 homepage and interactions [live-fix]'
           git push
