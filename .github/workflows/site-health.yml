@@ -1,0 +1,59 @@
+name: Automated site health
+on:
+  push:
+    paths:
+      - 'index.html'
+      - 'legacy-index.html'
+      - '.github/site-health.py'
+      - '.github/workflows/**'
+      - 'undertale-thumbnails/**'
+  schedule:
+    - cron: '12 3 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run structural and duplicate checks
+        run: python3 .github/site-health.py
+      - name: Check all game links and images
+        run: |
+          python3 - <<'PY'
+          import re, sys, urllib.request
+          from concurrent.futures import ThreadPoolExecutor, as_completed
+          from pathlib import Path
+          from urllib.parse import urlparse
+
+          text = Path('index.html').read_text(encoding='utf-8')
+          urls = re.findall(r"openGame\(['\"]([^'\"]+)['\"]\)", text)
+          images = re.findall(r'<img\b[^>]*\bsrc=[\"\']([^\"\']+)', text, re.I)
+          targets = list(dict.fromkeys([u for u in urls + images if urlparse(u).scheme in ('http','https')]))
+
+          def check(url):
+              try:
+                  req = urllib.request.Request(url, headers={'User-Agent':'ubg43-site-health/1.0'})
+                  with urllib.request.urlopen(req, timeout=10) as r:
+                      return url, 200 <= r.status < 400
+              except Exception as exc:
+                  return url, False, type(exc).__name__
+
+          failures = []
+          with ThreadPoolExecutor(max_workers=32) as ex:
+              futures = [ex.submit(check, u) for u in targets]
+              for f in as_completed(futures):
+                  result = f.result()
+                  if not result[1]:
+                      failures.append(result)
+
+          print(f'Checked {len(targets)} unique remote URLs.')
+          if failures:
+              print(f'{len(failures)} remote URLs failed or timed out.')
+              for item in failures[:25]:
+                  print('FAILED:', item)
+              sys.exit(1)
+          print('REMOTE LINK CHECK PASSED')
+          PY
