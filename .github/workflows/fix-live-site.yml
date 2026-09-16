@@ -4,40 +4,45 @@ on:
     paths:
       - '.github/fix-live-site.py'
       - '.github/workflows/fix-live-site.yml'
+      - '.github/repair-ui.py'
   workflow_dispatch:
 permissions:
   contents: write
+concurrency:
+  group: ubg43-maintenance
+  cancel-in-progress: false
 jobs:
   repair:
     if: ${{ github.event_name != 'push' || !contains(github.event.head_commit.message, '[live-fix]') }}
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-      - name: Apply live fixes
+      - name: Apply final UBG43 UI runtime
+        run: python3 .github/repair-ui.py
+      - name: Apply live ribbon and loader cleanup
         run: python3 .github/fix-live-site.py
-      - name: Validate HTML structure
+      - name: Validate homepage structure and runtime hooks
         run: |
           python3 - <<'PY'
           from pathlib import Path
           import re, sys
           p=Path('index.html'); text=p.read_text(encoding='utf-8')
-          cards=re.findall(r'<div\s+class="game-card"(?=\s|>)',text,re.I)
+          cards=len(re.findall(r'<div\s+class="game-card"(?=\s|>)',text,re.I))
           required=['id="gameGrid"','id="searchBar"','id="categoryToggle"','id="randomGameButton"','id="reportGameButton"','function openGame(']
-          missing=[x for x in required if x not in text]
-          bad=[]
-          if len(cards)<1000: bad.append(f'only {len(cards)} game cards in index.html')
-          if 'id="loadingCard"' in text or 'Loading games...' in text: bad.append('obsolete loading placeholder remains')
-          if 'id="ubg43-live-ribbon-runtime"' not in text: bad.append('live ribbon runtime missing')
-          if missing: bad.append('missing '+', '.join(missing))
+          bad=[x for x in required if x not in text]
+          for marker in ['UBG43 UI V3','You may also like','Play games instantly with UBG43!','1000+ games','v3-carousel','v3-ribbon']:
+              if marker not in text: bad.append(marker)
+          if 'id="loadingCard"' in text or 'Loading games...' in text: bad.append('obsolete loading placeholder')
+          if cards < 100: bad.append(f'homepage contains only {cards} static cards before runtime expansion')
           if bad:
-              print('\n'.join(bad)); sys.exit(1)
-          print(f'SMOKE CHECK PASSED: {len(cards)} cards')
+              print('LIVE SITE VALIDATION FAILED'); print('\n'.join(bad)); sys.exit(1)
+          print(f'LIVE SITE VALIDATION PASSED: {cards} static cards plus runtime library expansion.')
           PY
       - name: Commit repaired site
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add index.html legacy-index.html
-          git commit -m 'Fix live homepage UI and remove loader [live-fix]' || exit 0
+          git add index.html legacy-index.html .github/game-registry.json
+          git commit -m 'Apply UBG43 V3 homepage and interactions [live-fix]' || exit 0
           git push
