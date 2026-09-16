@@ -298,16 +298,6 @@
 @media(max-width:900px){.header-actions{left:auto;right:16px}.header-actions .header-action{width:140px;min-width:140px}}
 @media(max-width:680px){.header-actions{position:relative;left:auto;right:auto;top:auto;transform:none;margin:8px auto 0;width:max-content;max-width:calc(100% - 24px)}.header-actions .header-action{width:136px;min-width:136px;height:35px;font-size:12px}}
 </style>
-  
-
-<style id="ubg43-live-ribbons">
-.game-card{position:relative}
-.card-ribbons{position:absolute;left:0;top:10px;z-index:8;display:flex;flex-direction:column;gap:7px;pointer-events:none}
-.card-ribbon{display:inline-block;padding:6px 15px 6px 11px;min-width:76px;font:900 11px/1 Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase;clip-path:polygon(0 0,100% 0,88% 50%,100% 100%,0 100%);box-shadow:3px 5px 9px rgba(0,0,0,.22)}
-.card-ribbon.new{background:#e52b2b;color:#ffe600}
-.card-ribbon.trending{background:#ffe600;color:#c51f1f}
-</style>
-
 </head>
 <body>
 <header>
@@ -2001,10 +1991,6 @@
 		<img src="https://ubg42.github.io/file/The_Impossible_Quizmas.jpg" alt="The Impossible Quizmas">
 		<h3>The Impossible Quizmas</h3>
 	</div>
-<div class="game-card" data-category="Horror" onclick="openGame('https://ubg42.github.io/TheSunForTheVampire/', 'Google Docs')">
-		<img src="https://ubg42.github.io/img/the-sun-for-the-vampire.jpg" alt="The Sun For The Vampire">
-		<h3>The Sun For The Vampire</h3>
-	</div>
 <div class="game-card" data-category="Casual" onclick="openGame('https://ubg42.github.io/file/The_Impossible_Quiz_Hacked.html', 'Google Docs')">
 		<img src="https://ubg42.github.io/file/The_Impossible_Quiz_Hacked.jpg" alt="The Impossible Quiz Hacked">
 		<h3>The Impossible Quiz Hacked</h3>
@@ -2404,36 +2390,20 @@ function openGame(url, title) {
 })();
 </script>
 
-<script id="ubg43-live-ribbon-runtime">
+<script id="ubg43-four-day-runtime">
 (function(){
   'use strict';
-  function cards(){var g=document.getElementById('gameGrid');return g?Array.prototype.slice.call(g.querySelectorAll(':scope > .game-card')):[]}
-  function norm(s){return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim()}
-  function decorate(){
-    var cs=cards();if(!cs.length)return;
-    cs.forEach(function(c){var old=c.querySelector('.card-ribbons');if(old)old.remove()});
-    var seeds=cs.filter(function(c){return c.dataset.trendingSeed==='true'});
-    if(!seeds.length)seeds=cs.slice(0,12);
-    cs.forEach(function(c){
-      var box=document.createElement('div');box.className='card-ribbons';
-      var d=Date.parse(c.dataset.newSince||'');
-      if(!isNaN(d)&&Date.now()-d<45*86400000){var n=document.createElement('span');n.className='card-ribbon new';n.textContent='NEW';box.appendChild(n)}
-      if(seeds.indexOf(c)!==-1){var t=document.createElement('span');t.className='card-ribbon trending';t.textContent='TRENDING';box.appendChild(t)}
-      if(box.children.length)c.appendChild(box);
-    });
-  }
   function rotate(){
     var g=document.getElementById('gameGrid');if(!g||g.dataset.fourDayRotated==='1')return;
     var cs=Array.prototype.slice.call(g.querySelectorAll(':scope > .game-card'));if(cs.length<2)return;
     var bucket=Math.floor(Date.now()/(4*86400000));
     function hash(s){var h=2166136261;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
-    cs.forEach(function(c,i){c.dataset.homeRank=String(hash((c.querySelector('h3')?.textContent||'')+'|'+bucket+'|'+i))});
+    cs.forEach(function(c,i){var h=c.querySelector('h3');c.dataset.homeRank=String(hash((h?h.textContent:'')+'|'+bucket+'|'+i))});
     cs.sort(function(a,b){return Number(a.dataset.homeRank)-Number(b.dataset.homeRank)});
-    cs.forEach(function(c){g.appendChild(c)});g.dataset.fourDayRotated='1';decorate();
+    cs.forEach(function(c){g.appendChild(c)});
+    g.dataset.fourDayRotated='1';
   }
-  function run(){decorate();rotate();}
-  document.addEventListener('DOMContentLoaded',function(){setTimeout(run,350);setTimeout(run,1200);setTimeout(run,2500)});
-  setTimeout(run,350);setTimeout(run,1200);setTimeout(run,2500);
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(rotate,400)});else setTimeout(rotate,400);
 })();
 </script>
 
@@ -3165,7 +3135,8 @@ if (query === "gunblood") {
       const newTab = window.open("about:blank", "_blank");
       newTab.document.write(`
         <html>
-          <head><title>Google Docs</title><style id="ubg43-v3-style">
+          <head><title>Google Docs</title>
+<style id="ubg43-v3-style">
 #loadingCard{display:none!important}.loading-card{display:none!important}
 .hero-copy{max-width:920px;margin:0 auto;padding:28px 22px 8px;color:#fff;text-align:left}.hero-copy h1{margin:0;font-size:clamp(28px,4vw,42px);line-height:1.08;font-weight:900;letter-spacing:-.025em}.hero-copy p{margin:10px 0 0;color:rgba(255,255,255,.78);font-size:15px;line-height:1.55;max-width:760px}.hero-copy .hero-stat{display:inline-flex;margin-top:13px;padding:7px 11px;border-radius:999px;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.16);font-size:12px;font-weight:800}
 .v3-strip{padding:14px 22px 4px}.v3-head{display:flex;align-items:end;justify-content:space-between;gap:12px;margin-bottom:10px}.v3-title{margin:0;color:#fff;font-size:21px;font-weight:900}.v3-sub{margin:4px 0 0;color:rgba(255,255,255,.68);font-size:12px}.v3-controls{display:flex;gap:7px}.v3-arrow{width:36px;height:36px;border:1px solid rgba(255,255,255,.28);border-radius:10px;background:rgba(0,45,135,.72);color:#fff;font-size:20px;font-weight:900;cursor:pointer;box-shadow:0 6px 14px rgba(0,0,0,.16)}.v3-arrow:disabled{opacity:.30;cursor:default}.v3-carousel{display:grid;grid-template-rows:repeat(2,minmax(0,1fr));grid-auto-flow:column;grid-auto-columns:calc((100% - 65px)/6);gap:13px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;padding:2px 2px 7px;scroll-behavior:smooth}.v3-carousel::-webkit-scrollbar{display:none}.v3-carousel .game-card{min-width:0;height:100%}.v3-carousel .game-card img{height:106px}.v3-carousel .game-card h3{font-size:12px}.v3-done{display:flex;align-items:center;justify-content:center;min-width:190px;min-height:100%;padding:14px;border:1px dashed rgba(255,255,255,.24);border-radius:13px;color:rgba(255,255,255,.78);font-size:12px;font-weight:850;text-align:center;animation:v3Pulse 2.4s ease-in-out infinite}.v3-done span{display:block}.v3-done small{display:block;margin-top:4px;opacity:.65;font-weight:700}@keyframes v3Pulse{0%,100%{opacity:.65;transform:scale(.985)}50%{opacity:1;transform:scale(1)}}
@@ -3344,31 +3315,34 @@ const oldInput=$('searchBar');if(oldInput){buildHero();wire();setupCards();new M
 })();</script>
 <script id="ubg43-hotfix-runtime">(()=>{
 'use strict';
-const $=id=>document.getElementById(id);
-const grid=$('gameGrid');if(!grid)return;
+const $=id=>document.getElementById(id),grid=$('gameGrid');if(!grid)return;
 const norm=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
 const cards=()=>[...grid.querySelectorAll(':scope > .game-card')];
 const info=c=>{const h=c.querySelector('h3'),i=c.querySelector('img');return{title:(h?.textContent||i?.alt||'Game').trim(),category:c.dataset.category||'Other',isNew:!!c.dataset.newSince||c.dataset.new==='1'}};
 let active='All Games';let renderTimer=0;
-function trendKeys(){try{const h=JSON.parse(localStorage.getItem('ubg43_v3_plays')||'{}');return new Set(cards().map(c=>{const g=info(c),k=norm(g.title)+'|'+(c.querySelector('img')?.getAttribute('src')||'');const x=h[k]||{};return{key:k,score:(x.plays||0)+((Date.now()-(x.last||0)<259200000)?2:0)}}).sort((a,b)=>b.score-a.score||a.key.localeCompare(b.key)).slice(0,24).map(x=>x.key))}catch(_){return new Set()}}
 function key(c){const g=info(c);return norm(g.title)+'|'+(c.querySelector('img')?.getAttribute('src')||'')}
+function trendKeys(){try{const h=JSON.parse(localStorage.getItem('ubg43_v3_plays')||'{}');return new Set(cards().map(c=>{const g=info(c),x=h[key(c)]||{};return{key:key(c),score:(x.plays||0)+((Date.now()-(x.last||0)<259200000)?2:0)}}).sort((a,b)=>b.score-a.score||a.key.localeCompare(b.key)).slice(0,24).map(x=>x.key))}catch(_){return new Set()}}
 function categoryMatch(c){const g=info(c),tr=trendKeys();return active==='All Games'||(active==='New Games'&&g.isNew)||(active==='Trending'&&tr.has(key(c)))||g.category===active}
 function apply(){const q=norm($('searchBar')?.value||'');cards().forEach(c=>{const title=norm(info(c).title);c.style.display=(!q||title.includes(q))&&categoryMatch(c)?'':'none'});renderCategories()}
 function closeSide(){const side=$('categorySidebar')||$('sidebar'),overlay=$('categoryOverlay')||$('overlay');if(side)side.classList.remove('is-open','open');if(overlay){overlay.classList.remove('is-open');overlay.classList.add('hidden');overlay.hidden=true}}
 function openSide(){const side=$('categorySidebar')||$('sidebar'),overlay=$('categoryOverlay')||$('overlay');if(side)side.classList.add(side.id==='sidebar'?'open':'is-open');if(overlay){overlay.hidden=false;overlay.classList.remove('hidden');overlay.classList.add('is-open')}}
 function renderCategories(){const list=$('categoryList')||$('catList');if(!list)return;const gs=cards(),set=new Set(['Action','Adventure','Horror','Multiplayer','Fighting','Survival','Platformer','Racing','Sports','Puzzle','Arcade','Strategy','Simulation','Casual','Anime','Rhythm & Music','Card & Board','io']);gs.forEach(c=>set.add(info(c).category));const cats=['All Games','New Games','Trending',...Array.from(set).sort()];list.innerHTML='';const tr=trendKeys();cats.forEach(cat=>{const b=document.createElement('button');b.type='button';b.className='category-item'+(active===cat?' is-active':'');b.innerHTML='<span class="category-item-main"><span class="category-dot"></span><span class="category-name"></span></span><span class="category-count"></span>';b.querySelector('.category-name').textContent=cat;let n=gs.length;if(cat==='New Games')n=gs.filter(c=>info(c).isNew).length;else if(cat==='Trending')n=tr.size;else if(cat!=='All Games')n=gs.filter(c=>info(c).category===cat).length;b.querySelector('.category-count').textContent=String(n);b.addEventListener('click',()=>{active=cat;closeSide();apply();setTimeout(()=>grid.scrollIntoView({behavior:'smooth',block:'start'}),20)});list.appendChild(b)})}
-function wireCategories(){const toggle=$('categoryToggle'),close=$('categoryClose'),overlay=$('categoryOverlay')||$('overlay');if(toggle){toggle.addEventListener('click',e=>{e.preventDefault();openSide();renderCategories()})}if(close)close.addEventListener('click',e=>{e.preventDefault();closeSide()});if(overlay)overlay.addEventListener('click',closeSide);document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSide()});const s=$('searchBar');if(s){s.addEventListener('input',()=>setTimeout(apply,0));s.addEventListener('change',()=>setTimeout(apply,0))}renderCategories()}
-function wheel(c){if(c.dataset.wheelFixed==='1')return;c.dataset.wheelFixed='1';c.addEventListener('wheel',e=>{if(Math.abs(e.deltaY)>Math.abs(e.deltaX)){e.preventDefault();c.scrollLeft+=e.deltaY}}, {passive:false})}
+function wireCategories(){const toggle=$('categoryToggle'),close=$('categoryClose'),overlay=$('categoryOverlay')||$('overlay');if(toggle)toggle.addEventListener('click',e=>{e.preventDefault();openSide();renderCategories()});if(close)close.addEventListener('click',e=>{e.preventDefault();closeSide()});if(overlay)overlay.addEventListener('click',closeSide);document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSide()});const s=$('searchBar');if(s){s.addEventListener('input',()=>setTimeout(apply,0));s.addEventListener('change',()=>setTimeout(apply,0))}renderCategories()}
+function wheel(c){if(c.dataset.wheelFixed==='1')return;c.dataset.wheelFixed='1';c.addEventListener('wheel',e=>{if(Math.abs(e.deltaY)>Math.abs(e.deltaX)){e.preventDefault();c.scrollLeft+=e.deltaY}},{passive:false})}
 function wireScroll(){document.querySelectorAll('.v3-carousel').forEach(wheel)}
-function init(){wireCategories();wireScroll();new MutationObserver(()=>{clearTimeout(renderTimer);renderTimer=setTimeout(()=>{renderCategories();wireScroll();apply()},80)}).observe(grid,{childList:true});apply();wireScroll()}
+function extractUrl(card){const a=card.getAttribute('onclick')||'',m=a.match(/openGame\(\s*['"]([^'"]+)['"]\s*\)/);return m?m[1]:''}
+function directOpen(url){if(!url)return;const w=window.open(url,'_blank');if(!w)window.location.href=url}
+function interceptGameClicks(){document.addEventListener('click',e=>{const card=e.target.closest('#gameGrid > .game-card');if(!card)return;const u=extractUrl(card);if(!u)return;e.preventDefault();e.stopImmediatePropagation();directOpen(u)},true)}
+function polishHero(){const v3=document.getElementById('v3Hero');if(v3)v3.remove();const h=document.querySelector('main .hero');if(!h)return;h.className='hero-copy';h.innerHTML='<h1>Play games instantly with UBG43!</h1><p>1000+ games, fresh releases, quick search, automatic categories and personalized picks — everything you need to find your next game fast.</p><span class="hero-stat">1000+ games • fresh additions • personalized recommendations</span>'}
+function init(){polishHero();wireCategories();wireScroll();interceptGameClicks();new MutationObserver(()=>{clearTimeout(renderTimer);renderTimer=setTimeout(()=>{renderCategories();wireScroll();apply()},120)}).observe(grid,{childList:true});apply();wireScroll()}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();</script>
 <script id="ubg43-runtime-game-safety">(()=>{
 'use strict';
 const grid=document.getElementById('gameGrid');if(!grid)return;
 const checked=new Set(),queue=[];let running=0;
-const runNext=()=>{while(running<8&&queue.length){const card=queue.shift();running++;const a=card.getAttribute('onclick')||'',m=a.match(/openGame\(\s*['"]([^'"]+)['"]\s*\)/),url=m?m[1]:'';if(!url){running--;card.remove();continue}fetch(url,{method:'HEAD',cache:'no-store',redirect:'follow'}).then(r=>{if(!r.ok&&r.status!==0)card.remove()}).catch(()=>{}).finally(()=>{running--;runNext()})}};
-const inspect=()=>{[...grid.querySelectorAll(':scope > .game-card')].forEach(card=>{if(checked.has(card))return;checked.add(card);const url=(card.getAttribute('onclick')||'');if(url.includes('raw.githubusercontent.com/gn-math/html/main/'))queue.push(card)});runNext()};
+function runNext(){while(running<8&&queue.length){const card=queue.shift();running++;const a=card.getAttribute('onclick')||'',m=a.match(/openGame\(\s*['"]([^'"]+)['"]\s*\)/),url=m?m[1]:'';if(!url){running--;continue}fetch(url,{method:'HEAD',cache:'force-cache',redirect:'follow'}).then(r=>{if(!r.ok&&r.status!==0&&r.status!==405)card.remove()}).catch(()=>{}).finally(()=>{running--;runNext()})}}
+function inspect(){[...grid.querySelectorAll(':scope > .game-card')].forEach(card=>{if(checked.has(card))return;checked.add(card);const url=card.getAttribute('onclick')||'';if(url.includes('raw.githubusercontent.com/gn-math/html/main/'))queue.push(card)});runNext()}
 new MutationObserver(inspect).observe(grid,{childList:true});inspect();
 })();</script>
 </body>
