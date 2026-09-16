@@ -3171,6 +3171,29 @@ button:focus-visible,.action:focus-visible,.cat-btn:focus-visible,.v3-arrow:focu
 #status{display:block!important;margin:0 20px 2px!important;padding:0 0 6px!important;color:#ffffff9c!important;font-size:12px!important;font-weight:750!important;min-height:22px}
 @media(max-width:600px){.v3-strip{padding-left:14px!important;padding-right:14px!important}.v3-carousel{grid-auto-columns:calc((100vw - 40px)/2)!important;min-height:210px!important}#status{margin-left:14px!important;margin-right:14px!important}}
 </style>
+<style id="ubg43-final-layout-style">
+/* Keep one homepage hero: the older legacy hero duplicates the V3 hero content. */
+.hero { display: none !important; }
+
+/* The stat pill is the compact home-page feature line. */
+.hero-copy .hero-stat {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+  max-width: min(100%, 920px) !important;
+  margin: 14px auto 0 !important;
+  padding: 9px 15px !important;
+  border-radius: 999px !important;
+  background: linear-gradient(135deg, rgba(37,109,255,.26), rgba(139,92,246,.18)) !important;
+  border: 1px solid rgba(255,255,255,.20) !important;
+  color: #fff !important;
+  box-shadow: 0 8px 22px rgba(0,27,90,.22), inset 0 1px 0 rgba(255,255,255,.10) !important;
+  font-size: 12px !important;
+  line-height: 1.35 !important;
+  text-align: center !important;
+}
+</style>
 </head>
           <body style="margin:0;overflow:hidden;">
             <iframe src="${randomLink}" frameborder="0" style="width:100vw;height:100vh;border:none;"></iframe>
@@ -3380,6 +3403,19 @@ setTimeout(normalize,50);setTimeout(normalize,400);setTimeout(normalize,1200);se
     e.stopImmediatePropagation();
     openDirect(m[1]);
   },true);
+})();
+</script>
+<script id="ubg43-final-layout-runtime">
+(()=>{
+  'use strict';
+  const desired = '1000+ games • fast search • automatic categories • new-game ribbons • trending picks • rotating homepage';
+  function clean(){
+    document.querySelectorAll('.hero-copy .hero-stat').forEach(p=>p.textContent = desired);
+  }
+  clean();
+  setTimeout(clean, 100);
+  setTimeout(clean, 500);
+  setTimeout(clean, 1200);
 })();
 </script>
 </body>
