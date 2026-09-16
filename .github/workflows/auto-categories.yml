@@ -3,6 +3,7 @@ on:
   push:
     paths:
       - '.github/auto-categories.py'
+      - '.github/loading-polish.py'
       - '.github/auto-categories-trigger'
       - 'legacy-index.html'
       - 'index.html'
@@ -17,6 +18,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Apply automatic categories and smart discovery
         run: python3 .github/auto-categories.py
+      - name: Apply loading-state polish
+        run: python3 .github/loading-polish.py
       - name: Commit category update
         run: |
           git config user.name 'github-actions[bot]'
