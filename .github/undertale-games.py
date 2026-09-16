@@ -5,25 +5,12 @@ import html,re
 INDEX=Path('index.html')
 LEGACY=Path('legacy-index.html')
 TODAY=date.today().isoformat()
+# Keep this collection separate from the main game feed so the automation can re-add
+# these entries after future library rebuilds without any manual homepage edits.
 GAMES=[
-    {
-        'title':'Undertale Sans Fight',
-        'url':'https://jcw87.github.io/c2-sans-fight/',
-        'image':'undertale-thumbnails/sans-fight.svg',
-        'category':'Horror',
-    },
-    {
-        'title':"Undertale Flowey's Time Machine",
-        'url':'https://crumblingstatue.github.io/FloweysTimeMachine/',
-        'image':'undertale-thumbnails/floweys-time-machine.svg',
-        'category':'Horror',
-    },
-    {
-        'title':'Undertale Text Generator',
-        'url':'https://ruyili.ca/greetings-human/',
-        'image':'undertale-thumbnails/text-generator.svg',
-        'category':'Casual',
-    },
+    {'title':'Undertale Sans Fight','url':'https://jcw87.github.io/c2-sans-fight/','image':'undertale-thumbnails/sans-fight.svg','category':'Horror'},
+    {'title':"Undertale Flowey's Time Machine",'url':'https://crumblingstatue.github.io/FloweysTimeMachine/','image':'undertale-thumbnails/floweys-time-machine.svg','category':'Horror'},
+    {'title':'Undertale Text Generator','url':'https://ruyili.ca/greetings-human/','image':'undertale-thumbnails/text-generator.svg','category':'Casual'},
 ]
 
 def extract_grid(text):
@@ -50,13 +37,13 @@ def add_games(text):
     start,end,body,opening,closing=info
     additions=[card(g) for g in GAMES if not has_title(text,g['title'])]
     if not additions:return text
-    return text[:end-len(closing)] if False else text[:start]+opening+'\n'+body.rstrip()+'\n'+'\n'.join(additions)+'\n'+closing+text[end:]
+    return text[:start]+opening+'\n'+body.rstrip()+'\n'+'\n'.join(additions)+'\n'+closing+text[end:]
 
 for path in (INDEX,LEGACY):
     if path.exists():
         original=path.read_text(encoding='utf-8')
         updated=add_games(original)
         path.write_text(updated,encoding='utf-8')
-        print(f'Undertale collection updated: {path} ({sum(1 for g in GAMES if not has_title(original,g["title"]))} possible additions)')
+        print(f'Undertale collection checked: {path}; missing={sum(1 for g in GAMES if not has_title(original,g["title"]))}')
 
-print('UNDERTALE GAMES: Sans Fight, Flowey\'s Time Machine, and Text Generator are enforced automatically; they use the site\'s existing about:blank openGame wrapper.')
+print('UNDERTALE GAMES: collection is self-healing; entries keep the site openGame about:blank wrapper.')
