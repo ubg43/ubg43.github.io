@@ -18,7 +18,21 @@
 </div></header>
 <div id="overlay" class="overlay hidden"></div><aside id="sidebar" class="sidebar" aria-label="Categories"><div style="display:flex;justify-content:space-between;align-items:center"><div><div style="opacity:.6;font-size:11px;letter-spacing:.14em">BROWSE</div><h2 style="margin:3px 0 0">Game Categories</h2></div><button id="categoryClose" class="cat-btn" style="width:38px;padding:0">×</button></div><div id="catList" class="cat-list"></div></aside>
 <main class="page"><section class="hero"><h1>Play games instantly</h1><p>Fast search, automatic categories, new-game ribbons, trending picks and a rotating homepage.</p></section>
-<div id="status" class="status">Building your game library…</div><div id="gameGrid" class="game-grid"></div><div id="empty" class="empty hidden">No games matched your search.</div></main>
+<div id="status" class="status">Building your game library…</div><div id="gameGrid" class="game-grid">
+
+  <div class="game-card" data-category="Horror" data-new-since="2026-09-16" data-collection="undertale" onclick="openGame('https://jcw87.github.io/c2-sans-fight/')">
+    <img loading="lazy" src="undertale-thumbnails/sans-fight.svg" alt="Undertale Sans Fight" referrerpolicy="no-referrer">
+    <h3>Undertale Sans Fight</h3>
+  </div>
+  <div class="game-card" data-category="Horror" data-new-since="2026-09-16" data-collection="undertale" onclick="openGame('https://crumblingstatue.github.io/FloweysTimeMachine/')">
+    <img loading="lazy" src="undertale-thumbnails/floweys-time-machine.svg" alt="Undertale Flowey&#x27;s Time Machine" referrerpolicy="no-referrer">
+    <h3>Undertale Flowey&#x27;s Time Machine</h3>
+  </div>
+  <div class="game-card" data-category="Casual" data-new-since="2026-09-16" data-collection="undertale" onclick="openGame('https://ruyili.ca/greetings-human/')">
+    <img loading="lazy" src="undertale-thumbnails/text-generator.svg" alt="Undertale Text Generator" referrerpolicy="no-referrer">
+    <h3>Undertale Text Generator</h3>
+  </div>
+</div><div id="empty" class="empty hidden">No games matched your search.</div></main>
 <footer><div>© 2026 All rights reserved.</div><div style="opacity:.75;font-size:12px;margin-top:5px">Game library updates automatically.</div></footer>
 <script>
 (() => {
