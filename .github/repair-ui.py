@@ -1,87 +1,63 @@
 from pathlib import Path
+import re
 
-FILES = [Path('index.html'), Path('legacy-index.html')]
-MARKER = '<!-- UBGR43-UI-REPAIR-V2 -->'
-SCRIPT = r'''<script id="ubg43-ui-repair">
-(function(){
-  'use strict';
-  function $(id){return document.getElementById(id)}
-  function cards(){var grid=$('gameGrid');return grid?Array.prototype.slice.call(grid.querySelectorAll('.game-card')):[]}
-  function norm(s){return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim()}
-  function title(card){var h=card&&card.querySelector('h3');return h?(h.textContent||'').trim():'Game'}
-  function img(card){var i=card&&card.querySelector('img');return i?i.getAttribute('src')||'':''}
-  function url(card){var a=card&&card.getAttribute('onclick')||'',m=a.match(/openGame\(\s*['\"]([^'\"]+)['\"]\s*\)/);return m?m[1]:''}
-  window.openGame=function(u){
-    if(!u)return false;
-    var w=window.open('about:blank','_blank');
-    if(!w){window.location.href=u;return false;}
-    var esc=String(u).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
-    w.document.open();
-    w.document.write('<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Google Docs</title><style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000}iframe{display:block;width:100%;height:100%;border:0}</style></head><body><iframe src="'+esc+'" allow="fullscreen;autoplay;gamepad;clipboard-read;clipboard-write" allowfullscreen></iframe></body></html>');
-    w.document.close();
-    return false;
-  };
-  function setupSearch(){
-    var input=$('searchBar'),clear=$('searchClear'),results=$('searchResults');if(!input)return;
-    function render(){
-      var q=norm(input.value),all=cards(),hits=all.filter(function(c){return !q||norm(title(c)).indexOf(q)!==-1});
-      if(clear)clear.style.display=input.value?'inline-flex':'none';
-      all.forEach(function(c){c.style.display=!q||norm(title(c)).indexOf(q)!==-1?'':'none'});
-      if(!results)return;
-      results.innerHTML='';
-      if(!q){results.classList.remove('is-open');results.hidden=true;return}
-      results.classList.add('is-open');results.hidden=false;
-      if(!hits.length){results.innerHTML='<div class="search-empty">No games found</div>';return}
-      hits.slice(0,8).forEach(function(c){
-        var b=document.createElement('button');b.type='button';b.className='search-result';
-        var im=document.createElement('img');im.src=img(c);im.alt='';im.loading='lazy';
-        var copy=document.createElement('span');copy.className='search-result-copy';
-        var name=document.createElement('span');name.className='search-result-title';name.textContent=title(c);copy.appendChild(name);
-        b.appendChild(im);b.appendChild(copy);b.addEventListener('click',function(){window.openGame(url(c));results.classList.remove('is-open');results.hidden=true});results.appendChild(b);
-      });
-    }
-    input.addEventListener('input',render);input.addEventListener('search',render);
-    input.addEventListener('keydown',function(e){if(e.key==='Escape'){input.value='';render();input.blur()}});
-    if(clear)clear.addEventListener('click',function(){input.value='';render();input.focus()});
-    document.addEventListener('click',function(e){if(results&&!input.contains(e.target)&&!results.contains(e.target)){results.classList.remove('is-open');results.hidden=true}});
-    render();
-  }
-  function setupButtons(){
-    var random=$('randomGameButton'),report=$('reportGameButton');
-    if(random)random.addEventListener('click',function(e){e.preventDefault();var cs=cards().filter(function(c){return getComputedStyle(c).display!=='none'});if(cs.length)window.openGame(url(cs[Math.floor(Math.random()*cs.length)]))});
-    if(report)report.addEventListener('click',function(e){e.preventDefault();window.location.href='mailto:ubg43@proton.me?subject=Game%20report%20or%20suggestion'});
-  }
-  function setupCategories(){
-    var toggle=$('categoryToggle'),side=$('categorySidebar'),overlay=$('categoryOverlay'),close=$('categoryClose'),list=$('categoryList');if(!side||!list)return;
-    var cats={};cards().forEach(function(c){var k=c.dataset.category||'Other';cats[k]=(cats[k]||0)+1});list.innerHTML='';
-    Object.keys(cats).sort().forEach(function(k){
-      var b=document.createElement('button');b.type='button';b.className='category-item';
-      b.innerHTML='<span class="category-item-main"><span class="category-dot"></span><span class="category-name"></span></span><span class="category-count"></span>';
-      b.querySelector('.category-name').textContent=k;b.querySelector('.category-count').textContent=cats[k];
-      b.addEventListener('click',function(){cards().forEach(function(c){c.style.display=(c.dataset.category||'Other')===k?'':'none'});shut()});list.appendChild(b);
-    });
-    function open(){side.classList.add('is-open');side.setAttribute('aria-hidden','false');if(overlay){overlay.hidden=false;requestAnimationFrame(function(){overlay.classList.add('is-open')})}}
-    function shut(){side.classList.remove('is-open');side.setAttribute('aria-hidden','true');if(overlay){overlay.classList.remove('is-open');setTimeout(function(){overlay.hidden=true},200)}}
-    if(toggle)toggle.addEventListener('click',function(e){e.preventDefault();open()});if(close)close.addEventListener('click',function(e){e.preventDefault();shut()});if(overlay)overlay.addEventListener('click',shut);document.addEventListener('keydown',function(e){if(e.key==='Escape')shut()});
-  }
-  function boot(){var l=$('loadingCard');if(l)l.style.display='none';setupSearch();setupButtons();setupCategories()}
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
-})();
-</script>'''
+FILES=[Path('index.html'),Path('legacy-index.html')]
+MARK='<!-- UBG43_UI_V3 -->'
+CSS=r'''<style id="ubg43-v3-style">
+#loadingCard{display:none!important}.loading-card{display:none!important}
+.hero-copy{max-width:920px;margin:0 auto;padding:28px 22px 8px;color:#fff;text-align:left}.hero-copy h1{margin:0;font-size:clamp(28px,4vw,42px);line-height:1.08;font-weight:900;letter-spacing:-.025em}.hero-copy p{margin:10px 0 0;color:rgba(255,255,255,.78);font-size:15px;line-height:1.55;max-width:760px}.hero-copy .hero-stat{display:inline-flex;margin-top:13px;padding:7px 11px;border-radius:999px;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.16);font-size:12px;font-weight:800}
+.v3-strip{padding:14px 22px 4px}.v3-head{display:flex;align-items:end;justify-content:space-between;gap:12px;margin-bottom:10px}.v3-title{margin:0;color:#fff;font-size:21px;font-weight:900}.v3-sub{margin:4px 0 0;color:rgba(255,255,255,.68);font-size:12px}.v3-controls{display:flex;gap:7px}.v3-arrow{width:36px;height:36px;border:1px solid rgba(255,255,255,.28);border-radius:10px;background:rgba(0,45,135,.72);color:#fff;font-size:20px;font-weight:900;cursor:pointer;box-shadow:0 6px 14px rgba(0,0,0,.16)}.v3-arrow:disabled{opacity:.30;cursor:default}.v3-carousel{display:grid;grid-template-rows:repeat(2,minmax(0,1fr));grid-auto-flow:column;grid-auto-columns:calc((100% - 65px)/6);gap:13px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;padding:2px 2px 7px;scroll-behavior:smooth}.v3-carousel::-webkit-scrollbar{display:none}.v3-carousel .game-card{min-width:0;height:100%}.v3-carousel .game-card img{height:106px}.v3-carousel .game-card h3{font-size:12px}.v3-done{display:flex;align-items:center;justify-content:center;min-width:190px;min-height:100%;padding:14px;border:1px dashed rgba(255,255,255,.24);border-radius:13px;color:rgba(255,255,255,.78);font-size:12px;font-weight:850;text-align:center;animation:v3Pulse 2.4s ease-in-out infinite}.v3-done span{display:block}.v3-done small{display:block;margin-top:4px;opacity:.65;font-weight:700}@keyframes v3Pulse{0%,100%{opacity:.65;transform:scale(.985)}50%{opacity:1;transform:scale(1)}}
+.v3-rec{padding:18px 22px 8px}.v3-rec.is-hidden{display:none}.v3-rec .v3-carousel{grid-auto-columns:calc((100% - 39px)/4)}.v3-ribbon-wrap{position:absolute;left:8px;top:8px;z-index:6;display:flex;gap:5px;flex-wrap:wrap;pointer-events:none}.v3-ribbon{display:inline-flex;align-items:center;padding:4px 7px;border-radius:6px;font:900 9px/1 Arial,sans-serif;letter-spacing:.05em;box-shadow:0 3px 8px rgba(0,0,0,.20);white-space:nowrap}.v3-ribbon.new{background:#e52525;color:#ffe600}.v3-ribbon.trending{background:#ffe600;color:#c51f1f}.game-card{position:relative}
+@media(max-width:1150px){.v3-carousel{grid-auto-columns:calc((100% - 39px)/4)}.v3-rec .v3-carousel{grid-auto-columns:calc((100% - 26px)/3)}}@media(max-width:760px){.hero-copy{padding:20px 14px 6px}.v3-strip,.v3-rec{padding-left:14px;padding-right:14px}.v3-carousel{grid-auto-columns:calc((100% - 26px)/3)}.v3-rec .v3-carousel{grid-auto-columns:calc((100% - 13px)/2)}.v3-head{align-items:flex-start}.v3-title{font-size:18px}}@media(max-width:560px){.v3-carousel{grid-auto-columns:calc((100% - 13px)/2)}.v3-carousel .game-card img{height:100px}}
+</style>'''
+JS=r'''<script id="ubg43-ui-v3-runtime">(()=>{
+'use strict';
+const $=id=>document.getElementById(id), grid=$('gameGrid');if(!grid)return;
+const norm=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+function cardData(c){const i=c.querySelector('img'),h=c.querySelector('h3'),a=c.getAttribute('onclick')||'',m=a.match(/openGame\(\s*['\"]([^'\"]+)['\"](?:\s*,[^)]*)?\)/);return {card:c,title:(h?.textContent||i?.alt||'Game').trim(),image:i?.getAttribute('src')||i?.currentSrc||'',url:m?m[1]:'',category:c.dataset.category||'Other',isNew:!!c.dataset.newSince||c.dataset.new==='1',key:norm((h?.textContent||i?.alt||'Game'))+'|'+(i?.getAttribute('src')||'')}}
+function allGames(){return [...grid.querySelectorAll(':scope > .game-card')].map(cardData).filter(x=>x.title&&x.url)}
+function read(k,f){try{return JSON.parse(localStorage.getItem(k)||JSON.stringify(f))||f}catch(_){return f}}function write(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(_){}}
+const PKEY='ubg43_v3_plays',SKEY='ubg43_v3_searches';
+function recordPlay(g){const h=read(PKEY,{}),x=h[g.key]||{title:g.title,image:g.image,plays:0,last:0};x.plays++;x.last=Date.now();h[g.key]=x;write(PKEY,h)}
+function recordSearch(q){q=norm(q);if(q.length<2)return;const h=read(SKEY,{}),x=h[q]||{count:0,last:0};x.count++;x.last=Date.now();h[q]=x;write(SKEY,h)}
+function tokenSim(a,b){const A=new Set(norm(a).split(' ').filter(Boolean)),B=new Set(norm(b).split(' ').filter(Boolean));if(!A.size||!B.size)return 0;let n=0;A.forEach(x=>B.has(x)&&n++);return n/Math.sqrt(A.size*B.size)}
+function trendSet(){const h=read(PKEY,{}),gs=allGames();return new Set(gs.map(g=>{const x=h[g.key]||{};return {g,s:(x.plays||0)+((Date.now()-(x.last||0)<3*86400000)?2:0)}}).sort((a,b)=>b.s-a.s||a.g.title.localeCompare(b.g.title)).slice(0,18).map(x=>x.g.key))}
+function makeRibbon(c,text,kind){const wrap=c.querySelector('.v3-ribbon-wrap')||(()=>{const x=document.createElement('div');x.className='v3-ribbon-wrap';c.appendChild(x);return x})();const r=document.createElement('span');r.className='v3-ribbon '+kind;r.textContent=text;wrap.appendChild(r)}
+function decorate(c,trend){c.querySelector('.v3-ribbon-wrap')?.remove();const g=cardData(c);if(g.isNew)makeRibbon(c,'NEW','new');if(trend.has(g.key))makeRibbon(c,'TRENDING','trending')}
+function setupCards(){const trend=trendSet();allGames().forEach(g=>{g.card.addEventListener('click',()=>recordPlay(g),{capture:true});decorate(g.card,trend)})}
+function buildHero(){let h=document.getElementById('v3Hero');if(!h){h=document.createElement('section');h.id='v3Hero';h.className='hero-copy';const anchor=document.querySelector('.game-grid');anchor?.parentNode?.insertBefore(h,anchor)}h.innerHTML='<h1>Play games instantly with UBG43!</h1><p>1000+ games, quick search, automatic categories, fresh releases and personalized picks — all in one place.</p><span class="hero-stat">1000+ games • new games every day • personalized recommendations</span>'}
+function cloneButton(id){const old=$(id);if(!old)return null;const n=old.cloneNode(true);old.replaceWith(n);return n}
+let active='All Games',query='';
+function matches(g){if(!active||active==='All Games')return true;if(active==='New Games')return g.isNew;if(active==='Trending')return trendSet().has(g.key);return g.category===active}
+function applyFilter(){const gs=allGames();gs.forEach(g=>{const ok=(!query||norm(g.title).includes(norm(query)))&&matches(g);g.card.style.display=ok?'':'none'});renderCats();}
+function renderCats(){const list=$('categoryList');if(!list)return;const gs=allGames(),names=new Set(['Action','Adventure','Horror','Multiplayer','Fighting','Survival','Platformer','Racing','Sports','Puzzle','Arcade','Strategy','Simulation','Casual','Anime','Rhythm & Music','Card & Board','io']);gs.forEach(g=>names.add(g.category));const cats=['All Games','New Games','Trending',...Array.from(names).sort()];list.innerHTML='';for(const c of cats){const b=document.createElement('button');b.type='button';b.className='category-item'+(active===c?' is-active':'');b.innerHTML='<span class="category-item-main"><span class="category-dot"></span><span class="category-name"></span></span><span class="category-count"></span>';b.querySelector('.category-name').textContent=c;const count=c==='All Games'?gs.length:c==='New Games'?gs.filter(x=>x.isNew).length:c==='Trending'?trendSet().size:gs.filter(x=>x.category===c).length;b.querySelector('.category-count').textContent=count;b.onclick=()=>{active=c;document.getElementById('categorySidebar')?.classList.remove('is-open');document.getElementById('categoryOverlay')?.classList.remove('is-open');if(document.getElementById('categoryOverlay'))document.getElementById('categoryOverlay').hidden=true;applyFilter();grid.scrollIntoView({behavior:'smooth',block:'start'})};list.appendChild(b)}}
+function openGameDirect(url){if(!url)return;const w=window.open(url,'_blank','noopener');if(!w)window.location.href=url}
+window.openGame=openGameDirect;
+function wire(){const search=cloneButton('searchBar')||$('searchBar');const clear=cloneButton('searchClear');const random=cloneButton('randomGameButton');const report=cloneButton('reportGameButton');const toggle=cloneButton('categoryToggle');const close=cloneButton('categoryClose');const side=$('categorySidebar'),overlay=$('categoryOverlay');
+if(search){search.addEventListener('input',()=>{query=search.value.trim();if(query)recordSearch(query);if(clear)clear.style.display=query?'inline-flex':'none';renderSearch(query);applyFilter();renderRecommendations(query)});search.addEventListener('keydown',e=>{if(e.key==='Escape'){search.value='';query='';applyFilter();renderRecommendations('')}})}
+if(clear)clear.addEventListener('click',()=>{search.value='';query='';clear.style.display='none';applyFilter();renderRecommendations('');search.focus()});
+if(random)random.addEventListener('click',()=>{const pool=allGames().filter(matches);const g=(pool.length?pool:allGames())[Math.floor(Math.random()*(pool.length?pool.length:allGames().length))];if(g){recordPlay(g);openGameDirect(g.url)}});
+if(report)report.addEventListener('click',()=>location.href='mailto:ubg423@gmail.com?subject=UBG43%20Report%20or%20Suggestion');
+if(toggle&&side&&overlay){toggle.addEventListener('click',()=>{side.classList.add('is-open');overlay.hidden=false;requestAnimationFrame(()=>overlay.classList.add('is-open'));renderCats()});if(close)close.addEventListener('click',()=>{side.classList.remove('is-open');overlay.classList.remove('is-open');overlay.hidden=true});overlay.addEventListener('click',()=>{side.classList.remove('is-open');overlay.classList.remove('is-open');overlay.hidden=true})}
+renderCats();renderFeatured();renderRecommendations('');}
+function renderSearch(q){const box=$('searchResults');if(!box)return;box.innerHTML='';if(!q){box.classList.remove('is-open');box.hidden=true;return}const hits=allGames().filter(g=>norm(g.title).includes(norm(q))).slice(0,8);hits.forEach(g=>{const b=document.createElement('button');b.className='search-result';b.type='button';b.innerHTML='<img alt=""><span class="search-result-copy"><span class="search-result-title"></span><span class="search-result-label">Play game</span></span>';b.querySelector('img').src=g.image;b.querySelector('img').alt=g.title;b.querySelector('.search-result-title').textContent=g.title;b.onclick=()=>{recordPlay(g);openGameDirect(g.url)};box.appendChild(b)});box.hidden=false;box.classList.add('is-open')}
+function section(id,title,sub,items){let s=$(id);if(!s){s=document.createElement('section');s.id=id;s.className='v3-strip';const hero=$('v3Hero');hero?.after(s)}s.innerHTML='<div class="v3-head"><div><h2 class="v3-title"></h2><p class="v3-sub"></p></div><div class="v3-controls"><button class="v3-arrow prev" type="button" aria-label="Scroll left">←</button><button class="v3-arrow next" type="button" aria-label="Scroll right">→</button></div></div><div class="v3-carousel"></div>';s.querySelector('.v3-title').textContent=title;s.querySelector('.v3-sub').textContent=sub;const car=s.querySelector('.v3-carousel');items.forEach(g=>{const c=g.card.cloneNode(true);c.style.display='';c.onclick=()=>{recordPlay(g);openGameDirect(g.url)};decorate(c,trendSet());car.appendChild(c)});const done=document.createElement('div');done.className='v3-done';done.innerHTML='<span>That’s all for now ✨<small>More games are added automatically.</small></span>';car.appendChild(done);const prev=s.querySelector('.prev'),next=s.querySelector('.next');function update(){prev.disabled=car.scrollLeft<=4;next.disabled=car.scrollLeft+car.clientWidth>=car.scrollWidth-4}prev.onclick=()=>car.scrollBy({left:-Math.max(280,car.clientWidth*.85),behavior:'smooth'});next.onclick=()=>car.scrollBy({left:Math.max(280,car.clientWidth*.85),behavior:'smooth'});car.onscroll=update;update()}
+function renderFeatured(){const gs=allGames(),trend=trendSet(),trends=gs.slice().sort((a,b)=>(trend.has(b.key)?1:0)-(trend.has(a.key)?1:0)||b.title.localeCompare(a.title)).slice(0,24),news=gs.filter(g=>g.isNew).slice(0,24);section('v3Trending','Trending Now','Popular picks based on play activity on this device',trends);const t=$('v3Trending');t?.parentNode?.insertBefore(t,$('gameGrid'));section('v3New','New Games','Fresh additions to the UBG43 library',news.length?news:gs.slice(0,12));const n=$('v3New');if(n)n.parentNode.insertBefore(n,$('gameGrid'))}
+function renderRecommendations(q){let s=$('v3Recommendations');if(!q){if(s)s.remove();return}const gs=allGames(),ph=read(PKEY,{}),sh=read(SKEY,{});const exact=new Set(gs.filter(g=>norm(g.title).includes(norm(q))).map(g=>g.key));const scored=gs.filter(g=>!exact.has(g.key)).map(g=>{let score=tokenSim(g.title,q)*.42;Object.values(ph).forEach(x=>score+=tokenSim(g.title,x.title||'')*Math.min(5,x.plays||0)*.05);Object.entries(sh).forEach(([k,x])=>score+=tokenSim(g.title,k)*Math.min(4,x.count||0)*.04);score+=g.isNew?.05:0;return {g,score}}).sort((a,b)=>b.score-a.score||a.g.title.localeCompare(b.g.title)).slice(0,24).map(x=>x.g);s=section('v3Recommendations','You may also like','Personalized from your searches and games you play',scored);s.classList.add('v3-rec');s.classList.add('is-visible');const h=s.querySelector('.v3-head');if(h)h.querySelector('.v3-title').textContent='You may also like'}
+const oldInput=$('searchBar');if(oldInput){buildHero();wire();setupCards();new MutationObserver(()=>{setupCards();renderFeatured();if(oldInput.value)renderRecommendations(oldInput.value)}).observe(grid,{childList:true});}
+})();</script>'''
+
+def patch(text):
+    text=re.sub(r'\s*<div id="loadingCard"[^>]*>.*?</div>\s*','\n',text,count=1,flags=re.I|re.S)
+    text=re.sub(r'\s*<style id="ubg43-v3-style">.*?</style>\s*','\n',text,count=1,flags=re.S)
+    text=re.sub(r'\s*<script id="ubg43-ui-v3-runtime">.*?</script>\s*','\n',text,count=1,flags=re.S)
+    meta='<meta name="description" content="UBG43 - play 1000+ unblocked games online with fast search, categories, trending games, new releases and personalized recommendations.">'
+    text=re.sub(r'<meta\s+name="description"\s+content="[^"]*"\s*/?>',meta,text,count=1,flags=re.I)
+    text=re.sub(r'<title>.*?</title>','<title>UBG43 - 1000+ Unblocked Games</title>',text,count=1,flags=re.I|re.S)
+    pos=text.lower().rfind('</head>');text=text[:pos]+CSS+'\n'+text[pos:] if pos!=-1 else CSS+text
+    pos=text.lower().rfind('</body>');text=text[:pos]+JS+'\n'+text[pos:] if pos!=-1 else text+JS
+    return text
 
 for p in FILES:
-    if not p.exists(): continue
-    text = p.read_text(encoding='utf-8')
-    if MARKER in text: continue
-    old='<!-- UBGR43-UI-REPAIR-V1 -->'
-    if old in text:
-        start=text.index(old)
-        end=text.find('</script>',start)
-        if end!=-1:
-            end+=len('</script>')
-            text=text[:start]+MARKER+'\n'+SCRIPT+text[end:]
-            p.write_text(text,encoding='utf-8');print(f'UPGRADED UI: {p}');continue
-    pos=text.lower().rfind('</body>')
-    inject='\n'+MARKER+'\n'+SCRIPT+'\n'
-    text=text[:pos]+inject+text[pos:] if pos!=-1 else text+inject
-    p.write_text(text,encoding='utf-8');print(f'REPAIRED UI: {p}')
+    if p.exists():
+        s=p.read_text(encoding='utf-8');p.write_text(patch(s),encoding='utf-8');print('UBG43 UI V3:',p)
