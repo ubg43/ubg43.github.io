@@ -6,7 +6,7 @@ from html import unescape
 FILES = [Path('index.html'), Path('legacy-index.html')]
 MIN_CARDS = 1000
 required = ['openGame(', 'id="gameGrid"', 'id="searchBar"', 'id="loadingCard"']
-card_re = re.compile(r'<div class="game-card"\b(.*?)</div>', re.I | re.S)
+card_re = re.compile(r'<div class="game-card"(?=\s|>)', re.I)
 title_re = re.compile(r'<h3[^>]*>(.*?)</h3>', re.I | re.S)
 img_re = re.compile(r'<img\b[^>]*>', re.I | re.S)
 url_re = re.compile(r"openGame\(['\"]([^'\"]+)['\"]\)", re.I)
@@ -47,15 +47,13 @@ for path in FILES:
             errors.append(f'{path}: required UI marker missing: {needle}')
     stats.append((path, len(cards), len(url_keys), len(imgs)))
 
-if stats:
-    print('SITE HEALTH')
-    for path, cards, urls, imgs in stats:
-        print(f'- {path}: {cards} cards, {urls} game URLs, {imgs} images')
+print('SITE HEALTH')
+for path, cards, urls, imgs in stats:
+    print(f'- {path}: {cards} game cards, {urls} game URLs, {imgs} images')
 
 if errors:
     print('HEALTH CHECK FAILED')
     for e in errors:
         print('ERROR:', e)
     sys.exit(1)
-
 print('HEALTH CHECK PASSED: structure, required UI hooks, image sources, and duplicate checks are clean.')
