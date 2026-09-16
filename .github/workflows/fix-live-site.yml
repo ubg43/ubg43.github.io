@@ -42,7 +42,7 @@ jobs:
           idx=Path('index.html').read_text(encoding='utf-8')
           leg=Path('legacy-index.html').read_text(encoding='utf-8')
           bad=[]
-          for needle in ['id="gameGrid"','id="searchBar"','id="categoryToggle"','id="randomGameButton"','id="reportGameButton"','window.openGame','You may also like','Play games instantly with UBG43!','1000+ games','v3-carousel','v3-ribbon']:
+          for needle in ['id="gameGrid"','id="searchBar"','id="categoryToggle"','id="randomGameButton"','id="reportGameButton"','window.openGame','You may also like','Play games instantly with UBG43!','1000+ games','v3-carousel','v3-ribbon','ubg43-search-active','Search results','https://forms.gle/zXYtnxwXhGvXmBrq9']:
               if needle not in idx:bad.append(needle)
           if 'id="loadingCard"' in idx or 'Loading games...' in idx:bad.append('obsolete loading placeholder')
           if "window.open('about:blank'" in idx or '<iframe src=' in idx:bad.append('iframe/about:blank game launcher still present')
@@ -59,7 +59,7 @@ jobs:
           if '1000+ games • fast search • automatic categories • new-game ribbons • trending picks • rotating homepage' not in idx:bad.append('final homepage stat missing')
           if bad:
               print('LIVE SITE VALIDATION FAILED');print('\n'.join(bad));sys.exit(1)
-          print(f'LIVE SITE VALIDATION PASSED: {len(t)} unique legacy titles + runtime GN-Math catalogue + direct launch path + single hero.')
+          print(f'LIVE SITE VALIDATION PASSED: {len(t)} unique legacy titles + runtime GN-Math catalogue + direct launch path + search mode + report form + single hero.')
           PY
       - name: Commit repaired site
         run: |
