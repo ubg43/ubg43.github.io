@@ -1,9 +1,12 @@
 name: Automatic game categories
 on:
+  schedule:
+    - cron: '17 2 * * *'
   push:
     paths:
       - '.github/auto-categories.py'
       - '.github/category-enhancer.py'
+      - '.github/home-order.py'
       - '.github/loading-polish.py'
       - '.github/auto-categories-trigger'
       - 'legacy-index.html'
@@ -12,21 +15,26 @@ permissions:
   contents: write
 jobs:
   categories:
-    if: ${{ !contains(github.event.head_commit.message, '[game-builder]') }}
+    if: ${{ github.event_name == 'schedule' || !contains(github.event.head_commit.message, '[game-builder]') }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - name: Apply automatic categories and smart discovery
+        if: ${{ github.event_name == 'push' }}
         run: python3 .github/auto-categories.py
-      - name: Apply expanded categories and homepage reorder
+      - name: Apply expanded categories
+        if: ${{ github.event_name == 'push' }}
         run: python3 .github/category-enhancer.py
+      - name: Apply four-day homepage shuffle
+        run: python3 .github/home-order.py
       - name: Apply loading-state polish
+        if: ${{ github.event_name == 'push' }}
         run: python3 .github/loading-polish.py
-      - name: Commit category update
+      - name: Commit automation update
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add index.html legacy-index.html .github/game-registry.json
-          git commit -m 'Refresh game library automation [game-builder]' || exit 0
+          git commit -m 'Refresh automated game library [game-builder]' || exit 0
           git push
