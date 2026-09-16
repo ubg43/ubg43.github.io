@@ -41,10 +41,51 @@ function play(g){const w=window.open('about:blank','_blank');if(!w){location.hre
 @media(max-width:1150px){.v3-carousel{grid-auto-columns:calc((100% - 39px)/4)}.v3-rec .v3-carousel{grid-auto-columns:calc((100% - 26px)/3)}}@media(max-width:760px){.hero-copy{padding:20px 14px 6px}.v3-strip,.v3-rec{padding-left:14px;padding-right:14px}.v3-carousel{grid-auto-columns:calc((100% - 26px)/3)}.v3-rec .v3-carousel{grid-auto-columns:calc((100% - 13px)/2)}.v3-head{align-items:flex-start}.v3-title{font-size:18px}}@media(max-width:560px){.v3-carousel{grid-auto-columns:calc((100% - 13px)/2)}.v3-carousel .game-card img{height:100px}}
 </style>
 <style id="ubg43-hotfix-style">
-#status{display:none!important}
-.v3-carousel{cursor:grab;overscroll-behavior-x:contain;touch-action:pan-x}.v3-carousel:active{cursor:grabbing}
-.v3-strip{position:relative}.v3-carousel .v3-done{min-width:210px}
-.category-item{user-select:none}.category-item.is-active{background:rgba(37,109,255,.25)!important;border-color:rgba(83,148,255,.4)!important}
+/* Search: one clear control, perfectly centered, with the browser's native X disabled. */
+.search-shell input[type="search"]::-webkit-search-cancel-button,.search-shell input[type="search"]::-webkit-search-decoration{-webkit-appearance:none;appearance:none;display:none}
+.search-shell input[type="search"]::-moz-search-cancel-button{display:none}
+.search-shell{isolation:isolate}
+.search-shell input{padding-right:48px!important}
+.search-clear{right:8px!important;top:50%!important;transform:translateY(-50%)!important;width:32px!important;height:32px!important;margin:0!important;display:none;align-items:center;justify-content:center;line-height:1!important;border-radius:9px!important;font-size:22px!important;font-weight:800!important;background:transparent!important;color:#64748b!important;z-index:5;transition:background .16s ease,color .16s ease,transform .12s ease,box-shadow .16s ease!important}
+.search-clear:hover{background:#eef3fb!important;color:#0f2d66!important;box-shadow:0 4px 12px #001b5a22!important;transform:translateY(-50%)!important}
+.search-clear:active{transform:translateY(-50%) scale(.91)!important}
+.search-shell:focus-within input{box-shadow:0 0 0 3px #ffffff33,0 12px 28px #001b5a3d!important}
+
+/* Accurate result count. */
+#status{display:block!important;margin:0 20px 2px!important;padding:0 0 6px!important;color:#ffffff9c!important;font-size:12px!important;font-weight:750!important;min-height:22px}
+
+/* Keep cards stable while still giving them a polished lift. */
+.game-card{position:relative;isolation:isolate;contain:paint;backface-visibility:hidden;-webkit-backface-visibility:hidden;transform:translateZ(0);will-change:transform,box-shadow;transition:transform .18s cubic-bezier(.2,.75,.25,1),box-shadow .18s ease,filter .18s ease!important}
+.game-card img{backface-visibility:hidden;-webkit-backface-visibility:hidden;transform:translateZ(0);transition:transform .22s cubic-bezier(.2,.75,.25,1),filter .22s ease!important}
+.game-card h3{position:relative;z-index:2}
+@media (hover:hover){.game-card:hover{transform:translate3d(0,-5px,0)!important;box-shadow:0 18px 34px #00132d4d,0 0 0 1px #ffffff20!important;filter:saturate(1.04)}.game-card:hover img{transform:translateZ(0) scale(1.035);filter:brightness(1.035)}.v3-carousel .game-card:hover{transform:translate3d(0,-4px,0)!important}.game-card:active{transform:translate3d(0,-1px,0) scale(.988)!important}}
+
+/* Small, stable ribbons. Hide the older oversized chevrons and let the V3 ribbons be the single source of truth. */
+.card-ribbons{display:none!important}
+.v3-ribbon-wrap{position:absolute!important;left:8px!important;top:8px!important;z-index:7!important;display:flex!important;flex-direction:column!important;align-items:flex-start!important;gap:4px!important;pointer-events:none!important;transform:translateZ(0)!important}
+.v3-ribbon{height:22px!important;min-height:22px!important;padding:0 9px!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;border-radius:6px 8px 8px 6px!important;font:900 9px/1 Arial,sans-serif!important;letter-spacing:.055em!important;box-shadow:0 4px 10px #0003!important;white-space:nowrap!important;position:relative!important;transform:translateZ(0)!important}
+.v3-ribbon.new{background:#e52525!important;color:#ffe600!important}.v3-ribbon.trending{background:#ffe600!important;color:#c51f1f!important}
+.v3-ribbon.new::after,.v3-ribbon.trending::after{content:"";position:absolute;right:-5px;top:0;border-top:11px solid transparent;border-bottom:11px solid transparent;border-left:5px solid currentColor;opacity:.12;pointer-events:none}
+
+/* Carousels should never flash, jump or reflow on hover. */
+.v3-carousel{cursor:grab;overscroll-behavior-x:contain;touch-action:pan-x;scrollbar-width:none}
+.v3-carousel:active{cursor:grabbing}
+.v3-carousel .game-card{min-width:0;height:100%;overflow:hidden}
+.v3-carousel .game-card,.v3-carousel .game-card img,.v3-ribbon-wrap{will-change:transform}
+.v3-done{user-select:none}
+
+/* Buttons and controls: hover glow + real press feedback + keyboard focus. */
+button,.action,.cat-btn,.v3-arrow,.category-item,.search-result,.result{transition:transform .14s ease,box-shadow .16s ease,background-color .16s ease,border-color .16s ease,filter .16s ease!important}
+@media (hover:hover){button:hover,.action:hover,.cat-btn:hover,.v3-arrow:hover,.category-item:hover{filter:brightness(1.06);box-shadow:0 9px 20px #001b5a2c!important}}
+button:active,.action:active,.cat-btn:active,.v3-arrow:active,.category-item:active,.search-result:active,.result:active{transform:translateY(1px) scale(.975)!important;filter:brightness(.98)}
+button:focus-visible,.action:focus-visible,.cat-btn:focus-visible,.v3-arrow:focus-visible,.category-item:focus-visible,.search-result:focus-visible{outline:3px solid #ffffff80!important;outline-offset:2px!important}
+.v3-arrow:disabled{transform:none!important;box-shadow:none!important;filter:none!important}
+
+/* Search suggestions also feel clickable without causing layout shifts. */
+.search-result:hover,.result:hover{transform:translateX(2px)!important}
+
+/* Mobile spacing for the count pill/label. */
+@media(max-width:600px){#status{margin-left:14px!important;margin-right:14px!important}}
 </style>
 </head><body><iframe src="'+u+'" allow="fullscreen;autoplay;gamepad;clipboard-read;clipboard-write" allowfullscreen></iframe>
 
@@ -115,33 +156,41 @@ const oldInput=$('searchBar');if(oldInput){buildHero();wire();setupCards();new M
 <script id="ubg43-hotfix-runtime">(()=>{
 'use strict';
 const $=id=>document.getElementById(id),grid=$('gameGrid');if(!grid)return;
-const norm=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
-const cards=()=>[...grid.querySelectorAll(':scope > .game-card')];
-const info=c=>{const h=c.querySelector('h3'),i=c.querySelector('img');return{title:(h?.textContent||i?.alt||'Game').trim(),category:c.dataset.category||'Other',isNew:!!c.dataset.newSince||c.dataset.new==='1'}};
-let active='All Games';let renderTimer=0;
-function key(c){const g=info(c);return norm(g.title)+'|'+(c.querySelector('img')?.getAttribute('src')||'')}
-function trendKeys(){try{const h=JSON.parse(localStorage.getItem('ubg43_v3_plays')||'{}');return new Set(cards().map(c=>{const g=info(c),x=h[key(c)]||{};return{key:key(c),score:(x.plays||0)+((Date.now()-(x.last||0)<259200000)?2:0)}}).sort((a,b)=>b.score-a.score||a.key.localeCompare(b.key)).slice(0,24).map(x=>x.key))}catch(_){return new Set()}}
-function categoryMatch(c){const g=info(c),tr=trendKeys();return active==='All Games'||(active==='New Games'&&g.isNew)||(active==='Trending'&&tr.has(key(c)))||g.category===active}
-function apply(){const q=norm($('searchBar')?.value||'');cards().forEach(c=>{const title=norm(info(c).title);c.style.display=(!q||title.includes(q))&&categoryMatch(c)?'':'none'});renderCategories()}
-function closeSide(){const side=$('categorySidebar')||$('sidebar'),overlay=$('categoryOverlay')||$('overlay');if(side)side.classList.remove('is-open','open');if(overlay){overlay.classList.remove('is-open');overlay.classList.add('hidden');overlay.hidden=true}}
-function openSide(){const side=$('categorySidebar')||$('sidebar'),overlay=$('categoryOverlay')||$('overlay');if(side)side.classList.add(side.id==='sidebar'?'open':'is-open');if(overlay){overlay.hidden=false;overlay.classList.remove('hidden');overlay.classList.add('is-open')}}
-function renderCategories(){const list=$('categoryList')||$('catList');if(!list)return;const gs=cards(),set=new Set(['Action','Adventure','Horror','Multiplayer','Fighting','Survival','Platformer','Racing','Sports','Puzzle','Arcade','Strategy','Simulation','Casual','Anime','Rhythm & Music','Card & Board','io']);gs.forEach(c=>set.add(info(c).category));const cats=['All Games','New Games','Trending',...Array.from(set).sort()];list.innerHTML='';const tr=trendKeys();cats.forEach(cat=>{const b=document.createElement('button');b.type='button';b.className='category-item'+(active===cat?' is-active':'');b.innerHTML='<span class="category-item-main"><span class="category-dot"></span><span class="category-name"></span></span><span class="category-count"></span>';b.querySelector('.category-name').textContent=cat;let n=gs.length;if(cat==='New Games')n=gs.filter(c=>info(c).isNew).length;else if(cat==='Trending')n=tr.size;else if(cat!=='All Games')n=gs.filter(c=>info(c).category===cat).length;b.querySelector('.category-count').textContent=String(n);b.addEventListener('click',()=>{active=cat;closeSide();apply();setTimeout(()=>grid.scrollIntoView({behavior:'smooth',block:'start'}),20)});list.appendChild(b)})}
-function wireCategories(){const toggle=$('categoryToggle'),close=$('categoryClose'),overlay=$('categoryOverlay')||$('overlay');if(toggle)toggle.addEventListener('click',e=>{e.preventDefault();openSide();renderCategories()});if(close)close.addEventListener('click',e=>{e.preventDefault();closeSide()});if(overlay)overlay.addEventListener('click',closeSide);document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSide()});const s=$('searchBar');if(s){s.addEventListener('input',()=>setTimeout(apply,0));s.addEventListener('change',()=>setTimeout(apply,0))}renderCategories()}
-function wheel(c){if(c.dataset.wheelFixed==='1')return;c.dataset.wheelFixed='1';c.addEventListener('wheel',e=>{if(Math.abs(e.deltaY)>Math.abs(e.deltaX)){e.preventDefault();c.scrollLeft+=e.deltaY}},{passive:false})}
-function wireScroll(){document.querySelectorAll('.v3-carousel').forEach(wheel)}
-function extractUrl(card){const a=card.getAttribute('onclick')||'',m=a.match(/openGame\(\s*['"]([^'"]+)['"]\s*\)/);return m?m[1]:''}
-function directOpen(url){if(!url)return;const w=window.open(url,'_blank');if(!w)window.location.href=url}
-function interceptGameClicks(){document.addEventListener('click',e=>{const card=e.target.closest('#gameGrid > .game-card');if(!card)return;const u=extractUrl(card);if(!u)return;e.preventDefault();e.stopImmediatePropagation();directOpen(u)},true)}
-function polishHero(){const v3=document.getElementById('v3Hero');if(v3)v3.remove();const h=document.querySelector('main .hero');if(!h)return;h.className='hero-copy';h.innerHTML='<h1>Play games instantly with UBG43!</h1><p>1000+ games, fresh releases, quick search, automatic categories and personalized picks — everything you need to find your next game fast.</p><span class="hero-stat">1000+ games • fresh additions • personalized recommendations</span>'}
-function init(){polishHero();wireCategories();wireScroll();interceptGameClicks();new MutationObserver(()=>{clearTimeout(renderTimer);renderTimer=setTimeout(()=>{renderCategories();wireScroll();apply()},120)}).observe(grid,{childList:true});apply();wireScroll()}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
-})();</script>
-<script id="ubg43-runtime-game-safety">(()=>{
-'use strict';
-const grid=document.getElementById('gameGrid');if(!grid)return;
-const checked=new Set(),queue=[];let running=0;
-function runNext(){while(running<8&&queue.length){const card=queue.shift();running++;const a=card.getAttribute('onclick')||'',m=a.match(/openGame\(\s*['"]([^'"]+)['"]\s*\)/),url=m?m[1]:'';if(!url){running--;continue}fetch(url,{method:'HEAD',cache:'force-cache',redirect:'follow'}).then(r=>{if(!r.ok&&r.status!==0&&r.status!==405)card.remove()}).catch(()=>{}).finally(()=>{running--;runNext()})}}
-function inspect(){[...grid.querySelectorAll(':scope > .game-card')].forEach(card=>{if(checked.has(card))return;checked.add(card);const url=card.getAttribute('onclick')||'';if(url.includes('raw.githubusercontent.com/gn-math/html/main/'))queue.push(card)});runNext()}
-new MutationObserver(inspect).observe(grid,{childList:true});inspect();
+const search=$('searchBar'),clear=$('searchClear'),status=$('status');
+function visibleCards(){return [...grid.querySelectorAll(':scope > .game-card')].filter(c=>getComputedStyle(c).display!=='none' && c.getAttribute('aria-hidden')!=='true')}
+function allCards(){return [...grid.querySelectorAll(':scope > .game-card')]}
+function norm(s){return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim()}
+function titleOf(c){return (c.querySelector('h3')?.textContent||c.querySelector('img')?.alt||'Game').trim()}
+function syncStatus(){if(!status)return;const q=norm(search?.value||'');const visible=visibleCards().length;const total=allCards().length;if(q){status.textContent=visible===0?'No games matched your search.':`Showing ${visible} matching game${visible===1?'':'s'}`}
+else{status.textContent=`${total} games loaded`}}
+function refreshSearch(){try{search?.dispatchEvent(new Event('input',{bubbles:true}))}catch(_){}setTimeout(syncStatus,40);setTimeout(syncStatus,220)}
+if(search){search.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();e.stopPropagation();refreshSearch();setTimeout(()=>grid.scrollIntoView({behavior:'smooth',block:'start'}),70)}},true);search.addEventListener('input',()=>setTimeout(syncStatus,20));search.addEventListener('change',()=>setTimeout(syncStatus,20))}
+if(clear){clear.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();setTimeout(syncStatus,30)},true)}
+
+/* The V3 cards get their small ribbons; this also repairs cards produced by the older builder. */
+function decorateRibbons(){allCards().forEach(c=>{
+  const hasV3=c.querySelector('.v3-ribbon-wrap');
+  const old=c.querySelector('.card-ribbons');
+  if(hasV3)return;
+  const labels=[...c.querySelectorAll('.card-ribbons .ribbon')].map(x=>String(x.textContent||'').trim().toUpperCase());
+  const isNew=c.dataset.new==='1'||c.dataset.newSince||labels.includes('NEW');
+  const isTrending=c.dataset.seed==='1'||labels.includes('TRENDING');
+  if(!isNew&&!isTrending)return;
+  const wrap=document.createElement('div');wrap.className='v3-ribbon-wrap';
+  if(isNew){const s=document.createElement('span');s.className='v3-ribbon new';s.textContent='NEW';wrap.appendChild(s)}
+  if(isTrending){const s=document.createElement('span');s.className='v3-ribbon trending';s.textContent='TRENDING';wrap.appendChild(s)}
+  c.appendChild(wrap);
+  if(old)old.remove();
+})}
+
+/* Prevent the legacy iframe opener from winning the click race. */
+function extractUrl(card){const a=card.getAttribute('onclick')||'',m=a.match(/openGame\(\s*['"]([^'"]+)['"](?:\s*,[^)]*)?\)/);return m?m[1]:''}
+function directOpen(url){if(!url)return;const w=window.open(url,'_blank','noopener,noreferrer');if(!w)window.location.href=url}
+document.addEventListener('click',e=>{const card=e.target.closest('#gameGrid > .game-card');if(!card)return;const u=extractUrl(card);if(!u)return;e.preventDefault();e.stopImmediatePropagation();directOpen(u)},true);
+
+/* Keep the load count truthful as the runtime library changes. */
+new MutationObserver(()=>{decorateRibbons();setTimeout(syncStatus,20)}).observe(grid,{childList:true});
+setTimeout(()=>{decorateRibbons();syncStatus()},250);
+setTimeout(()=>{decorateRibbons();syncStatus()},1000);
 })();</script>
 </body></html>
