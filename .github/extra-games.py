@@ -23,7 +23,7 @@ BAD_WORDS = ['suggest games', 'discord gg', 'unavailable', 'test game', 'demo on
 
 
 def req(url, timeout=12):
-    return urllib.request.urlopen(urllib.request.Request(url, headers={'User-Agent':'ubg43-extra-game-builder/2.0'}), timeout=timeout)
+    return urllib.request.urlopen(urllib.request.Request(url, headers={'User-Agent':'ubg43-extra-game-builder/2.1'}), timeout=timeout)
 
 
 def get_json(url):
@@ -148,3 +148,4 @@ for p in (INDEX, LEGACY):
         p.write_text(add_cards(original, final), encoding='utf-8')
 
 print(f'EXTRA GAMES: added {len(final)} verified HTML5 games with matching cover images; total automated expansion now at least {existing_extra_count + len(final)}.')
+# Trigger note: this file is intentionally touched so the first scheduled expansion runs immediately.
