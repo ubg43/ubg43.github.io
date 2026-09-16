@@ -1,4 +1,4 @@
-name: Automatic game categories
+name: Automatic game library maintenance
 on:
   schedule:
     - cron: '17 2 * * *'
@@ -11,25 +11,23 @@ on:
       - '.github/auto-categories-trigger'
       - 'legacy-index.html'
       - 'index.html'
+  workflow_dispatch:
 permissions:
   contents: write
 jobs:
   categories:
-    if: ${{ github.event_name == 'schedule' || !contains(github.event.head_commit.message, '[game-builder]') }}
+    if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || !contains(github.event.head_commit.message, '[game-builder]') }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - name: Apply automatic categories and smart discovery
-        if: ${{ github.event_name == 'push' }}
         run: python3 .github/auto-categories.py
       - name: Apply expanded categories
-        if: ${{ github.event_name == 'push' }}
         run: python3 .github/category-enhancer.py
       - name: Apply four-day homepage shuffle
         run: python3 .github/home-order.py
       - name: Apply loading-state polish
-        if: ${{ github.event_name == 'push' }}
         run: python3 .github/loading-polish.py
       - name: Commit automation update
         run: |
