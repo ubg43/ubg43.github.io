@@ -9,6 +9,7 @@ on:
       - '.github/dedupe-games.py'
       - '.github/game-launch-fix.py'
       - '.github/final-layout-fix.py'
+      - '.github/final-interactions.py'
   workflow_dispatch:
 permissions:
   contents: write
@@ -34,6 +35,8 @@ jobs:
         run: python3 .github/fix-live-site.py
       - name: Apply final homepage hero cleanup
         run: python3 .github/final-layout-fix.py
+      - name: Apply final search and report interactions
+        run: python3 .github/final-interactions.py
       - name: Validate homepage structure and runtime hooks
         run: |
           python3 - <<'PY'
@@ -65,7 +68,7 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add index.html legacy-index.html .github/auto-categories.py .github/final-layout-fix.py
+          git add index.html legacy-index.html .github/auto-categories.py .github/final-layout-fix.py .github/final-interactions.py
           git diff --cached --quiet && exit 0
           git commit -m 'Apply UBG43 V3 homepage and interactions [live-fix]'
           git push
