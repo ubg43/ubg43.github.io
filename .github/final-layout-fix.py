@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 
 FILES = [Path('index.html'), Path('legacy-index.html')]
 
@@ -24,9 +25,6 @@ CSS = r'''<style id="ubg43-final-layout-style">
   line-height: 1.35 !important;
   text-align: center !important;
 }
-
-/* Prevent duplicate generated hotfix/layout blocks from accumulating. */
-#ubg43-final-layout-style + #ubg43-final-layout-runtime { display: block; }
 </style>'''
 
 JS = r'''<script id="ubg43-final-layout-runtime">
@@ -34,10 +32,7 @@ JS = r'''<script id="ubg43-final-layout-runtime">
   'use strict';
   const desired = '1000+ games • fast search • automatic categories • new-game ribbons • trending picks • rotating homepage';
   function clean(){
-    document.querySelectorAll('section.hero').forEach(x=>x.remove());
-    document.querySelectorAll('.hero').forEach(x=>x.remove());
-    const pills = document.querySelectorAll('#v3Hero .hero-stat, .hero-copy .hero-stat');
-    pills.forEach(p=>p.textContent = desired);
+    document.querySelectorAll('.hero-copy .hero-stat').forEach(p=>p.textContent = desired);
   }
   clean();
   setTimeout(clean, 100);
@@ -50,7 +45,10 @@ for p in FILES:
     if not p.exists():
         continue
     text = p.read_text(encoding='utf-8')
-    import re
+    # Remove the legacy hero markup from the HTML itself, not just with CSS.
+    text = re.sub(r'\s*<section\s+class=["\']hero["\'][^>]*>.*?</section>\s*', '\n', text, flags=re.I|re.S)
+    text = re.sub(r'\s*<div\s+class=["\']hero["\'][^>]*>.*?</div>\s*', '\n', text, flags=re.I|re.S)
+    # Keep this final patch idempotent.
     text = re.sub(r'\s*<style id="ubg43-final-layout-style">.*?</style>\s*', '\n', text, flags=re.S)
     text = re.sub(r'\s*<script id="ubg43-final-layout-runtime">.*?</script>\s*', '\n', text, flags=re.S)
     pos = text.lower().rfind('</head>')
