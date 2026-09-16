@@ -17,7 +17,9 @@ permissions:
   contents: write
 jobs:
   categories:
-    if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || !contains(github.event.head_commit.message, '[game-builder]') }}
+    # The live homepage now owns its UI runtime; this legacy maintenance pipeline
+    # must not overwrite it with the older loader/UI implementation.
+    if: ${{ false }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
