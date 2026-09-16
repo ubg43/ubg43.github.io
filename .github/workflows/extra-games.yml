@@ -1,0 +1,29 @@
+name: Verified extra game expansion
+on:
+  push:
+    paths:
+      - '.github/extra-games.py'
+  schedule:
+    - cron: '43 2 * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  expand:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Add verified extra games
+        run: python3 .github/extra-games.py
+      - name: Apply automatic categories
+        run: python3 .github/category-enhancer.py
+      - name: Apply four-day homepage shuffle
+        run: python3 .github/home-order.py
+      - name: Commit expansion
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html legacy-index.html
+          git commit -m 'Expand verified game library [game-builder]' || exit 0
+          git push
