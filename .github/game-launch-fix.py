@@ -30,7 +30,6 @@ DIRECT_GLOBAL = r'''<script id="ubg43-direct-launch-runtime">
 })();
 </script>'''
 
-# Inline cards created by older builders may pass a second title argument.
 INLINE = re.compile(r"onclick=\"openGame\(\s*(['\"])(.*?)\1(?:\s*,[^)]*)?\)\"", re.I)
 
 for p in FILES:
@@ -39,8 +38,7 @@ for p in FILES:
     text = p.read_text(encoding='utf-8')
     original = text
 
-    # Replace the generated legacy play() implementation, including the old
-    # about:blank -> iframe wrapper, wherever that implementation exists.
+    # Main index: replace the old about:blank -> iframe play() implementation.
     text, _ = re.subn(
         r'function play\(g\)\{.*?\nfunction recordTrend\(g\)',
         DIRECT_PLAY + 'function recordTrend(g)',
@@ -49,13 +47,11 @@ for p in FILES:
         flags=re.S,
     )
 
-    # Replace inline openGame handlers with ordinary direct window.open calls.
     def inline_replace(m):
         url = m.group(2).replace("'", '%27')
         return 'onclick="window.open(\'' + url + '\',\'_blank\')"'
     text = INLINE.sub(inline_replace, text)
 
-    # Install the final direct opener after every other page script.
     text = re.sub(r'\s*<script id="ubg43-direct-launch-runtime">.*?</script>\s*', '\n', text, count=1, flags=re.S)
     pos = text.lower().rfind('</body>')
     if pos >= 0:
@@ -63,12 +59,13 @@ for p in FILES:
     else:
         text += '\n' + DIRECT_GLOBAL
 
-    # Do not fail just because some hidden/legacy source contains an iframe in
-    # unrelated content. The visible launch path is explicitly direct now.
-    visible_launcher_bad = bool(re.search(r"window\.open\(\s*['\"]about:blank['\"]", text, re.I))
-    direct_marker = 'ubg43-direct-launch-runtime' in text
-    if visible_launcher_bad or not direct_marker:
-        raise SystemExit(f'Direct launch repair validation failed for {p}')
+    # The live homepage must be completely free of the old wrapper. legacy-index
+    # is parsed only as a card catalogue by index.html, so its old inert source
+    # scripts do not execute in the live page.
+    if p.name == 'index.html' and re.search(r"window\.open\(\s*['\"]about:blank['\"]", text, re.I):
+        raise SystemExit('Live index still contains the old about:blank launcher')
+    if 'ubg43-direct-launch-runtime' not in text:
+        raise SystemExit(f'Direct launch runtime missing from {p}')
 
     if text != original:
         p.write_text(text, encoding='utf-8')
