@@ -67,7 +67,19 @@ jobs:
           if not Path('sitemap.xml').exists():bad.append('sitemap.xml missing')
           if bad:
               print('LIVE SITE VALIDATION FAILED');print('\n'.join(bad));sys.exit(1)
-          print(f'LIVE SITE VALIDATION PASSED: {len(t)} unique legacy titles + runtime GN-Math catalogue + direct launch path + search mode + report form + SEO metadata + single hero.')
+          # Lightweight JavaScript syntax validation for the generated runtime blocks.
+          import subprocess,tempfile
+          scripts=re.findall(r'<script(?:[^>]*)>(.*?)</script>',idx,re.I|re.S)
+          with tempfile.TemporaryDirectory() as td:
+              for i,s in enumerate(scripts):
+                  if s.strip():
+                      p=Path(td)/f'script{i}.js';p.write_text(s,encoding='utf-8')
+                      r=subprocess.run(['node','--check',str(p)],capture_output=True,text=True)
+                      if r.returncode!=0:
+                          bad.append('JavaScript syntax error in '+p.name+': '+r.stderr.strip().splitlines()[-1])
+          if bad:
+              print('LIVE SITE VALIDATION FAILED');print('\n'.join(bad));sys.exit(1)
+          print(f'LIVE SITE VALIDATION PASSED: {len(t)} unique legacy titles + runtime GN-Math catalogue + direct launch path + search mode + report form + SEO metadata + JavaScript syntax checks + single hero.')
           PY
       - name: Commit repaired site
         run: |
