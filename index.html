@@ -32,81 +32,13 @@ function infer(name,meta){if(meta.local||/2 player|2-player|same device|local mu
 function addGame(g,seen){let title=String(g.title||g.name||'').trim(),url=String(g.url||'').trim(),image=String(g.image||g.cover||'').trim();if(!title||!url||!/^https?:\/\//i.test(url)||!image||seen.has(norm(title)))return false;seen.add(norm(title));all.push({title,url,image,category:infer(title,g),new:Boolean(g.new),seed:Boolean(g.seed)});return true}
 function makeCard(g,compact=false){const c=document.createElement('div');c.className='game-card';c.dataset.category=g.category;c.dataset.new=g.new?'1':'0';c.dataset.seed=g.seed?'1':'0';c.onclick=()=>play(g);const img=document.createElement('img');img.src=g.image;img.alt=g.title;img.loading='lazy';img.referrerPolicy='no-referrer';const h=document.createElement('h3');h.textContent=g.title;c.append(img,h);return c}
 function ribbons(c,g){const box=document.createElement('div');box.className='card-ribbons';if(g.new){const n=document.createElement('span');n.className='ribbon new';n.textContent='NEW';box.append(n)}if(g.seed){const t=document.createElement('span');t.className='ribbon trending';t.textContent='TRENDING';box.append(t)}if(box.children.length)c.append(box)}
-function play(g){const w=window.open('about:blank','_blank');if(!w){location.href=g.url;return}const u=g.url.replace(/&/g,'&amp;').replace(/"/g,'&quot;');w.document.write('<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Google Docs</title><style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000}iframe{width:100%;height:100%;border:0}</style>
-<style id="ubg43-v3-style">
-#loadingCard{display:none!important}.loading-card{display:none!important}
-.hero-copy{max-width:920px;margin:0 auto;padding:28px 22px 8px;color:#fff;text-align:left}.hero-copy h1{margin:0;font-size:clamp(28px,4vw,42px);line-height:1.08;font-weight:900;letter-spacing:-.025em}.hero-copy p{margin:10px 0 0;color:rgba(255,255,255,.78);font-size:15px;line-height:1.55;max-width:760px}.hero-copy .hero-stat{display:inline-flex;margin-top:13px;padding:7px 11px;border-radius:999px;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.16);font-size:12px;font-weight:800}
-.v3-strip{padding:14px 22px 4px}.v3-head{display:flex;align-items:end;justify-content:space-between;gap:12px;margin-bottom:10px}.v3-title{margin:0;color:#fff;font-size:21px;font-weight:900}.v3-sub{margin:4px 0 0;color:rgba(255,255,255,.68);font-size:12px}.v3-controls{display:flex;gap:7px}.v3-arrow{width:36px;height:36px;border:1px solid rgba(255,255,255,.28);border-radius:10px;background:rgba(0,45,135,.72);color:#fff;font-size:20px;font-weight:900;cursor:pointer;box-shadow:0 6px 14px rgba(0,0,0,.16)}.v3-arrow:disabled{opacity:.30;cursor:default}.v3-carousel{display:grid;grid-template-rows:repeat(2,minmax(0,1fr));grid-auto-flow:column;grid-auto-columns:calc((100% - 65px)/6);gap:13px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;padding:2px 2px 7px;scroll-behavior:smooth}.v3-carousel::-webkit-scrollbar{display:none}.v3-carousel .game-card{min-width:0;height:100%}.v3-carousel .game-card img{height:106px}.v3-carousel .game-card h3{font-size:12px}.v3-done{display:flex;align-items:center;justify-content:center;min-width:190px;min-height:100%;padding:14px;border:1px dashed rgba(255,255,255,.24);border-radius:13px;color:rgba(255,255,255,.78);font-size:12px;font-weight:850;text-align:center;animation:v3Pulse 2.4s ease-in-out infinite}.v3-done span{display:block}.v3-done small{display:block;margin-top:4px;opacity:.65;font-weight:700}@keyframes v3Pulse{0%,100%{opacity:.65;transform:scale(.985)}50%{opacity:1;transform:scale(1)}}
-.v3-rec{padding:18px 22px 8px}.v3-rec.is-hidden{display:none}.v3-rec .v3-carousel{grid-auto-columns:calc((100% - 39px)/4)}.v3-ribbon-wrap{position:absolute;left:8px;top:8px;z-index:6;display:flex;gap:5px;flex-wrap:wrap;pointer-events:none}.v3-ribbon{display:inline-flex;align-items:center;padding:4px 7px;border-radius:6px;font:900 9px/1 Arial,sans-serif;letter-spacing:.05em;box-shadow:0 3px 8px rgba(0,0,0,.20);white-space:nowrap}.v3-ribbon.new{background:#e52525;color:#ffe600}.v3-ribbon.trending{background:#ffe600;color:#c51f1f}.game-card{position:relative}
-@media(max-width:1150px){.v3-carousel{grid-auto-columns:calc((100% - 39px)/4)}.v3-rec .v3-carousel{grid-auto-columns:calc((100% - 26px)/3)}}@media(max-width:760px){.hero-copy{padding:20px 14px 6px}.v3-strip,.v3-rec{padding-left:14px;padding-right:14px}.v3-carousel{grid-auto-columns:calc((100% - 26px)/3)}.v3-rec .v3-carousel{grid-auto-columns:calc((100% - 13px)/2)}.v3-head{align-items:flex-start}.v3-title{font-size:18px}}@media(max-width:560px){.v3-carousel{grid-auto-columns:calc((100% - 13px)/2)}.v3-carousel .game-card img{height:100px}}
-</style>
-<style id="ubg43-hotfix-style">
-/* Search: one clear control, perfectly centered, with the browser's native X disabled. */
-.search-shell input[type="search"]::-webkit-search-cancel-button,.search-shell input[type="search"]::-webkit-search-decoration{-webkit-appearance:none;appearance:none;display:none}
-.search-shell input[type="search"]::-moz-search-cancel-button{display:none}
-.search-shell{isolation:isolate}
-.search-shell input{padding-right:48px!important}
-.search-clear{right:8px!important;top:50%!important;transform:translateY(-50%)!important;width:32px!important;height:32px!important;margin:0!important;display:none;align-items:center;justify-content:center;line-height:1!important;border-radius:9px!important;font-size:22px!important;font-weight:800!important;background:transparent!important;color:#64748b!important;z-index:5;transition:background .16s ease,color .16s ease,transform .12s ease,box-shadow .16s ease!important}
-.search-clear:hover{background:#eef3fb!important;color:#0f2d66!important;box-shadow:0 4px 12px #001b5a22!important;transform:translateY(-50%)!important}
-.search-clear:active{transform:translateY(-50%) scale(.91)!important}
-.search-shell:focus-within input{box-shadow:0 0 0 3px #ffffff33,0 12px 28px #001b5a3d!important}
-
-/* Accurate result count. */
-#status{display:block!important;margin:0 20px 2px!important;padding:0 0 6px!important;color:#ffffff9c!important;font-size:12px!important;font-weight:750!important;min-height:22px}
-
-/* Keep cards stable while still giving them a polished lift. */
-.game-card{position:relative;isolation:isolate;contain:paint;backface-visibility:hidden;-webkit-backface-visibility:hidden;transform:translateZ(0);will-change:transform,box-shadow;transition:transform .18s cubic-bezier(.2,.75,.25,1),box-shadow .18s ease,filter .18s ease!important}
-.game-card img{backface-visibility:hidden;-webkit-backface-visibility:hidden;transform:translateZ(0);transition:transform .22s cubic-bezier(.2,.75,.25,1),filter .22s ease!important}
-.game-card h3{position:relative;z-index:2}
-@media (hover:hover){.game-card:hover{transform:translate3d(0,-5px,0)!important;box-shadow:0 18px 34px #00132d4d,0 0 0 1px #ffffff20!important;filter:saturate(1.04)}.game-card:hover img{transform:translateZ(0) scale(1.035);filter:brightness(1.035)}.v3-carousel .game-card:hover{transform:translate3d(0,-4px,0)!important}.game-card:active{transform:translate3d(0,-1px,0) scale(.988)!important}}
-
-/* Small, stable ribbons. Hide the older oversized chevrons and let the V3 ribbons be the single source of truth. */
-.card-ribbons{display:none!important}
-.v3-ribbon-wrap{position:absolute!important;left:8px!important;top:8px!important;z-index:7!important;display:flex!important;flex-direction:column!important;align-items:flex-start!important;gap:4px!important;pointer-events:none!important;transform:translateZ(0)!important}
-.v3-ribbon{height:22px!important;min-height:22px!important;padding:0 9px!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;border-radius:6px 8px 8px 6px!important;font:900 9px/1 Arial,sans-serif!important;letter-spacing:.055em!important;box-shadow:0 4px 10px #0003!important;white-space:nowrap!important;position:relative!important;transform:translateZ(0)!important}
-.v3-ribbon.new{background:#e52525!important;color:#ffe600!important}.v3-ribbon.trending{background:#ffe600!important;color:#c51f1f!important}
-.v3-ribbon.new::after,.v3-ribbon.trending::after{content:"";position:absolute;right:-5px;top:0;border-top:11px solid transparent;border-bottom:11px solid transparent;border-left:5px solid currentColor;opacity:.12;pointer-events:none}
-
-/* Carousels should never flash, jump or reflow on hover. */
-.v3-carousel{cursor:grab;overscroll-behavior-x:contain;touch-action:pan-x;scrollbar-width:none}
-.v3-carousel:active{cursor:grabbing}
-.v3-carousel .game-card{min-width:0;height:100%;overflow:hidden}
-.v3-carousel .game-card,.v3-carousel .game-card img,.v3-ribbon-wrap{will-change:transform}
-.v3-done{user-select:none}
-
-/* Buttons and controls: hover glow + real press feedback + keyboard focus. */
-button,.action,.cat-btn,.v3-arrow,.category-item,.search-result,.result{transition:transform .14s ease,box-shadow .16s ease,background-color .16s ease,border-color .16s ease,filter .16s ease!important}
-@media (hover:hover){button:hover,.action:hover,.cat-btn:hover,.v3-arrow:hover,.category-item:hover{filter:brightness(1.06);box-shadow:0 9px 20px #001b5a2c!important}}
-button:active,.action:active,.cat-btn:active,.v3-arrow:active,.category-item:active,.search-result:active,.result:active{transform:translateY(1px) scale(.975)!important;filter:brightness(.98)}
-button:focus-visible,.action:focus-visible,.cat-btn:focus-visible,.v3-arrow:focus-visible,.category-item:focus-visible,.search-result:focus-visible{outline:3px solid #ffffff80!important;outline-offset:2px!important}
-.v3-arrow:disabled{transform:none!important;box-shadow:none!important;filter:none!important}
-
-/* Search suggestions also feel clickable without causing layout shifts. */
-.search-result:hover,.result:hover{transform:translateX(2px)!important}
-
-/* Mobile spacing for the count pill/label. */
-@media(max-width:600px){#status{margin-left:14px!important;margin-right:14px!important}}
-</style>
-</head><body><iframe src="'+u+'" allow="fullscreen;autoplay;gamepad;clipboard-read;clipboard-write" allowfullscreen></iframe>
-
-<script id="ubg43-four-day-runtime">
-(function(){
-  'use strict';
-  function rotate(){
-    var g=document.getElementById('gameGrid');if(!g||g.dataset.fourDayRotated==='1')return;
-    var cs=Array.prototype.slice.call(g.querySelectorAll(':scope > .game-card'));if(cs.length<2)return;
-    var bucket=Math.floor(Date.now()/(4*86400000));
-    function hash(s){var h=2166136261;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
-    cs.forEach(function(c,i){var h=c.querySelector('h3');c.dataset.homeRank=String(hash((h?h.textContent:'')+'|'+bucket+'|'+i))});
-    cs.sort(function(a,b){return Number(a.dataset.homeRank)-Number(b.dataset.homeRank)});
-    cs.forEach(function(c){g.appendChild(c)});
-    g.dataset.fourDayRotated='1';
-  }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(rotate,400)});else setTimeout(rotate,400);
-})();
-</script>
-
-</body></html>');w.document.close();recordTrend(g)}
+function play(g){
+  try{if(typeof recordTrend==='function')recordTrend(g)}catch(_){ }
+  const url=String(g&&g.url||'').trim();
+  if(!url)return;
+  const w=window.open(url,'_blank','noopener,noreferrer');
+  if(!w)window.location.href=url;
+}
 function recordTrend(g){try{let h=JSON.parse(localStorage.getItem('ubg43_trend')||'{}');const k=norm(g.title);h[k]=(h[k]||[]).concat(Date.now()).slice(-50);localStorage.setItem('ubg43_trend',JSON.stringify(h))}catch(_){} }
 function trendScore(g){try{const h=JSON.parse(localStorage.getItem('ubg43_trend')||'{}'),x=h[norm(g.title)]||[];return x.filter(t=>Date.now()-t<259200000).length}catch(_){return 0}}
 function render(){grid.innerHTML='';const q=norm(search.value),hits=all.filter(g=>!q||norm(g.title).includes(q));const set=active==='All Games'?hits:active==='New Games'?hits.filter(g=>g.new):active==='Trending'?hits.filter(g=>g.seed||trendScore(g)>0):hits.filter(g=>g.category===active);hits.forEach(g=>{const c=makeCard(g);ribbons(c,g);c.style.display=set.includes(g)?'':'none';grid.append(c)});empty.classList.toggle('hidden',set.length>0);renderFeatured();renderCats()}
@@ -193,4 +125,40 @@ new MutationObserver(()=>{decorateRibbons();setTimeout(syncStatus,20)}).observe(
 setTimeout(()=>{decorateRibbons();syncStatus()},250);
 setTimeout(()=>{decorateRibbons();syncStatus()},1000);
 })();</script>
+
+<script id="ubg43-direct-launch-runtime">
+(()=>{
+  'use strict';
+  const openDirect=url=>{url=String(url||'').trim();if(!url)return;const w=window.open(url,'_blank','noopener,noreferrer');if(!w)window.location.href=url};
+  window.openGame=openDirect;
+  document.addEventListener('click',e=>{
+    const card=e.target.closest('.game-card');
+    if(!card)return;
+    const a=card.getAttribute('onclick')||'';
+    const m=a.match(/openGame\(\s*['\"]([^'\"]+)['\"]/i);
+    if(!m)return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    openDirect(m[1]);
+  },true);
+})();
+</script>
+
+<script id="ubg43-four-day-runtime">
+(function(){
+  'use strict';
+  function rotate(){
+    var g=document.getElementById('gameGrid');if(!g||g.dataset.fourDayRotated==='1')return;
+    var cs=Array.prototype.slice.call(g.querySelectorAll(':scope > .game-card'));if(cs.length<2)return;
+    var bucket=Math.floor(Date.now()/(4*86400000));
+    function hash(s){var h=2166136261;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
+    cs.forEach(function(c,i){var h=c.querySelector('h3');c.dataset.homeRank=String(hash((h?h.textContent:'')+'|'+bucket+'|'+i))});
+    cs.sort(function(a,b){return Number(a.dataset.homeRank)-Number(b.dataset.homeRank)});
+    cs.forEach(function(c){g.appendChild(c)});
+    g.dataset.fourDayRotated='1';
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(rotate,400)});else setTimeout(rotate,400);
+})();
+</script>
+
 </body></html>
