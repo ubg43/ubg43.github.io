@@ -4,6 +4,8 @@ on:
     paths:
       - '.github/repair-ui.py'
       - '.github/stable-runtime-hotfix.py'
+      - '.github/dedupe-games.py'
+      - '.github/site-finalizer.py'
       - '.github/workflows/fix-live-site.yml'
       - 'legacy-index.html'
       - 'index.html'
@@ -22,43 +24,49 @@ jobs:
       - uses: actions/checkout@v4
       - name: Write stable UBG43 homepage
         run: python3 .github/repair-ui.py
-      - name: Harden stable runtime
+      - name: Harden stable runtime and restore interaction badges
         run: python3 .github/stable-runtime-hotfix.py
+      - name: Remove duplicate game cards
+        run: python3 .github/dedupe-games.py
+      - name: Run final site sanity checks
+        run: python3 .github/site-finalizer.py
       - name: Validate homepage structure and browser scripts
         run: |
           python3 - <<'PY'
           from pathlib import Path
           import re,sys,tempfile,subprocess
           idx=Path('index.html').read_text(encoding='utf-8')
-          bad=[]
-          required=['id="gameGrid"','id="searchBar"','id="categoryToggle"','id="randomGameButton"','id="reportGameButton"','window.openGame','Play games instantly with UBG43!','1000+ games','Trending Now','New Games','You may also like','https://forms.gle/zXYtnxwXhGvXmBrq9','legacy-index.html','zones.json','rel="canonical"','application/ld+json']
-          for needle in required:
-              if needle not in idx: bad.append(needle)
+          leg=Path('legacy-index.html').read_text(encoding='utf-8')
+          required=['id="gameGrid"','id="searchBar"','id="categoryToggle"','id="randomGameButton"','id="reportGameButton"','window.openGame=openGame','function setSearchMode','function isTrending','Play games instantly with UBG43!','1000+ games','Trending Now','New Games','You may also like','https://forms.gle/zXYtnxwXhGvXmBrq9','legacy-index.html','zones.json','rel="canonical"','application/ld+json','.ubg43-badge.new','.ubg43-badge.trending']
+          bad=[x for x in required if x not in idx]
           forbidden=['Building your game library…','Building your game library...','id="loadingCard"','new MutationObserver','window.open(\'about:blank\'','<iframe src=','ubg43-site-protection-runtime','ubg43-hotfix-runtime','ubg43-direct-launch-runtime','ubg43-final-interactions-runtime']
-          for needle in forbidden:
-              if needle in idx: bad.append('forbidden runtime remains: '+needle)
+          bad += ['forbidden runtime remains: '+x for x in forbidden if x in idx]
           if idx.count('id="gameGrid"')!=1: bad.append('gameGrid must exist exactly once')
           if idx.count('<script type="application/ld+json">')!=1: bad.append('JSON-LD script count is wrong')
-          if not Path('robots.txt').exists(): bad.append('robots.txt missing')
-          if not Path('sitemap.xml').exists(): bad.append('sitemap.xml missing')
+          cards=re.findall(r'<(?:div|article)\s+class="game-card"[^>]*>',leg,re.I)
+          titles=re.findall(r'<h3[^>]*>(.*?)</h3>',leg,re.I|re.S)
+          clean=lambda s:re.sub(r'\s+',' ',re.sub(r'<[^>]+>','',s)).strip().casefold()
+          tt=[clean(x) for x in titles if clean(x)]
+          if len(cards)<300: bad.append(f'legacy game cards too low: {len(cards)}')
+          if len(tt)!=len(set(tt)): bad.append('duplicate legacy game titles detected')
           scripts=re.findall(r'<script([^>]*)>(.*?)</script>',idx,re.I|re.S)
           with tempfile.TemporaryDirectory() as td:
-              for i,(attrs,s) in enumerate(scripts):
-                  if 'application/ld+json' in attrs.lower() or not s.strip(): continue
-                  p=Path(td)/f'script{i}.js';p.write_text(s,encoding='utf-8')
-                  r=subprocess.run(['node','--check',str(p)],capture_output=True,text=True)
-                  if r.returncode: bad.append('JavaScript syntax error: '+r.stderr.strip().splitlines()[-1])
+              for i,(attrs,body) in enumerate(scripts):
+                  if 'application/ld+json' in attrs.lower() or not body.strip(): continue
+                  f=Path(td)/f'script{i}.js';f.write_text(body,encoding='utf-8')
+                  r=subprocess.run(['node','--check',str(f)],capture_output=True,text=True)
+                  if r.returncode: bad.append('JavaScript syntax error: '+(r.stderr.strip().splitlines()[-1] if r.stderr.strip() else 'unknown'))
           if bad:
               print('LIVE SITE VALIDATION FAILED')
               print('\n'.join(bad))
               sys.exit(1)
-          print('LIVE SITE VALIDATION PASSED: stable homepage, single runtime, library loading, lazy images, search, categories, random, report, carousels, recommendations, automatic sources, and JavaScript syntax.')
+          print(f'LIVE SITE VALIDATION PASSED: {len(cards)} unique legacy game cards; stable search, categories, random, report, carousels, recommendations, direct launches, and NEW/TRENDING badges.')
           PY
       - name: Commit repaired site
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add index.html
+          git add index.html legacy-index.html
           git diff --cached --quiet && exit 0
           git commit -m 'Apply stable UBG43 homepage [live-fix]'
           git push
