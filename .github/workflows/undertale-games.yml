@@ -5,6 +5,7 @@ on:
       - '.github/undertale-games.py'
       - '.github/repair-ui.py'
       - '.github/stable-runtime-hotfix.py'
+      - '.github/site-finalizer.py'
       - 'undertale-thumbnails/**'
   schedule:
     - cron: '29 2 * * *'
@@ -26,6 +27,8 @@ jobs:
         run: python3 .github/repair-ui.py
       - name: Harden stable runtime
         run: python3 .github/stable-runtime-hotfix.py
+      - name: Apply final link and runtime sanity fixes
+        run: python3 .github/site-finalizer.py
       - name: Commit Undertale collection
         run: |
           git config user.name 'github-actions[bot]'
