@@ -3,12 +3,17 @@ on:
   push:
     paths:
       - '.github/undertale-games.py'
+      - '.github/repair-ui.py'
+      - '.github/stable-runtime-hotfix.py'
       - 'undertale-thumbnails/**'
   schedule:
     - cron: '29 2 * * *'
   workflow_dispatch:
 permissions:
   contents: write
+concurrency:
+  group: ubg43-maintenance
+  cancel-in-progress: false
 jobs:
   undertale:
     if: ${{ !contains(github.event.head_commit.message, '[undertale-builder]') || github.event_name != 'push' }}
@@ -17,6 +22,10 @@ jobs:
       - uses: actions/checkout@v4
       - name: Add and maintain Undertale games
         run: python3 .github/undertale-games.py
+      - name: Rebuild stable UBG43 homepage
+        run: python3 .github/repair-ui.py
+      - name: Harden stable runtime
+        run: python3 .github/stable-runtime-hotfix.py
       - name: Commit Undertale collection
         run: |
           git config user.name 'github-actions[bot]'
