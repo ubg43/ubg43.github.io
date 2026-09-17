@@ -27,6 +27,10 @@ jobs:
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
+      - name: Back up core homepage markup
+        run: |
+          cp index.html /tmp/ubg43-index-original.html
+          cp legacy-index.html /tmp/ubg43-legacy-original.html
       - name: Apply final UBG43 UI runtime
         run: python3 .github/repair-ui.py
       - name: Apply UBG43 compatibility and interaction hotfixes
@@ -57,7 +61,7 @@ jobs:
           idx=Path('index.html').read_text(encoding='utf-8')
           leg=Path('legacy-index.html').read_text(encoding='utf-8')
           bad=[]
-          for needle in ['id="gameGrid"','id="searchBar"','id="categoryToggle"','id="randomGameButton"','id="reportGameButton"','window.openGame','You may also like','Play games instantly with UBG43!','1000+ games','v3-carousel','v3-ribbon','ubg43-search-active','Search results','https://forms.gle/zXYtnxwXhGvXmBrq9','rel="canonical"','https://ubg43.github.io/','application/ld+json','id="ubg43-home-featured-visibility"']:
+          for needle in ['id="gameGrid"','id="searchBar"','id="categoryToggle"','id="randomGameButton"','id="reportGameButton"','window.openGame','You may also like','Play games instantly with UBG43!','1000+ games','v3-carousel','v3-ribbon','ubg43-search-active','Search results','https://forms.gle/zXYtnxwHhGvXmBrq9','rel="canonical"','https://ubg43.github.io/','application/ld+json','id="ubg43-home-featured-visibility"']:
               if needle not in idx:bad.append(needle)
           for text in ['Building your game library…','Building your game library...','1000+ games, quick search, automatic categories, fresh releases and personalized picks — all in one place.','1000+ games • new games every day • personalized recommendations']:
               if text in idx:bad.append('unwanted homepage text remains: '+text)
