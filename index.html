@@ -124,7 +124,6 @@ body.ubg43-search-active #v3Trending,body.ubg43-search-active #v3New{display:blo
 </div></header>
 <div id="overlay" class="overlay hidden"></div><aside id="sidebar" class="sidebar" aria-label="Categories"><div style="display:flex;justify-content:space-between;align-items:center"><div><div style="opacity:.6;font-size:11px;letter-spacing:.14em">BROWSE</div><h2 style="margin:3px 0 0">Game Categories</h2></div><button id="categoryClose" class="cat-btn" style="width:38px;padding:0">×</button></div><div id="catList" class="cat-list"></div></aside>
 <main class="page">
-<div id="status" class="status">Building your game library…</div><div id="gameGrid" class="game-grid">
 
   <div class="game-card" data-category="Action" data-new-since="2026-09-16" data-collection="undertale" onclick="window.open('https://jcw87.github.io/c2-sans-fight/','_blank')">
     <img loading="lazy" src="undertale-thumbnails/sans-fight.svg" alt="Undertale Sans Fight" referrerpolicy="no-referrer">
@@ -193,7 +192,7 @@ function trendSet(){const h=read(PKEY,{}),gs=allGames();return new Set(gs.map(g=
 function makeRibbon(c,text,kind){const wrap=c.querySelector('.v3-ribbon-wrap')||(()=>{const x=document.createElement('div');x.className='v3-ribbon-wrap';c.appendChild(x);return x})();const r=document.createElement('span');r.className='v3-ribbon '+kind;r.textContent=text;wrap.appendChild(r)}
 function decorate(c,trend){c.querySelector('.v3-ribbon-wrap')?.remove();const g=cardData(c);if(g.isNew)makeRibbon(c,'NEW','new');if(trend.has(g.key))makeRibbon(c,'TRENDING','trending')}
 function setupCards(){const trend=trendSet();allGames().forEach(g=>{g.card.addEventListener('click',()=>recordPlay(g),{capture:true});decorate(g.card,trend)})}
-function buildHero(){let h=document.getElementById('v3Hero');if(!h){h=document.createElement('section');h.id='v3Hero';h.className='hero-copy';const anchor=document.querySelector('.game-grid');anchor?.parentNode?.insertBefore(h,anchor)}h.innerHTML='<h1>Play games instantly with UBG43!</h1><p>1000+ games, quick search, automatic categories, fresh releases and personalized picks — all in one place.</p><span class="hero-stat">1000+ games • new games every day • personalized recommendations</span>'}
+function buildHero(){let h=document.getElementById('v3Hero');if(!h){h=document.createElement('section');h.id='v3Hero';h.className='hero-copy';const anchor=document.querySelector('.game-grid');anchor?.parentNode?.insertBefore(h,anchor)}h.innerHTML='<h1>Play games instantly with UBG43!</h1><p></p><span class="hero-stat">1000+ games • new games every day • personalized recommendations</span>'}
 function cloneButton(id){const old=$(id);if(!old)return null;const n=old.cloneNode(true);old.replaceWith(n);return n}
 let active='All Games',query='';
 function matches(g){if(!active||active==='All Games')return true;if(active==='New Games')return g.isNew;if(active==='Trending')return trendSet().has(g.key);return g.category===active}
