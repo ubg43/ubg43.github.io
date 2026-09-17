@@ -98,6 +98,6 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 needle = '</body>'
 if needle.lower() not in s.lower():
     raise SystemExit('body end marker not found')
-s = re.sub(r'</body>', runtime + '\n</body>', s, count=1, flags=re.I)
+s = re.sub(r'</body>', lambda _m: runtime + '\n</body>', s, count=1, flags=re.I)
 p.write_text(s, encoding='utf-8')
 print('STABLE RUNTIME HOTFIX: fixed card URLs, search/button behavior, report link, carousels, and NEW/TRENDING badges')
