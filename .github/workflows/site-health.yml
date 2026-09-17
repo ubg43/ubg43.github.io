@@ -4,6 +4,7 @@ on:
     paths:
       - 'index.html'
       - 'legacy-index.html'
+      - '.github/site-finalizer.py'
       - '.github/repair-ui.py'
       - '.github/stable-runtime-hotfix.py'
       - '.github/workflows/**'
@@ -26,12 +27,17 @@ jobs:
           import re,sys,tempfile,subprocess
           idx=Path('index.html').read_text(encoding='utf-8')
           leg=Path('legacy-index.html').read_text(encoding='utf-8')
-          required=['id="gameGrid"','id="searchBar"','id="categoryToggle"','id="randomGameButton"','id="reportGameButton"','window.openGame','Play games instantly with UBG43!','1000+ games','Trending Now','New Games','You may also like','https://forms.gle/zXYtnxwXhGvXmBrq9','legacy-index.html','zones.json','rel="canonical"','application/ld+json','state.cards.has(k)','img.loading=\'lazy\'']
+          required=['id="gameGrid"','id="searchBar"','id="categoryToggle"','id="randomGameButton"','id="reportGameButton"','window.openGame','Play games instantly with UBG43!','1000+ games','Trending Now','New Games','You may also like','https://forms.gle/zXYtnxwHgvXmBrq9','legacy-index.html','zones.json','rel="canonical"','application/ld+json','state.cards.has(k)','img.loading=\'lazy\'','.ubg43-badge.new','.ubg43-badge.trending']
           bad=[x for x in required if x not in idx]
+          old_url='https://forms.gle/zXYtnxwXhGvXmBrq9'
+          if old_url in idx: bad.append('old report URL remains: '+old_url)
           forbidden=['new MutationObserver','window.open(\'about:blank\'','<iframe src=','ubg43-site-protection-runtime','ubg43-hotfix-runtime','ubg43-direct-launch-runtime','ubg43-final-interactions-runtime','Building your game library…','Building your game library...']
           bad += ['forbidden: '+x for x in forbidden if x in idx]
           if idx.count('id="gameGrid"')!=1: bad.append('gameGrid count != 1')
           if idx.count('<script type="application/ld+json">')!=1: bad.append('JSON-LD count != 1')
+          if not Path('robots.txt').exists(): bad.append('robots.txt missing')
+          if not Path('sitemap.xml').exists(): bad.append('sitemap.xml missing')
+          if not Path('.github/site-finalizer.py').exists(): bad.append('site-finalizer.py missing')
           cards=re.findall(r'<(?:div|article)\s+class="game-card"[^>]*>',leg,re.I)
           titles=re.findall(r'<h3[^>]*>(.*?)</h3>',leg,re.I|re.S)
           clean=lambda s:re.sub(r'\s+',' ',re.sub(r'<[^>]+>','',s)).strip().casefold()
@@ -44,10 +50,31 @@ jobs:
                   if 'application/ld+json' in attrs.lower() or not body.strip(): continue
                   f=Path(td)/f'script{i}.js';f.write_text(body,encoding='utf-8')
                   r=subprocess.run(['node','--check',str(f)],capture_output=True,text=True)
-                  if r.returncode: bad.append('JavaScript syntax error: '+r.stderr.strip().splitlines()[-1])
+                  if r.returncode: bad.append('JavaScript syntax error: '+(r.stderr.strip().splitlines()[-1] if r.stderr.strip() else 'unknown'))
+          for wf in ['auto-categories.yml','extra-games.yml','fix-live-site.yml','change-background.yml','undertale-games.yml']:
+              p=Path('.github/workflows')/wf
+              if not p.exists(): bad.append('workflow missing: '+wf)
           if bad:
               print('STABLE SITE HEALTH FAILED')
               print('\n'.join(bad))
               sys.exit(1)
-          print(f'STABLE SITE HEALTH PASSED: {len(cards)} legacy game cards, one stable homepage runtime, lazy images, working UI hooks, no runaway observers or iframe launcher, search/categories/random/report/carousels/recommendations present, and JavaScript syntax valid.')
+          print(f'STABLE SITE HEALTH PASSED: {len(cards)} legacy game cards, stable runtime, search/categories/random/report, carousels, recommendations, NEW/TRENDING badges, automatic workflows, and JavaScript syntax are present.')
+          PY
+      - name: Check runtime seed and badge safeguards
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re,sys
+          idx=Path('index.html').read_text(encoding='utf-8')
+          bad=[]
+          seeds=re.findall(r"\['([^']+)','https?://",idx)
+          if len(seeds)<8: bad.append(f'homepage runtime seed set unexpectedly small: {len(seeds)}')
+          if '.ubg43-badge.new' not in idx: bad.append('NEW badge CSS missing')
+          if '.ubg43-badge.trending' not in idx: bad.append('TRENDING badge CSS missing')
+          if 'function isTrending' not in idx: bad.append('trending runtime missing')
+          if 'function setSearchMode' not in idx: bad.append('search runtime missing')
+          if 'window.openGame=openGame' not in idx: bad.append('direct game launch runtime missing')
+          if bad:
+              print('\n'.join(bad));sys.exit(1)
+          print('GENERATED RUNTIME CHECK PASSED')
           PY
