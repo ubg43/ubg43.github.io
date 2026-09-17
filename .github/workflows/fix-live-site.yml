@@ -2,18 +2,10 @@ name: Fix and validate live site
 on:
   push:
     paths:
-      - '.github/fix-live-site.py'
-      - '.github/workflows/fix-live-site.yml'
       - '.github/repair-ui.py'
-      - '.github/ui-hotfix.py'
-      - '.github/dedupe-games.py'
-      - '.github/game-launch-fix.py'
-      - '.github/final-layout-fix.py'
-      - '.github/final-interactions.py'
-      - '.github/home-featured-visibility.py'
-      - '.github/remove-home-text.py'
-      - '.github/runtime-stability-fix.py'
-      - '.github/seo-enhancer.py'
+      - '.github/workflows/fix-live-site.yml'
+      - 'legacy-index.html'
+      - 'index.html'
   workflow_dispatch:
 permissions:
   contents: write
@@ -24,84 +16,46 @@ jobs:
   repair:
     if: ${{ github.event_name != 'push' || !contains(github.event.head_commit.message, '[live-fix]') }}
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
-      - name: Back up core homepage markup
-        run: |
-          cp index.html /tmp/ubg43-index-original.html
-          cp legacy-index.html /tmp/ubg43-legacy-original.html
-      - name: Apply final UBG43 UI runtime
+      - name: Write stable UBG43 homepage
         run: python3 .github/repair-ui.py
-      - name: Apply UBG43 compatibility and interaction hotfixes
-        run: python3 .github/ui-hotfix.py
-      - name: Deduplicate legacy game library
-        run: python3 .github/dedupe-games.py
-      - name: Repair all game launch paths
-        run: python3 .github/game-launch-fix.py
-      - name: Apply live loader cleanup, automation resilience and four-day rotation
-        run: python3 .github/fix-live-site.py
-      - name: Apply final homepage hero cleanup
-        run: python3 .github/final-layout-fix.py
-      - name: Apply final search and report interactions
-        run: python3 .github/final-interactions.py
-      - name: Hide homepage featured rails
-        run: python3 .github/home-featured-visibility.py
-      - name: Remove unwanted homepage text
-        run: python3 .github/remove-home-text.py
-      - name: Apply UBG43 SEO enhancements
-        run: python3 .github/seo-enhancer.py
-      - name: Fix runaway browser runtime and restore core markup if needed
-        run: python3 .github/runtime-stability-fix.py
-      - name: Validate homepage structure and runtime hooks
+      - name: Validate homepage structure and browser scripts
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          import re,sys
+          import re,sys,tempfile,subprocess
           idx=Path('index.html').read_text(encoding='utf-8')
-          leg=Path('legacy-index.html').read_text(encoding='utf-8')
           bad=[]
-          for needle in ['id="gameGrid"','id="searchBar"','id="categoryToggle"','id="randomGameButton"','id="reportGameButton"','window.openGame','You may also like','Play games instantly with UBG43!','1000+ games','v3-carousel','v3-ribbon','ubg43-search-active','Search results','https://forms.gle/zXYtnxwXhGvXmBrq9','rel="canonical"','https://ubg43.github.io/','application/ld+json','id="ubg43-home-featured-visibility"']:
-              if needle not in idx:bad.append(needle)
-          for text in ['Building your game library…','Building your game library...','1000+ games, quick search, automatic categories, fresh releases and personalized picks — all in one place.','1000+ games • new games every day • personalized recommendations']:
-              if text in idx:bad.append('unwanted homepage text remains: '+text)
-          if 'id="loadingCard"' in idx or 'Loading games...' in idx:bad.append('obsolete loading placeholder')
-          if 'new MutationObserver(()=>normalize()).observe(document.body,{childList:true,subtree:true});' in idx:bad.append('runaway body observer remains')
-          if "window.open('about:blank'" in idx or '<iframe src=' in idx:bad.append('iframe/about:blank game launcher still present')
-          if re.search(r'<section\s+class=["\']hero["\']',idx,re.I):bad.append('legacy duplicate hero remains')
-          if idx.count('id="v3Hero"')>1:bad.append('duplicate V3 hero remains')
-          titles=re.findall(r'<h3[^>]*>(.*?)</h3>',leg,re.I|re.S)
-          clean=lambda s:re.sub(r'\s+',' ',re.sub(r'<[^>]+>','',s)).strip().casefold()
-          t=[clean(x) for x in titles if clean(x)]
-          dups=sorted({x for x in t if t.count(x)>1})
-          if dups:bad.append('legacy duplicate titles: '+', '.join(dups[:8]))
-          if 'zones.json' not in idx:bad.append('GN-Math automatic catalogue missing')
-          if 'legacy-index.html' not in idx:bad.append('legacy library source missing')
-          if not Path('robots.txt').exists():bad.append('robots.txt missing')
-          if not Path('sitemap.xml').exists():bad.append('sitemap.xml missing')
-          if bad:
-              print('LIVE SITE VALIDATION FAILED');print('\n'.join(bad));sys.exit(1)
-          import subprocess,tempfile
+          required=['id="gameGrid"','id="searchBar"','id="categoryToggle"','id="randomGameButton"','id="reportGameButton"','window.openGame','Play games instantly with UBG43!','1000+ games','Trending Now','New Games','You may also like','https://forms.gle/zXYtnxwXhGvXmBrq9','legacy-index.html','zones.json','rel="canonical"','application/ld+json']
+          for needle in required:
+              if needle not in idx: bad.append(needle)
+          forbidden=['Building your game library…','Building your game library...','id="loadingCard"','new MutationObserver(()=>normalize()).observe(document.body,{childList:true,subtree:true});',"window.open('about:blank'",'<iframe src=','ubg43-site-protection-runtime','ubg43-hotfix-runtime','ubg43-direct-launch-runtime','ubg43-final-interactions-runtime']
+          for needle in forbidden:
+              if needle in idx: bad.append('forbidden runtime remains: '+needle)
+          if idx.count('id="gameGrid"')!=1: bad.append('gameGrid must exist exactly once')
+          if idx.count('<script type="application/ld+json">')!=1: bad.append('JSON-LD script count is wrong')
+          if not Path('robots.txt').exists(): bad.append('robots.txt missing')
+          if not Path('sitemap.xml').exists(): bad.append('sitemap.xml missing')
           scripts=re.findall(r'<script([^>]*)>(.*?)</script>',idx,re.I|re.S)
           with tempfile.TemporaryDirectory() as td:
               for i,(attrs,s) in enumerate(scripts):
-                  if re.search(r'type=["\']application/ld\+json["\']',attrs,re.I):
-                      continue
-                  if s.strip():
-                      p=Path(td)/f'script{i}.js';p.write_text(s,encoding='utf-8')
-                      r=subprocess.run(['node','--check',str(p)],capture_output=True,text=True)
-                      if r.returncode!=0:
-                          detail=r.stderr.strip().splitlines()
-                          bad.append('JavaScript syntax error in '+p.name+': '+(detail[-1] if detail else 'unknown syntax error'))
+                  if 'application/ld+json' in attrs.lower() or not s.strip(): continue
+                  p=Path(td)/f'script{i}.js';p.write_text(s,encoding='utf-8')
+                  r=subprocess.run(['node','--check',str(p)],capture_output=True,text=True)
+                  if r.returncode: bad.append('JavaScript syntax error: '+r.stderr.strip().splitlines()[-1])
           if bad:
-              print('LIVE SITE VALIDATION FAILED');print('\n'.join(bad));sys.exit(1)
-          print(f'LIVE SITE VALIDATION PASSED: {len(t)} unique legacy titles + runtime GN-Math catalogue + direct launch path + search mode + report form + SEO metadata + homepage featured visibility + JavaScript syntax checks + unwanted homepage text cleanup + runtime stability + single hero.')
+              print('LIVE SITE VALIDATION FAILED')
+              print('\n'.join(bad))
+              sys.exit(1)
+          print('LIVE SITE VALIDATION PASSED: stable homepage, one game grid, one browser runtime, search, categories, random, report, carousels, recommendations, automatic sources, and JavaScript syntax.')
           PY
       - name: Commit repaired site
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add index.html legacy-index.html .github/auto-categories.py .github/final-layout-fix.py .github/final-interactions.py .github/home-featured-visibility.py .github/remove-home-text.py .github/runtime-stability-fix.py .github/seo-enhancer.py robots.txt sitemap.xml
+          git add index.html
           git diff --cached --quiet && exit 0
-          git commit -m 'Apply UBG43 V3 homepage and interactions [live-fix]'
+          git commit -m 'Apply stable UBG43 homepage [live-fix]'
           git push
