@@ -4,6 +4,7 @@ on:
     paths:
       - '.github/extra-games.py'
       - '.github/stable-runtime-hotfix.py'
+      - '.github/site-finalizer.py'
       - '.github/workflows/extra-games.yml'
   schedule:
     - cron: '43 2 * * *'
@@ -31,6 +32,8 @@ jobs:
         run: python3 .github/repair-ui.py
       - name: Harden stable runtime
         run: python3 .github/stable-runtime-hotfix.py
+      - name: Apply final link and runtime sanity fixes
+        run: python3 .github/site-finalizer.py
       - name: Commit expansion
         run: |
           git config user.name 'github-actions[bot]'
