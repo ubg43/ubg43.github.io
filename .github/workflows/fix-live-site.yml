@@ -49,10 +49,10 @@ jobs:
         run: python3 .github/home-featured-visibility.py
       - name: Remove unwanted homepage text
         run: python3 .github/remove-home-text.py
-      - name: Fix runaway browser runtime
-        run: python3 .github/runtime-stability-fix.py
       - name: Apply UBG43 SEO enhancements
         run: python3 .github/seo-enhancer.py
+      - name: Fix runaway browser runtime and restore core markup if needed
+        run: python3 .github/runtime-stability-fix.py
       - name: Validate homepage structure and runtime hooks
         run: |
           python3 - <<'PY'
@@ -61,7 +61,7 @@ jobs:
           idx=Path('index.html').read_text(encoding='utf-8')
           leg=Path('legacy-index.html').read_text(encoding='utf-8')
           bad=[]
-          for needle in ['id="gameGrid"','id="searchBar"','id="categoryToggle"','id="randomGameButton"','id="reportGameButton"','window.openGame','You may also like','Play games instantly with UBG43!','1000+ games','v3-carousel','v3-ribbon','ubg43-search-active','Search results','https://forms.gle/zXYtnxwHhGvXmBrq9','rel="canonical"','https://ubg43.github.io/','application/ld+json','id="ubg43-home-featured-visibility"']:
+          for needle in ['id="gameGrid"','id="searchBar"','id="categoryToggle"','id="randomGameButton"','id="reportGameButton"','window.openGame','You may also like','Play games instantly with UBG43!','1000+ games','v3-carousel','v3-ribbon','ubg43-search-active','Search results','https://forms.gle/zXYtnxwXhGvXmBrq9','rel="canonical"','https://ubg43.github.io/','application/ld+json','id="ubg43-home-featured-visibility"']:
               if needle not in idx:bad.append(needle)
           for text in ['Building your game library…','Building your game library...','1000+ games, quick search, automatic categories, fresh releases and personalized picks — all in one place.','1000+ games • new games every day • personalized recommendations']:
               if text in idx:bad.append('unwanted homepage text remains: '+text)
