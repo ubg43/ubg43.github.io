@@ -22,6 +22,21 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+      - name: Repair stable runtime hotfix script before execution
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('.github/stable-runtime-hotfix.py')
+          s=p.read_text(encoding='utf-8')
+          old="s = re.sub(r'</body>', runtime + '\\n</body>', s, count=1, flags=re.I)"
+          new="s = re.sub(r'</body>', lambda _m: runtime + '\\n</body>', s, count=1, flags=re.I)"
+          if old in s:
+              s=s.replace(old,new,1)
+              p.write_text(s,encoding='utf-8')
+              print('Stable runtime script repair applied.')
+          else:
+              print('Stable runtime script already uses a safe replacement callback.')
+          PY
       - name: Write stable UBG43 homepage
         run: python3 .github/repair-ui.py
       - name: Harden stable runtime and restore interaction badges
@@ -39,10 +54,12 @@ jobs:
           leg=Path('legacy-index.html').read_text(encoding='utf-8')
           required=['id="gameGrid"','id="searchBar"','id="categoryToggle"','id="randomGameButton"','id="reportGameButton"','window.openGame=openGame','function setSearchMode','function isTrending','Play games instantly with UBG43!','1000+ games','Trending Now','New Games','You may also like','https://forms.gle/zXYtnxwXhGvXmBrq9','legacy-index.html','zones.json','rel="canonical"','application/ld+json','.ubg43-badge.new','.ubg43-badge.trending']
           bad=[x for x in required if x not in idx]
+          wrong=['https://forms.gle/zXYtnxwHgvXmBrq9','https://forms.gle/zXYtnxwGvXmBrq9']
+          bad += ['wrong report URL: '+x for x in wrong if x in idx]
           forbidden=['Building your game library…','Building your game library...','id="loadingCard"','new MutationObserver','window.open(\'about:blank\'','<iframe src=','ubg43-site-protection-runtime','ubg43-hotfix-runtime','ubg43-direct-launch-runtime','ubg43-final-interactions-runtime']
           bad += ['forbidden runtime remains: '+x for x in forbidden if x in idx]
           if idx.count('id="gameGrid"')!=1: bad.append('gameGrid must exist exactly once')
-          if idx.count('<script type="application/ld+json">')!=1: bad.append('JSON-LD script count is wrong')
+          if idx.count('<script type="application/ld+json">')!=1: bad.append('JSON-LD count is wrong')
           cards=re.findall(r'<(?:div|article)\s+class="game-card"[^>]*>',leg,re.I)
           titles=re.findall(r'<h3[^>]*>(.*?)</h3>',leg,re.I|re.S)
           clean=lambda s:re.sub(r'\s+',' ',re.sub(r'<[^>]+>','',s)).strip().casefold()
@@ -62,11 +79,11 @@ jobs:
               sys.exit(1)
           print(f'LIVE SITE VALIDATION PASSED: {len(cards)} unique legacy game cards; stable search, categories, random, report, carousels, recommendations, direct launches, and NEW/TRENDING badges.')
           PY
-      - name: Commit repaired site
+      - name: Commit repaired site and runtime fix
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add index.html legacy-index.html
+          git add index.html legacy-index.html .github/stable-runtime-hotfix.py
           git diff --cached --quiet && exit 0
           git commit -m 'Apply stable UBG43 homepage [live-fix]'
           git push
