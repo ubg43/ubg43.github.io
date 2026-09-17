@@ -1,0 +1,50 @@
+from pathlib import Path
+import re
+import subprocess
+import tempfile
+
+INDEX = Path('index.html')
+REPORT_URL = 'https://forms.gle/zXYtnxwXhGvXmBrq9'
+
+if not INDEX.exists():
+    raise SystemExit('index.html missing')
+
+text = INDEX.read_text(encoding='utf-8')
+text = text.replace('https://forms.gle/zXYtnxwHgvXmBrq9', REPORT_URL)
+text = text.replace('https://forms.gle/zXYtnxwGvXmBrq9', REPORT_URL)
+
+required = [
+    'id="gameGrid"', 'id="searchBar"', 'id="categoryToggle"',
+    'id="randomGameButton"', 'id="reportGameButton"',
+    'window.openGame=openGame', 'function setSearchMode',
+    'function isTrending', '.ubg43-badge.new', '.ubg43-badge.trending',
+    REPORT_URL, 'legacy-index.html', 'zones.json'
+]
+missing = [x for x in required if x not in text]
+if missing:
+    raise SystemExit('Stable runtime missing: ' + ', '.join(missing))
+
+forbidden = [
+    'Building your game library…', 'Building your game library...',
+    "window.open('about:blank'", '<iframe src=',
+    'ubg43-site-protection-runtime', 'ubg43-hotfix-runtime',
+    'ubg43-direct-launch-runtime'
+]
+bad = [x for x in forbidden if x in text]
+if bad:
+    raise SystemExit('Forbidden legacy runtime remains: ' + ', '.join(bad))
+
+scripts = re.findall(r'<script([^>]*)>(.*?)</script>', text, re.I | re.S)
+with tempfile.TemporaryDirectory() as td:
+    for i, (attrs, body) in enumerate(scripts):
+        if 'application/ld+json' in attrs.lower() or not body.strip():
+            continue
+        path = Path(td) / f'script{i}.js'
+        path.write_text(body, encoding='utf-8')
+        check = subprocess.run(['node', '--check', str(path)], capture_output=True, text=True)
+        if check.returncode:
+            detail = check.stderr.strip().splitlines()[-1] if check.stderr.strip() else 'unknown JavaScript syntax error'
+            raise SystemExit(detail)
+
+INDEX.write_text(text, encoding='utf-8')
+print('FINAL SITE SANITY PASSED: search, direct launches, NEW/TRENDING badges, report link, and JavaScript syntax are valid.')
