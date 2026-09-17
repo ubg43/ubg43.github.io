@@ -10,6 +10,7 @@ on:
       - '.github/game-launch-fix.py'
       - '.github/final-layout-fix.py'
       - '.github/final-interactions.py'
+      - '.github/home-featured-visibility.py'
       - '.github/seo-enhancer.py'
       - '.github/site-protection.py'
   workflow_dispatch:
@@ -39,6 +40,8 @@ jobs:
         run: python3 .github/final-layout-fix.py
       - name: Apply final search and report interactions
         run: python3 .github/final-interactions.py
+      - name: Hide homepage featured rails
+        run: python3 .github/home-featured-visibility.py
       - name: Apply UBG43 SEO enhancements
         run: python3 .github/seo-enhancer.py
       - name: Apply non-breaking UBG43 site protection
@@ -51,7 +54,7 @@ jobs:
           idx=Path('index.html').read_text(encoding='utf-8')
           leg=Path('legacy-index.html').read_text(encoding='utf-8')
           bad=[]
-          for needle in ['id="gameGrid"','id="searchBar"','id="categoryToggle"','id="randomGameButton"','id="reportGameButton"','window.openGame','You may also like','Play games instantly with UBG43!','1000+ games','v3-carousel','v3-ribbon','ubg43-search-active','Search results','https://forms.gle/zXYtnxwXhGvXmBrq9','rel="canonical"','https://ubg43.github.io/','application/ld+json','ubg43-site-protection','UBG43 — original site content','Source: UBG43 — https://ubg43.github.io/']:
+          for needle in ['id="gameGrid"','id="searchBar"','id="categoryToggle"','id="randomGameButton"','id="reportGameButton"','window.openGame','You may also like','Play games instantly with UBG43!','1000+ games','v3-carousel','v3-ribbon','ubg43-search-active','Search results','https://forms.gle/zXYtnxwXhGvXmBrq9','rel="canonical"','https://ubg43.github.io/','application/ld+json','ubg43-site-protection','UBG43 — original site content','Source: UBG43 — https://ubg43.github.io/','id="ubg43-home-featured-visibility"']:
               if needle not in idx:bad.append(needle)
           if 'id="loadingCard"' in idx or 'Loading games...' in idx:bad.append('obsolete loading placeholder')
           if "window.open('about:blank'" in idx or '<iframe src=' in idx:bad.append('iframe/about:blank game launcher still present')
@@ -82,13 +85,13 @@ jobs:
                           bad.append('JavaScript syntax error in '+p.name+': '+r.stderr.strip().splitlines()[-1])
           if bad:
               print('LIVE SITE VALIDATION FAILED');print('\n'.join(bad));sys.exit(1)
-          print(f'LIVE SITE VALIDATION PASSED: {len(t)} unique legacy titles + runtime GN-Math catalogue + direct launch path + search mode + report form + SEO metadata + site protection + JavaScript syntax checks + single hero.')
+          print(f'LIVE SITE VALIDATION PASSED: {len(t)} unique legacy titles + runtime GN-Math catalogue + direct launch path + search mode + report form + SEO metadata + site protection + homepage featured visibility + JavaScript syntax checks + single hero.')
           PY
       - name: Commit repaired site
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add index.html legacy-index.html .github/auto-categories.py .github/final-layout-fix.py .github/final-interactions.py .github/seo-enhancer.py .github/site-protection.py robots.txt sitemap.xml
+          git add index.html legacy-index.html .github/auto-categories.py .github/final-layout-fix.py .github/final-interactions.py .github/home-featured-visibility.py .github/seo-enhancer.py .github/site-protection.py robots.txt sitemap.xml
           git diff --cached --quiet && exit 0
           git commit -m 'Apply UBG43 V3 homepage and interactions [live-fix]'
           git push
