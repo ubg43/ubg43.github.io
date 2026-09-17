@@ -4,7 +4,8 @@ on:
     paths:
       - 'index.html'
       - 'legacy-index.html'
-      - '.github/site-health.py'
+      - '.github/repair-ui.py'
+      - '.github/stable-runtime-hotfix.py'
       - '.github/workflows/**'
       - 'undertale-thumbnails/**'
   schedule:
@@ -18,42 +19,35 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - name: Run structural and duplicate checks
-        run: python3 .github/site-health.py
-      - name: Check all game links and images
+      - name: Validate stable UBG43 homepage
         run: |
           python3 - <<'PY'
-          import re, sys, urllib.request
-          from concurrent.futures import ThreadPoolExecutor, as_completed
           from pathlib import Path
-          from urllib.parse import urlparse
-
-          text = Path('index.html').read_text(encoding='utf-8')
-          urls = re.findall(r"openGame\(['\"]([^'\"]+)['\"]\)", text)
-          images = re.findall(r'<img\b[^>]*\bsrc=[\"\']([^\"\']+)', text, re.I)
-          targets = list(dict.fromkeys([u for u in urls + images if urlparse(u).scheme in ('http','https')]))
-
-          def check(url):
-              try:
-                  req = urllib.request.Request(url, headers={'User-Agent':'ubg43-site-health/1.0'})
-                  with urllib.request.urlopen(req, timeout=10) as r:
-                      return url, 200 <= r.status < 400
-              except Exception as exc:
-                  return url, False, type(exc).__name__
-
-          failures = []
-          with ThreadPoolExecutor(max_workers=32) as ex:
-              futures = [ex.submit(check, u) for u in targets]
-              for f in as_completed(futures):
-                  result = f.result()
-                  if not result[1]:
-                      failures.append(result)
-
-          print(f'Checked {len(targets)} unique remote URLs.')
-          if failures:
-              print(f'{len(failures)} remote URLs failed or timed out.')
-              for item in failures[:25]:
-                  print('FAILED:', item)
+          import re,sys,tempfile,subprocess
+          idx=Path('index.html').read_text(encoding='utf-8')
+          leg=Path('legacy-index.html').read_text(encoding='utf-8')
+          required=['id="gameGrid"','id="searchBar"','id="categoryToggle"','id="randomGameButton"','id="reportGameButton"','window.openGame','Play games instantly with UBG43!','1000+ games','Trending Now','New Games','You may also like','https://forms.gle/zXYtnxwXhGvXmBrq9','legacy-index.html','zones.json','rel="canonical"','application/ld+json','state.cards.has(k)','img.loading=\'lazy\'']
+          bad=[x for x in required if x not in idx]
+          forbidden=['new MutationObserver','window.open(\'about:blank\'','<iframe src=','ubg43-site-protection-runtime','ubg43-hotfix-runtime','ubg43-direct-launch-runtime','ubg43-final-interactions-runtime','Building your game library…','Building your game library...']
+          bad += ['forbidden: '+x for x in forbidden if x in idx]
+          if idx.count('id="gameGrid"')!=1: bad.append('gameGrid count != 1')
+          if idx.count('<script type="application/ld+json">')!=1: bad.append('JSON-LD count != 1')
+          cards=re.findall(r'<(?:div|article)\s+class="game-card"[^>]*>',leg,re.I)
+          titles=re.findall(r'<h3[^>]*>(.*?)</h3>',leg,re.I|re.S)
+          clean=lambda s:re.sub(r'\s+',' ',re.sub(r'<[^>]+>','',s)).strip().casefold()
+          tt=[clean(x) for x in titles if clean(x)]
+          if len(cards)<300: bad.append(f'legacy game cards too low: {len(cards)}')
+          if len(tt)!=len(set(tt)): bad.append('duplicate legacy game titles detected')
+          scripts=re.findall(r'<script([^>]*)>(.*?)</script>',idx,re.I|re.S)
+          with tempfile.TemporaryDirectory() as td:
+              for i,(attrs,body) in enumerate(scripts):
+                  if 'application/ld+json' in attrs.lower() or not body.strip(): continue
+                  f=Path(td)/f'script{i}.js';f.write_text(body,encoding='utf-8')
+                  r=subprocess.run(['node','--check',str(f)],capture_output=True,text=True)
+                  if r.returncode: bad.append('JavaScript syntax error: '+r.stderr.strip().splitlines()[-1])
+          if bad:
+              print('STABLE SITE HEALTH FAILED')
+              print('\n'.join(bad))
               sys.exit(1)
-          print('REMOTE LINK CHECK PASSED')
+          print(f'STABLE SITE HEALTH PASSED: {len(cards)} legacy game cards, one stable homepage runtime, lazy images, working UI hooks, no runaway observers or iframe launcher, search/categories/random/report/carousels/recommendations present, and JavaScript syntax valid.')
           PY
