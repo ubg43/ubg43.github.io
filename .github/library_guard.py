@@ -6,7 +6,7 @@ from urllib.parse import urlsplit, urlunsplit, parse_qsl, urlencode
 FILES = (Path('legacy-index.html'), Path('index.html'))
 CARD = re.compile(r'<(?P<tag>div|article)\b[^>]*class=["\'][^"\']*\bgame-card\b[^"\']*["\'][^>]*>.*?</(?P=tag)>\s*(?=<(?:div|article)\b[^>]*class=["\'][^"\']*\bgame-card\b|</(?:div|footer|main|body|html)>|<!--)', re.I | re.S)
 TITLE = re.compile(r'<h3[^>]*>(.*?)</h3>', re.I | re.S)
-URL = re.compile(r"openGame\(\s*['\"]([^'\"]+)", re.I)
+URL = re.compile(r"(?:openGame|window\.open)\(\s*['\"]([^'\"]+)", re.I)
 HREF = re.compile(r'href=["\']([^"\']+)["\']', re.I)
 IMAGE = re.compile(r'<img\b[^>]*src=["\']([^"\']+)["\']', re.I)
 BLOCKED = ('[!] comments', 'suggest games', 'd4c9vfywyu', '1 date danger', 'game loading')
