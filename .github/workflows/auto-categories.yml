@@ -8,10 +8,7 @@ on:
       - '.github/category-enhancer.py'
       - '.github/home-order.py'
       - '.github/loading-polish.py'
-      - '.github/repair-ui.py'
-      - '.github/stable-runtime-hotfix.py'
-      - 'legacy-index.html'
-      - 'index.html'
+      - '.github/dedupe-games.py'
   workflow_dispatch:
 permissions:
   contents: write
@@ -48,8 +45,10 @@ jobs:
       - name: Remove obsolete loading placeholder
         run: python3 .github/loading-polish.py
       - name: Apply final UBG43 UI polish
-        run: python3       - name: Harden stable runtime and restore interaction badges
-        run: python3       - name: Commit automation update
+        run: python3 .github/repair-ui.py
+      - name: Harden stable runtime and restore interaction badges
+        run: python3 .github/stable-runtime-hotfix.py
+      - name: Commit automation update
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
