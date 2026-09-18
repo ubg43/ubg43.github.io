@@ -7,14 +7,14 @@ if not p.exists():
     raise SystemExit('index.html missing')
 
 s = p.read_text(encoding='utf-8')
-# Keep a lightweight source marker for repository health checks; the browser runtime loads the full legacy feed.
+s = s.replace('</head>', '<!-- UBG43 verified library source: zones.json -->\n</head>', 1)
 s = s.replace('</head>', '<!-- UBG43 verified library source: zones.json -->\\n</head>', 1)
-# Preserve the site's single JSON-LD block, then remove every other inline controller.
+m = re.search(r"<script\\b[^>]*type=['\"]application/ld\\+json['\"][^>]*>.*?</script>", s, flags=re.I | re.S)
 m = re.search(r'<script\\b[^>]*type=["\\']application/ld\\+json["\\'][^>]*>.*?</script>', s, flags=re.I | re.S)
-jsonld = m.group(0) if m else ''
+s = re.sub(r"<script\\b[^>]*>.*?</script>", '', s, flags=re.I | re.S)
 s = re.sub(r'<script\\b[^>]*>.*?</script>', '', s, flags=re.I | re.S)
 if jsonld:
-    s = s.replace('</head>', jsonld + '\\n</head>', 1)
+s = re.sub(r"<style[^>]*id=['\"](?:ubg43-final-runtime-style|smart-game-ui|expanded-category-runtime-style)['\"][^>]*>.*?</style>", '', s, flags=re.I | re.S)
 # Remove old runtime style blocks before installing the canonical style.
 s = re.sub(r'<style[^>]*id=["\\'](?:ubg43-final-runtime-style|smart-game-ui|expanded-category-runtime-style)["\\'][^>]*>.*?</style>', '', s, flags=re.I | re.S)
 
