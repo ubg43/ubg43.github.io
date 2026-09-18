@@ -1,3 +1,4 @@
+# Automated maintenance is intentionally safe to rerun: existing titles/URLs are deduplicated before insertion.
 from pathlib import Path
 import html,json,re,urllib.request
 from concurrent.futures import ThreadPoolExecutor,as_completed
