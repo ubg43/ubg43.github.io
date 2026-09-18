@@ -74,8 +74,11 @@ const recordSearch=q=>{const n=norm(q);if(n.length<2)return;const h=read('ubg43_
 const openGame=url=>{const u=String(url||'').trim();if(!u)return false;try{const w=window.open(u,'_blank','noopener,noreferrer');if(!w)window.location.href=u;return true}catch(_){window.location.href=u;return true}};window.openGame=openGame;
 function cards(){return grid?[...grid.querySelectorAll('.game-card')]:[]}
 async function loadLegacyIntoGrid(){
+  if(cards().length>=300)return cards().length;
   try{
-    const r=await fetch('legacy-index.html',{cache:'no-store'});
+    const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),7000);
+    const r=await fetch('legacy-index.html?stable=1',{cache:'no-store',signal:controller.signal});
+    clearTimeout(timer);
     if(!r.ok)throw new Error('legacy '+r.status);
     const d=new DOMParser().parseFromString(await r.text(),'text/html');
     const source=[...d.querySelectorAll('.game-card')];
@@ -120,11 +123,10 @@ function bind(){
  document.addEventListener('click',e=>{const c=e.target.closest?.('.game-card');if(!c)return;e.preventDefault();e.stopImmediatePropagation();const u=urlOf(c);recordPlay(c);if(u)openGame(u);renderRails();decorate()},{capture:true});
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('categorySidebar')?.classList.contains('open'))closeCategories()},{capture:true});
 }
-function sync(){cards().forEach(wire);decorate();renderRails();applyView();const s=$('status');if(s&&cards().length)s.textContent=`${cards().length} games ready`}
-async function start(){
-  await loadLegacyIntoGrid();
-  sync();bind();
-  setTimeout(sync,700);setTimeout(sync,1800);setTimeout(sync,3500)
+function sync(){cards().forEach(wire);decorate();renderRails();applyView();const s=$('status');if(s&&cards().length)s.textContent=cards().length+' games ready'}
+function start(){
+  bind();sync();
+  loadLegacyIntoGrid().then(()=>{sync();setTimeout(sync,700);setTimeout(sync,1800);setTimeout(sync,3500)}).catch(()=>sync());
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();

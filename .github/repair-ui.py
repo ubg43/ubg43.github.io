@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 
 INDEX = Path('index.html')
 
@@ -107,6 +108,17 @@ init();
 </script>
 </body>
 </html>'''
+
+# STATIC_LIBRARY_CARD_INJECTION
+LEGACY = Path('legacy-index.html')
+if LEGACY.exists():
+    legacy = LEGACY.read_text(encoding='utf-8')
+    cards = re.findall(r'<div\\s+class="game-card"[^>]*>.*?</div>', legacy, flags=re.I | re.S)
+    if len(cards) < 300:
+        raise SystemExit(f'Legacy library unexpectedly small: {len(cards)} cards')
+    cards = [re.sub(r'<img(?![^>]*\\bloading=)', '<img loading="lazy"', c, count=1, flags=re.I) for c in cards]
+    library = '\\n'.join(cards)
+    HTML = HTML.replace('<div id="gameGrid" class="game-grid"></div>', '<div id="gameGrid" class="game-grid">\\n' + library + '\\n</div>', 1)
 
 INDEX.write_text(HTML, encoding='utf-8')
 print('UBG43 stable UI written:', INDEX)

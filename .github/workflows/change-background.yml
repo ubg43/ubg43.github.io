@@ -31,6 +31,8 @@ jobs:
           PY
       - name: Harden stable runtime and restore interaction badges
         run: python3 .github/stable-runtime-hotfix.py
+      - name: Apply final link and runtime sanity fixes
+        run: python3 .github/site-finalizer.py
       - name: Commit background update
         run: |
           git config user.name 'github-actions[bot]'

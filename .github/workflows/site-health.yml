@@ -39,10 +39,12 @@ jobs:
           if not Path('sitemap.xml').exists(): bad.append('sitemap.xml missing')
           if not Path('.github/site-finalizer.py').exists(): bad.append('site-finalizer.py missing')
           cards=re.findall(r'<(?:div|article)\s+class="game-card"[^>]*>',leg,re.I)
+          index_cards=re.findall(r'<div\s+class="game-card"[^>]*>',idx,re.I)
           titles=re.findall(r'<h3[^>]*>(.*?)</h3>',leg,re.I|re.S)
           clean=lambda s:re.sub(r'\s+',' ',re.sub(r'<[^>]+>','',s)).strip().casefold()
           tt=[clean(x) for x in titles if clean(x)]
           if len(cards)<300: bad.append(f'legacy game cards too low: {len(cards)}')
+          if len(index_cards)<300: bad.append(f'homepage static game cards too low: {len(index_cards)}')
           if len(tt)!=len(set(tt)): bad.append('duplicate legacy game titles detected')
           scripts=re.findall(r'<script([^>]*)>(.*?)</script>',idx,re.I|re.S)
           with tempfile.TemporaryDirectory() as td:

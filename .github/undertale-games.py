@@ -40,11 +40,11 @@ def add_games(text):
     if not additions:return text
     return text[:start]+opening+'\n'+body.rstrip()+'\n'+'\n'.join(additions)+'\n'+closing+text[end:]
 
-for path in (INDEX,LEGACY):
+for path in (LEGACY,):
     if path.exists():
         original=path.read_text(encoding='utf-8')
         updated=add_games(original)
         path.write_text(updated,encoding='utf-8')
         print(f'Undertale collection checked: {path}; missing={sum(1 for g in GAMES if not has_title(original,g["title"]))}')
 
-print('UNDERTALE GAMES: collection is self-healing; entries keep the site openGame about:blank wrapper.')
+print('UNDERTALE GAMES: collection is self-healing; entries are maintained in legacy-index.html and the stable homepage rebuilds from that library.')
