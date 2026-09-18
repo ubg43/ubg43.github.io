@@ -2,6 +2,8 @@
 from pathlib import Path
 from datetime import date
 import html,re
+from game_validator import validate_external_game_page, validate_local_asset
+from library_guard import normalize_title, normalize_url
 
 INDEX=Path('index.html')
 LEGACY=Path('legacy-index.html')
@@ -26,6 +28,9 @@ def extract_grid(text):
             if depth==0:return start,t.end(),text[m.end():t.start()],text[m.start():m.end()],text[t.start():t.end()]
     return None
 
+def valid_game(g):
+    return validate_external_game_page(g['title'], g['url']) and validate_local_asset(g['image'])
+
 def has_title(text,title):
     return re.search(r'<h3[^>]*>\s*'+re.escape(title)+r'\s*</h3>',text,re.I) is not None
 
@@ -36,7 +41,7 @@ def add_games(text):
     info=extract_grid(text)
     if not info:return text
     start,end,body,opening,closing=info
-    additions=[card(g) for g in GAMES if not has_title(text,g['title'])]
+    additions=[card(g) for g in GAMES if not has_title(text,g['title']) and valid_game(g)]
     if not additions:return text
     return text[:start]+opening+'\n'+body.rstrip()+'\n'+'\n'.join(additions)+'\n'+closing+text[end:]
 
