@@ -3,6 +3,7 @@ import html,json,re,urllib.request
 from concurrent.futures import ThreadPoolExecutor,as_completed
 from datetime import date
 from game_validator import validate_candidate, norm as validator_norm
+# Strict admission rule: every new entry must be a verified game page plus verified cover, and must be unique by title and URL.
 INDEX=Path('index.html'); LEGACY=Path('legacy-index.html'); REGISTRY=Path('.github/game-registry.json')
 START='<!-- TRENDING-GAMES-START -->'; END='<!-- TRENDING-GAMES-END -->'; TARGET=1100
 ZONES='https://raw.githubusercontent.com/gn-math/assets/main/zones.json'; HTML_ROOT='https://raw.githubusercontent.com/gn-math/html/main'; COVER_ROOT='https://raw.githubusercontent.com/gn-math/covers/main'
