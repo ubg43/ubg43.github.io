@@ -2,6 +2,7 @@ from pathlib import Path
 import html,json,re,urllib.request
 from concurrent.futures import ThreadPoolExecutor,as_completed
 from datetime import date
+from game_validator import validate_candidate, norm as validator_norm
 INDEX=Path('index.html'); LEGACY=Path('legacy-index.html'); REGISTRY=Path('.github/game-registry.json')
 START='<!-- TRENDING-GAMES-START -->'; END='<!-- TRENDING-GAMES-END -->'; TARGET=1100
 ZONES='https://raw.githubusercontent.com/gn-math/assets/main/zones.json'; HTML_ROOT='https://raw.githubusercontent.com/gn-math/html/main'; COVER_ROOT='https://raw.githubusercontent.com/gn-math/covers/main'
@@ -15,10 +16,7 @@ def game_url(z):return str(z.get('url','')).replace('{HTML_URL}',HTML_ROOT)
 def cover_url(z):return str(z.get('cover','')).replace('{COVER_URL}',COVER_ROOT)
 def extract_titles(text):return {norm(strip(x)) for x in re.findall(r'<h3[^>]*>(.*?)</h3>',text,re.I|re.S) if norm(strip(x))}
 def probe(url,kind):
- try:
-  r=urllib.request.urlopen(urllib.request.Request(url,headers={'User-Agent':'ubg43-game-builder/3.0'}),timeout=8); b=r.read(512); ct=(r.headers.get('Content-Type') or '').lower()
-  return 200<=r.status<400 and bool(b) and (('image/' in ct or re.search(r'\.(png|jpe?g|webp|gif)(\?|$)',url,re.I)) if kind=='image' else (b'<html' in b.lower() or b'<!doctype' in b.lower() or 'html' in ct))
- except Exception:return False
+ return validate_candidate('candidate', url, 'https://raw.githubusercontent.com/gn-math/covers/main/1.png') if False else False
 def page_text(url):
  try:return urllib.request.urlopen(urllib.request.Request(url,headers={'User-Agent':'ubg43-game-builder/3.0'}),timeout=8).read(100000).decode('utf-8','ignore').lower()
  except Exception:return ''
@@ -110,7 +108,7 @@ def main():
  candidates=forced+candidates
  verified=[]
  with ThreadPoolExecutor(max_workers=56) as ex:
-  fs={ex.submit(lambda x:probe(x[1],'html') and probe(x[2],'image'),it):it for it in candidates}
+  fs={ex.submit(lambda x:validate_candidate(x[0],x[1],x[2]),it):it for it in candidates}
   for f in as_completed(fs):
    try:
     if f.result():verified.append(fs[f])
@@ -127,10 +125,20 @@ def main():
   for m in pat.finditer(seg):
    a=m.group('a');n=strip(m.group('t'));u=re.search(r'onclick="openGame\(\'([^\']+)\'\)"',a); 
    if u:old.append((n,u.group(1),m.group('i'),'data-local-multiplayer="true"' in a,reg.get(norm(n),{}).get('first_seen')))
+ # Deduplicate the persisted library by normalized title and URL before adding anything new.
+ dedup_old=[];seen_title=set();seen_url=set()
+ for item in old:
+  tk=norm(item[0]);uk=item[1].split('#',1)[0].rstrip('/')
+  if not tk or tk in seen_title or uk in seen_url:continue
+  seen_title.add(tk);seen_url.add(uk);dedup_old.append(item)
+ old=dedup_old
  need=max(0,TARGET-len(old));add=[]
- for n,u,c,local in newcards[:need]:
   k=norm(n);fs=reg.get(k,{}).get('first_seen') or today;reg[k]={'first_seen':fs};add.append((n,u,c,local,fs))
- combined=old+add
+ combined=[];used_title=set();used_url=set()
+ for item in old+add:
+  tk=norm(item[0]);uk=item[1].split('#',1)[0].rstrip('/')
+  if tk in used_title or uk in used_url:continue
+  used_title.add(tk);used_url.add(uk);combined.append(item)
  if len(combined)<1000:
   print(f'Only {len(combined)} verified games available in this upstream pass; retaining the existing library and continuing')
  if sum(1 for x in combined if x[3])<100:
