@@ -24,8 +24,10 @@ jobs:
       - name: Remove duplicate game cards
         run: python3 .github/dedupe-games.py
       - name: Rebuild stable UBG43 homepage
-        run: python3       - name: Harden stable runtime
-        run: python3       - name: Apply final link and runtime sanity fixes
+        run: python3 .github/repair-ui.py
+      - name: Harden stable runtime
+        run: python3 .github/stable-runtime-hotfix.py
+      - name: Apply final link and runtime sanity fixes
         run: python3 .github/site-finalizer.py
       - name: Commit Undertale collection
         run: |
