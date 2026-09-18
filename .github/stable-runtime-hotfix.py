@@ -1,5 +1,6 @@
 from pathlib import Path
 import re
+# Canonical runtime trigger: this script is the single final browser controller for the homepage.
 
 p = Path('index.html')
 if not p.exists():
