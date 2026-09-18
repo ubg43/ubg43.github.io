@@ -1,4 +1,5 @@
 from pathlib import Path
+# Health checks cover the stable homepage, strict game admission automation, duplicate protection, and live UI safeguards.
 import html,re,sys
 
 INDEX=Path('index.html'); LEGACY=Path('legacy-index.html')
