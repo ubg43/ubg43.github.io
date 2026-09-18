@@ -8,6 +8,9 @@ on:
       - '.github/site-finalizer.py'
       - '.github/repair-ui.py'
       - '.github/stable-runtime-hotfix.py'
+      - '.github/game_validator.py'
+      - '.github/auto-categories.py'
+      - '.github/extra-games.py'
       - '.github/workflows/**'
       - 'undertale-thumbnails/**'
   schedule:
@@ -48,6 +51,16 @@ jobs:
           if len(index_cards)<300: bad.append(f'homepage static game cards too low: {len(index_cards)}')
           if 'id="ubg43-final-runtime"' not in idx: bad.append('canonical stable runtime script missing')
           if len(tt)!=len(set(tt)): bad.append('duplicate legacy game titles detected')
+          urls=[m.group(1).split('#',1)[0].rstrip('/') for m in re.finditer(r"openGame\\(\\s*['\\"]([^'\\"]+)",leg,re.I)]
+          if len(urls)!=len(set(urls)): bad.append('duplicate legacy game URLs detected')
+          blocked=['[!]','suggest games','d4c9vfywyu','1 date danger']
+          if any(any(x in t for x in blocked) for t in tt): bad.append('non-game placeholder title detected')
+          auto=Path('.github/auto-categories.py').read_text(encoding='utf-8')
+          extra=Path('.github/extra-games.py').read_text(encoding='utf-8')
+          if 'from game_validator import validate_candidate' not in auto: bad.append('auto-categories missing strict game validator')
+          if 'from game_validator import validate_candidate' not in extra: bad.append('extra-games missing strict game validator')
+          if 'stable-runtime-hotfix.py' not in Path('.github/workflows/auto-categories.yml').read_text(encoding='utf-8'): bad.append('auto workflow missing stable runtime step')
+          if 'stable-runtime-hotfix.py' not in Path('.github/workflows/extra-games.yml').read_text(encoding='utf-8'): bad.append('extra workflow missing stable runtime step')
           scripts=re.findall(r'<script([^>]*)>(.*?)</script>',idx,re.I|re.S)
           with tempfile.TemporaryDirectory() as td:
               for i,(attrs,body) in enumerate(scripts):
