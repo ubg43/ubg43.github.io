@@ -6,6 +6,7 @@ on:
       - '.github/stable-runtime-hotfix.py'
       - '.github/dedupe-games.py'
       - '.github/library-guard.py'
+      - '.github/library_guard.py'
       - '.github/game_validator.py'
       - '.github/site-finalizer.py'
       - '.github/workflows/fix-live-site.yml'
