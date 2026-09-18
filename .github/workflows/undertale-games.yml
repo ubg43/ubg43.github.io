@@ -19,18 +19,13 @@ jobs:
   undertale:
     if: ${{ github.event_name != 'push' || (!contains(github.event.head_commit.message, '[undertale-builder]') && !contains(github.event.head_commit.message, '[automation-hardening]') && !contains(github.event.head_commit.message, '[live-fix]')) }}
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
-      - name: Add and maintain Undertale games
+      - name: Add and verify Undertale games
         run: python3 .github/undertale-games.py
       - name: Remove duplicate game cards
         run: python3 .github/dedupe-games.py
-      - name: Rebuild stable UBG43 homepage
-        run: python3 .github/repair-ui.py
-      - name: Harden stable runtime
-        run: python3 .github/stable-runtime-hotfix.py
-      - name: Apply final link and runtime sanity fixes
-        run: python3 .github/site-finalizer.py
       - name: Enforce duplicate-free library
         run: python3 .github/library-guard.py
       - name: Apply automatic categories
@@ -39,9 +34,9 @@ jobs:
         run: python3 .github/home-order.py
       - name: Remove obsolete loading placeholder
         run: python3 .github/loading-polish.py
-      - name: Apply final UBG43 UI polish
+      - name: Rebuild stable UBG43 homepage
         run: python3 .github/repair-ui.py
-      - name: Harden stable runtime and badge styling
+      - name: Harden stable runtime and restore NEW/TRENDING badges
         run: python3 .github/stable-runtime-hotfix.py
       - name: Final site sanity check
         run: python3 .github/site-finalizer.py
@@ -49,6 +44,9 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add index.html legacy-index.html undertale-thumbnails
-          git commit -m 'Refresh Undertale game collection [undertale-builder]' || exit 0
+          git add index.html legacy-index.html undertale-thumbnails .github/game-registry.json
+          git diff --cached --quiet && exit 0
+          git commit -m 'Refresh Undertale game collection [undertale-builder]'
+          git fetch origin main
+          git rebase origin/main
           git push
