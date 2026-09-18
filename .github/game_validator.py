@@ -67,3 +67,30 @@ def validate_candidate(name: str, url: str, cover: str) -> bool:
     if len(clean) < 2 or clean in {'game', 'html', 'index'}:
         return False
     return validate_game_page(name, url) and validate_cover(cover)
+
+def validate_external_game_page(name: str, url: str) -> bool:
+    clean = norm(name)
+    if len(clean) < 2 or not url.startswith('https://'):
+        return False
+    try:
+        status, headers, body = fetch(url, 24000, 12)
+        if not (200 <= status < 400) or len(body) < 120:
+            return False
+        ctype = (headers.get('Content-Type') or '').lower()
+        text = body.decode('utf-8', 'ignore').lower()
+        if 'html' not in ctype and b'<html' not in body.lower() and b'<!doctype' not in body.lower():
+            return False
+        bad = ('404 not found', 'page not found', 'access denied', 'forbidden', 'service unavailable')
+        if any(x in text[:18000] for x in bad):
+            return False
+        return any(marker in text[:18000] for marker in GAME_SIGNALS)
+    except (HTTPError, URLError, TimeoutError, ValueError, OSError):
+        return False
+
+def validate_local_asset(path: str) -> bool:
+    try:
+        from pathlib import Path
+        p = Path(path)
+        return p.is_file() and p.stat().st_size >= 32
+    except OSError:
+        return False
