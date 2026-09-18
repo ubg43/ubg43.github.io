@@ -3,6 +3,8 @@ on:
   push:
     paths:
       - '.github/undertale-games.py'
+      - '.github/library-guard.py'
+      - '.github/game_validator.py'
       - '.github/workflows/undertale-games.yml'
       - 'undertale-thumbnails/**'
   schedule:
@@ -15,7 +17,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   undertale:
-    if: ${{ !contains(github.event.head_commit.message, '[undertale-builder]') || github.event_name != 'push' }}
+    if: ${{ github.event_name != 'push' || (!contains(github.event.head_commit.message, '[undertale-builder]') && !contains(github.event.head_commit.message, '[automation-hardening]') && !contains(github.event.head_commit.message, '[live-fix]')) }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -28,6 +30,20 @@ jobs:
       - name: Harden stable runtime
         run: python3 .github/stable-runtime-hotfix.py
       - name: Apply final link and runtime sanity fixes
+        run: python3 .github/site-finalizer.py
+      - name: Enforce duplicate-free library
+        run: python3 .github/library-guard.py
+      - name: Apply automatic categories
+        run: python3 .github/category-enhancer.py
+      - name: Apply four-day homepage shuffle
+        run: python3 .github/home-order.py
+      - name: Remove obsolete loading placeholder
+        run: python3 .github/loading-polish.py
+      - name: Apply final UBG43 UI polish
+        run: python3 .github/repair-ui.py
+      - name: Harden stable runtime and badge styling
+        run: python3 .github/stable-runtime-hotfix.py
+      - name: Final site sanity check
         run: python3 .github/site-finalizer.py
       - name: Commit Undertale collection
         run: |
