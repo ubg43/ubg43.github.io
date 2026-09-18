@@ -6,6 +6,9 @@ if not p.exists():
     raise SystemExit('index.html missing')
 
 s = p.read_text(encoding='utf-8')
+# Strip older client controllers before installing the one canonical runtime below.
+s = re.sub(r'<script(?![^>]*type=["\\\']application/ld\\+json["\\\'])[^>]*>.*?</script>', '', s, flags=re.I | re.S)
+s = re.sub(r'<style[^>]*id=["\\\'](?:ubg43-final-runtime-style|smart-game-ui|expanded-category-runtime-style)["\\\'][^>]*>.*?</style>', '', s, flags=re.I | re.S)
 
 # Keep the main runtime from rebuilding the grid destructively as late game data arrives.
 old = "function renderGrid(){if(!state.cards.size){grid.innerHTML='';state.games.forEach(g=>{const c=cardFor(g);state.cards.set(gameKey(g),c);grid.append(c)})}applyFilters()}"
@@ -60,6 +63,24 @@ const recordPlay=c=>{const h=read('ubg43_final_plays',{}),k=playKey(c),x=h[k]||{
 const recordSearch=q=>{const n=norm(q);if(n.length<2)return;const h=read('ubg43_final_searches',{}),x=h[n]||{count:0,last:0};x.count++;x.last=Date.now();h[n]=x;write('ubg43_final_searches',h)};
 const openGame=url=>{const u=String(url||'').trim();if(!u)return false;try{const w=window.open(u,'_blank','noopener,noreferrer');if(!w)window.location.href=u;return true}catch(_){window.location.href=u;return true}};window.openGame=openGame;
 function cards(){return grid?[...grid.querySelectorAll('.game-card')]:[]}
+async function loadLegacyIntoGrid(){
+  try{
+    const r=await fetch('legacy-index.html',{cache:'no-store'});
+    if(!r.ok)throw new Error('legacy '+r.status);
+    const d=new DOMParser().parseFromString(await r.text(),'text/html');
+    const source=[...d.querySelectorAll('.game-card')];
+    if(source.length<100)throw new Error('legacy game count too low');
+    grid.textContent=''; const seen=new Set();
+    source.forEach(src=>{
+      const h=src.querySelector('h3'),img=src.querySelector('img'); if(!h||!img)return;
+      const title=h.textContent.trim().toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+      if(!title||seen.has(title))return;
+      const c=src.cloneNode(true),a=c.getAttribute('onclick')||'',m=a.match(/openGame\(\s*[\'\"]([^\'\"]+)/i);
+      if(m)c.dataset.url=m[1]; seen.add(title); grid.append(c);
+    });
+  }catch(_){}
+  return cards().length;
+}
 function isNew(c){if(c.dataset.new==='1')return true;const d=Date.parse(c.dataset.newSince||c.dataset.date||'');return Number.isFinite(d)&&Date.now()-d<45*86400000}
 function isTrending(c){const p=read('ubg43_final_plays',{})[playKey(c)]?.plays||0;return c.dataset.trending==='1'||c.dataset.trendingSeed==='1'||c.dataset.seed==='1'||p>0}
 function badge(c,text,cls){const box=c.querySelector('.ubg43-badges')||(()=>{const x=document.createElement('div');x.className='ubg43-badges';c.append(x);return x})();const b=document.createElement('span');b.className='ubg43-badge '+cls;b.textContent=text;box.append(b)}
@@ -90,7 +111,11 @@ function bind(){
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('categorySidebar')?.classList.contains('open'))closeCategories()},{capture:true});
 }
 function sync(){cards().forEach(wire);decorate();renderRails();applyView();const s=$('status');if(s&&cards().length)s.textContent=`${cards().length} games ready`}
-function start(){sync();bind();setTimeout(sync,700);setTimeout(sync,1800);setTimeout(sync,3500)}
+async function start(){
+  await loadLegacyIntoGrid();
+  sync();bind();
+  setTimeout(sync,700);setTimeout(sync,1800);setTimeout(sync,3500)
+}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
 </script>'''
@@ -100,4 +125,4 @@ if needle.lower() not in s.lower():
     raise SystemExit('body end marker not found')
 s = re.sub(r'</body>', lambda _m: runtime + '\n</body>', s, count=1, flags=re.I)
 p.write_text(s, encoding='utf-8')
-print('STABLE RUNTIME HOTFIX: fixed card URLs, search/button behavior, report link, carousels, and NEW/TRENDING badges')
+print('STABLE RUNTIME: one canonical runtime, full legacy feed, working search/buttons/carousels/recommendations, and NEW/TRENDING badges.')
