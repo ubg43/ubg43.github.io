@@ -3,6 +3,7 @@ import html,json,re,urllib.request
 from concurrent.futures import ThreadPoolExecutor,as_completed
 from datetime import date
 from game_validator import validate_candidate, norm as validator_norm
+from library_guard import normalize_title, normalize_url
 # Strict admission rule: every new entry must be a verified game page plus verified cover, and must be unique by title and URL.
 INDEX=Path('index.html'); LEGACY=Path('legacy-index.html'); REGISTRY=Path('.github/game-registry.json')
 START='<!-- TRENDING-GAMES-START -->'; END='<!-- TRENDING-GAMES-END -->'; TARGET=1100
@@ -15,7 +16,8 @@ def get_json(url):
  r=urllib.request.Request(url,headers={'User-Agent':'ubg43-game-builder/3.0'});return json.loads(urllib.request.urlopen(r,timeout=30).read().decode())
 def game_url(z):return str(z.get('url','')).replace('{HTML_URL}',HTML_ROOT)
 def cover_url(z):return str(z.get('cover','')).replace('{COVER_URL}',COVER_ROOT)
-def extract_titles(text):return {norm(strip(x)) for x in re.findall(r'<h3[^>]*>(.*?)</h3>',text,re.I|re.S) if norm(strip(x))}
+def extract_titles(text):return {normalize_title(x) for x in re.findall(r'<h3[^>]*>(.*?)</h3>',text,re.I|re.S) if normalize_title(x)}
+def extract_urls(text):return {normalize_url(x) for x in re.findall(r"openGame\(\s*['\"]([^'\"]+)",text,re.I) if normalize_url(x)}
 def page_text(url):
  try:return urllib.request.urlopen(urllib.request.Request(url,headers={'User-Agent':'ubg43-game-builder/3.0'}),timeout=8).read(100000).decode('utf-8','ignore').lower()
  except Exception:return ''
@@ -92,9 +94,10 @@ def main():
   try:reg=json.loads(REGISTRY.read_text())
   except Exception:reg={}
  existing=extract_titles(legacy)|extract_titles(index)
+existing_urls=extract_urls(legacy)|extract_urls(index)
  if not reg:reg={k:{'first_seen':None} for k in existing}
  zones=get_json(ZONES);byname={norm(strip(str(z.get('name','')))):z for z in zones if int(z.get('id',-1))>=0 and norm(strip(str(z.get('name',''))))}
- candidates=[];seen=set(existing)
+ candidates=[];seen=set(existing);seen_urls=set(existing_urls)
  for z in zones:
   if int(z.get('id',-1))<0:continue
   n=strip(str(z.get('name','')));k=norm(n);u=game_url(z);c=cover_url(z)
@@ -127,15 +130,15 @@ def main():
  # Deduplicate the persisted library by normalized title and URL before adding anything new.
  dedup_old=[];seen_title=set();seen_url=set()
  for item in old:
-  tk=norm(item[0]);uk=item[1].split('#',1)[0].rstrip('/')
+  tk=normalize_title(item[0]);uk=normalize_url(item[1])
   if not tk or tk in seen_title or uk in seen_url:continue
   seen_title.add(tk);seen_url.add(uk);dedup_old.append(item)
  old=dedup_old
  need=max(0,TARGET-len(old));add=[]
  for n,u,c,local in newcards[:need]:
-  k=norm(n)
+  k=normalize_title(n)
   fs=reg.get(k,{}).get('first_seen') or today
-  reg[k]={'first_seen':fs}
+  reg[k]={'first_seen':fs,'url':normalize_url(u)}
   add.append((n,u,c,local,fs))
  combined=[];used_title=set();used_url=set()
  for item in old+add:
