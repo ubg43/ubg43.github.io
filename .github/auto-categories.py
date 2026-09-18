@@ -133,7 +133,11 @@ def main():
   seen_title.add(tk);seen_url.add(uk);dedup_old.append(item)
  old=dedup_old
  need=max(0,TARGET-len(old));add=[]
-  k=norm(n);fs=reg.get(k,{}).get('first_seen') or today;reg[k]={'first_seen':fs};add.append((n,u,c,local,fs))
+ for n,u,c,local in newcards[:need]:
+  k=norm(n)
+  fs=reg.get(k,{}).get('first_seen') or today
+  reg[k]={'first_seen':fs}
+  add.append((n,u,c,local,fs))
  combined=[];used_title=set();used_url=set()
  for item in old+add:
   tk=norm(item[0]);uk=item[1].split('#',1)[0].rstrip('/')
