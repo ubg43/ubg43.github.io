@@ -51,7 +51,7 @@ jobs:
           if len(index_cards)<300: bad.append(f'homepage static game cards too low: {len(index_cards)}')
           if 'id="ubg43-final-runtime"' not in idx: bad.append('canonical stable runtime script missing')
           if len(tt)!=len(set(tt)): bad.append('duplicate legacy game titles detected')
-          urls=[m.group(1).split('#',1)[0].rstrip('/') for m in re.finditer(r"openGame\\(\\s*['\\"]([^'\\"]+)",leg,re.I)]
+          urls=[m.group(1).split('#',1)[0].rstrip('/') for m in re.finditer(r"openGame\\(\\s*'([^']+)'",leg,re.I)]
           if len(urls)!=len(set(urls)): bad.append('duplicate legacy game URLs detected')
           blocked=['[!]','suggest games','d4c9vfywyu','1 date danger']
           if any(any(x in t for x in blocked) for t in tt): bad.append('non-game placeholder title detected')
