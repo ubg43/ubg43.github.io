@@ -3,7 +3,7 @@ import re
 from html import unescape
 
 FILES=[Path('legacy-index.html'),Path('index.html')]
-CARD=re.compile(r'<div\s+class="game-card"[^>]*>.*?</div>\s*(?=<div\s+class="game-card"|</(?:div|footer|main|body|html)>)',re.I|re.S)
+CARD=re.compile(r'<(?P<tag>div|article)\b[^>]*class=["\']game-card["\'][^>]*>.*?</(?P=tag)>\s*(?=<(?:div|article)\b[^>]*class=["\']game-card["\']|</(?:div|footer|main|body|html)>)',re.I|re.S)
 TITLE=re.compile(r'<h3[^>]*>(.*?)</h3>',re.I|re.S)
 URL=re.compile(r"openGame\(\s*['\"]([^'\"]+)['\"]",re.I)
 
