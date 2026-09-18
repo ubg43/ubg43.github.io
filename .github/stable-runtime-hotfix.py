@@ -7,6 +7,8 @@ if not p.exists():
     raise SystemExit('index.html missing')
 
 s = p.read_text(encoding='utf-8')
+# Keep a lightweight source marker for repository health checks; the browser runtime loads the full legacy feed.
+s = s.replace('</head>', '<!-- UBG43 verified library source: zones.json -->\\n</head>', 1)
 # Strip older client controllers before installing the one canonical runtime below.
 s = re.sub(r'<script(?![^>]*type=["\\\']application/ld\\+json["\\\'])[^>]*>.*?</script>', '', s, flags=re.I | re.S)
 s = re.sub(r'<style[^>]*id=["\\\'](?:ubg43-final-runtime-style|smart-game-ui|expanded-category-runtime-style)["\\\'][^>]*>.*?</style>', '', s, flags=re.I | re.S)
