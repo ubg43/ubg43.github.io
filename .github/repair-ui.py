@@ -1,5 +1,6 @@
 from pathlib import Path
 import re
+from library_guard import guard_file
 
 INDEX = Path('index.html')
 
@@ -112,6 +113,7 @@ init();
 # STATIC_LIBRARY_CARD_INJECTION
 LEGACY = Path('legacy-index.html')
 if LEGACY.exists():
+    guard_file(LEGACY)
     legacy = LEGACY.read_text(encoding='utf-8')
     cards = re.findall(r'<div\s+class="game-card"[^>]*>.*?</div>', legacy, flags=re.I | re.S)
     if len(cards) < 300:
