@@ -140,7 +140,9 @@ for z in sorted(verified, key=lambda z: norm(z.get('name', ''))):
     if len(final) >= needed: break
 
 if len(final) < needed:
-    raise SystemExit(f'Only {len(final)} verified new games found; refusing a partial build (needed {needed}).')
+    print(f'Only {len(final)} verified new games found in this pass; adding the available verified games and continuing (needed {needed}).')
+if not final:
+    raise SystemExit('No new verified expansion games available in this pass; leaving the existing library unchanged.')
 
 for p in (INDEX, LEGACY):
     if p.exists():
