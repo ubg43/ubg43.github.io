@@ -10,12 +10,12 @@ s = p.read_text(encoding='utf-8')
 s = s.replace('</head>', '<!-- UBG43 verified library source: zones.json -->\n</head>', 1)
 s = s.replace('</head>', '<!-- UBG43 verified library source: zones.json -->\\n</head>', 1)
 m = re.search(r"<script\\b[^>]*type=['\"]application/ld\\+json['\"][^>]*>.*?</script>", s, flags=re.I | re.S)
-m = re.search(r'<script\\b[^>]*type=["\\']application/ld\\+json["\\'][^>]*>.*?</script>', s, flags=re.I | re.S)
+m = re.search(r"""<script\b[^>]*type=["\']application/ld\+json["\'][^>]*>.*?</script>""", s, flags=re.I | re.S)
 s = re.sub(r"<script\\b[^>]*>.*?</script>", '', s, flags=re.I | re.S)
-s = re.sub(r'<script\\b[^>]*>.*?</script>', '', s, flags=re.I | re.S)
+s = re.sub(r"""<script\b[^>]*>.*?</script>""", "", s, flags=re.I | re.S)
 if jsonld:
 s = re.sub(r"<style[^>]*id=['\"](?:ubg43-final-runtime-style|smart-game-ui|expanded-category-runtime-style)['\"][^>]*>.*?</style>", '', s, flags=re.I | re.S)
-# Remove old runtime style blocks before installing the canonical style.
+s = re.sub(r"""<style[^>]*id=["\'](?:ubg43-final-runtime-style|smart-game-ui|expanded-category-runtime-style)["\'][^>]*>.*?</style>""", "", s, flags=re.I | re.S)
 s = re.sub(r'<style[^>]*id=["\\'](?:ubg43-final-runtime-style|smart-game-ui|expanded-category-runtime-style)["\\'][^>]*>.*?</style>', '', s, flags=re.I | re.S)
 
 # Keep the main runtime from rebuilding the grid destructively as late game data arrives.
