@@ -10,6 +10,7 @@ on:
       - '.github/repair-ui.py'
       - '.github/stable-runtime-hotfix.py'
       - '.github/game_validator.py'
+      - '.github/library-guard.py'
       - '.github/auto-categories.py'
       - '.github/extra-games.py'
       - '.github/workflows/**'
@@ -25,6 +26,8 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+      - name: Run duplicate-free library audit
+        run: python3 .github/library-guard.py --check
       - name: Validate stable UBG43 homepage
         run: |
           python3 - <<'PY'
