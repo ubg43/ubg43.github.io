@@ -3,9 +3,7 @@ on:
   push:
     paths:
       - '.github/undertale-games.py'
-      - '.github/repair-ui.py'
-      - '.github/stable-runtime-hotfix.py'
-      - '.github/site-finalizer.py'
+      - '.github/workflows/undertale-games.yml'
       - 'undertale-thumbnails/**'
   schedule:
     - cron: '29 2 * * *'
