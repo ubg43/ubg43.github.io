@@ -32,8 +32,7 @@ jobs:
       - name: Apply final UBG43 UI polish
         run: python3 .github/repair-ui.py
       - name: Harden stable runtime and restore interaction badges
-        run: python3 .github/stable-runtime-hotfix.py
-      - name: Commit expansion
+        run: python3       - name: Commit expansion
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
