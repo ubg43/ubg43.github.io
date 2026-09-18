@@ -1,3 +1,4 @@
+# Automated Undertale entries are idempotent and safe to rerun.
 from pathlib import Path
 from datetime import date
 import html,re
