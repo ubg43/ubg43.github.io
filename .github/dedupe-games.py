@@ -6,6 +6,7 @@ FILES=[Path('legacy-index.html'),Path('index.html')]
 CARD=re.compile(r'<(?P<tag>div|article)\b[^>]*class=["\']game-card["\'][^>]*>.*?</(?P=tag)>\s*(?=<(?:div|article)\b[^>]*class=["\']game-card["\']|</(?:div|footer|main|body|html)>)',re.I|re.S)
 TITLE=re.compile(r'<h3[^>]*>(.*?)</h3>',re.I|re.S)
 URL=re.compile(r"openGame\(\s*['\"]([^'\"]+)['\"]",re.I)
+BLOCKED=['[!] comments','suggest games','d4c9vfywyu','1 date danger']
 
 def clean(s):
     return re.sub(r'\s+',' ',unescape(re.sub(r'<[^>]+>','',s))).strip().casefold()
@@ -19,10 +20,12 @@ for p in FILES:
         out.append(text[pos:m.start()])
         card=m.group(0)
         tm=TITLE.search(card);um=URL.search(card)
-        title=clean(tm.group(1)) if tm else ''
+        raw_title=unescape(re.sub(r'<[^>]+>','',tm.group(1))).strip() if tm else ''
+        title=clean(raw_title) if raw_title else ''
         url=um.group(1).strip() if um else ''
+        blocked=raw_title.startswith('[!]') or any(x in raw_title.casefold() for x in BLOCKED)
         duplicate=(title and title in seen_titles) or (url and url in seen_urls)
-        if duplicate:
+        if duplicate or blocked:
             removed+=1
         else:
             if title:seen_titles.add(title)
