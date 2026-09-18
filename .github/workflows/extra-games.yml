@@ -5,6 +5,7 @@ on:
       - '.github/extra-games.py'
       - '.github/workflows/extra-games.yml'
       - '.github/library-guard.py'
+      - '.github/library_guard.py'
       - '.github/game_validator.py'
   schedule:
     - cron: '43 2 * * *'
