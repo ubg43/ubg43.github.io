@@ -3,6 +3,7 @@ import html, json, re, urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import date
 from game_validator import validate_candidate
+from library_guard import normalize_title, normalize_url
 
 INDEX = Path('index.html')
 LEGACY = Path('legacy-index.html')
@@ -40,7 +41,10 @@ def strip_html(s):
 
 
 def extract_titles(text):
-    return {norm(strip_html(x)) for x in re.findall(r'<h3[^>]*>(.*?)</h3>', text, re.I | re.S) if norm(strip_html(x))}
+    return {normalize_title(x) for x in re.findall(r'<h3[^>]*>(.*?)</h3>', text, re.I | re.S) if normalize_title(x)}
+
+def extract_urls(text):
+    return {normalize_url(x) for x in re.findall(r"openGame\(\s*['\"]([^'\"]+)", text, re.I) if normalize_url(x)}
 
 
 def game_url(z):
@@ -112,11 +116,10 @@ zones = [z for z in get_json(ZONES_URL) if good_candidate(z)]
 seen_names = set(existing_titles)
 seen_urls = set()
 for _text in texts:
-    for _u in re.findall(r'onclick="openGame\\([\\\']([^\\\']+)', _text, re.I):
-        seen_urls.add(_u.split('#',1)[0].rstrip('/'))
+    seen_urls.update(extract_urls(_text))
 candidates = []
 for i, z in enumerate(zones):
-    n = norm(z.get('name', '')); u = game_url(z).split('#',1)[0].rstrip('/')
+    n = normalize_title(z.get('name', '')); u = normalize_url(game_url(z))
     if not n or n in seen_names or not u or u in seen_urls: continue
     seen_names.add(n); seen_urls.add(u); candidates.append((i, z))
 candidates.sort(key=lambda iz: score(iz[1], iz[0]))
@@ -133,7 +136,7 @@ with ThreadPoolExecutor(max_workers=24) as ex:
 
 final = []; used_names = set(existing_titles); used_urls = set(seen_urls)
 for z in sorted(verified, key=lambda z: norm(z.get('name', ''))):
-    n = norm(z.get('name', '')); u = game_url(z).split('#',1)[0].rstrip('/')
+    n = normalize_title(z.get('name', '')); u = normalize_url(game_url(z))
     if n in used_names or u in used_urls: continue
     used_names.add(n); used_urls.add(u); final.append(z)
     if len(final) >= needed: break
