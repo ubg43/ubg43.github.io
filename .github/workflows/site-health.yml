@@ -71,8 +71,8 @@ jobs:
           import re,sys
           idx=Path('index.html').read_text(encoding='utf-8')
           bad=[]
-          seeds=re.findall(r"\['([^']+)','https?://",idx)
-          if len(seeds)<8: bad.append(f'homepage runtime seed set unexpectedly small: {len(seeds)}')
+          index_cards=re.findall(r'<div\s+class="game-card"[^>]*>',idx,re.I)
+          if len(index_cards)<300: bad.append(f'homepage static card set unexpectedly small: {len(index_cards)}')
           if '.ubg43-badge.new' not in idx: bad.append('NEW badge CSS missing')
           if '.ubg43-badge.trending' not in idx: bad.append('TRENDING badge CSS missing')
           if 'function isTrending' not in idx: bad.append('trending runtime missing')
