@@ -8,6 +8,8 @@ on:
       - '.github/category-enhancer.py'
       - '.github/home-order.py'
       - '.github/loading-polish.py'
+      - '.github/library-guard.py'
+      - '.github/game_validator.py'
   workflow_dispatch:
 permissions:
   contents: write
@@ -16,7 +18,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   categories:
-    if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || (!contains(github.event.head_commit.message, '[game-builder]') && !contains(github.event.head_commit.message, '[live-fix]')) }}
+    if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || (!contains(github.event.head_commit.message, '[game-builder]') && !contains(github.event.head_commit.message, '[live-fix]') && !contains(github.event.head_commit.message, '[automation-hardening]')) }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -37,6 +39,8 @@ jobs:
         run: python3 .github/auto-categories.py
       - name: Remove duplicate game cards
         run: python3 .github/dedupe-games.py
+      - name: Enforce duplicate-free library
+        run: python3 .github/library-guard.py
       - name: Apply expanded categories
         run: python3 .github/category-enhancer.py
       - name: Apply four-day homepage shuffle
