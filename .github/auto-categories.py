@@ -15,8 +15,6 @@ def get_json(url):
 def game_url(z):return str(z.get('url','')).replace('{HTML_URL}',HTML_ROOT)
 def cover_url(z):return str(z.get('cover','')).replace('{COVER_URL}',COVER_ROOT)
 def extract_titles(text):return {norm(strip(x)) for x in re.findall(r'<h3[^>]*>(.*?)</h3>',text,re.I|re.S) if norm(strip(x))}
-def probe(url,kind):
- return validate_candidate('candidate', url, 'https://raw.githubusercontent.com/gn-math/covers/main/1.png') if False else False
 def page_text(url):
  try:return urllib.request.urlopen(urllib.request.Request(url,headers={'User-Agent':'ubg43-game-builder/3.0'}),timeout=8).read(100000).decode('utf-8','ignore').lower()
  except Exception:return ''
