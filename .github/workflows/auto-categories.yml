@@ -8,7 +8,6 @@ on:
       - '.github/category-enhancer.py'
       - '.github/home-order.py'
       - '.github/loading-polish.py'
-      - '.github/dedupe-games.py'
   workflow_dispatch:
 permissions:
   contents: write
