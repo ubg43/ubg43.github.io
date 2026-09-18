@@ -5,6 +5,8 @@ on:
       - '.github/repair-ui.py'
       - '.github/stable-runtime-hotfix.py'
       - '.github/dedupe-games.py'
+      - '.github/library-guard.py'
+      - '.github/game_validator.py'
       - '.github/site-finalizer.py'
       - '.github/workflows/fix-live-site.yml'
       - 'legacy-index.html'
@@ -43,6 +45,8 @@ jobs:
         run: python3 .github/stable-runtime-hotfix.py
       - name: Remove duplicate game cards
         run: python3 .github/dedupe-games.py
+      - name: Enforce final duplicate-free library
+        run: python3 .github/library-guard.py
       - name: Run final site sanity checks
         run: python3 .github/site-finalizer.py
       - name: Validate homepage structure and browser scripts
