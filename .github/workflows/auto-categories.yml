@@ -9,6 +9,7 @@ on:
       - '.github/home-order.py'
       - '.github/loading-polish.py'
       - '.github/library-guard.py'
+      - '.github/library_guard.py'
       - '.github/game_validator.py'
   workflow_dispatch:
 permissions:
