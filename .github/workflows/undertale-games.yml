@@ -23,6 +23,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Add and maintain Undertale games
         run: python3 .github/undertale-games.py
+      - name: Remove duplicate game cards
+        run: python3 .github/dedupe-games.py
       - name: Rebuild stable UBG43 homepage
         run: python3 .github/repair-ui.py
       - name: Harden stable runtime
