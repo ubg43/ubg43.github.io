@@ -1,4 +1,5 @@
 name: Automated site health
+# Static homepage library must be present before browser-side enhancements run.
 on:
   push:
     paths:
