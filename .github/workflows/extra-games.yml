@@ -3,7 +3,6 @@ on:
   push:
     paths:
       - '.github/extra-games.py'
-      - '.github/stable-runtime-hotfix.py'
       - '.github/workflows/extra-games.yml'
   schedule:
     - cron: '43 2 * * *'
