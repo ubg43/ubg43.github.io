@@ -38,13 +38,14 @@ def card(name,url,cover,local,first_seen,seed=False):
  if seed:attrs+=' data-trending-seed="true"'
  return f'  <div class="game-card"{attrs} onclick="openGame(\'{html.escape(url,quote=True)}\')">\n    <img loading="lazy" src="{html.escape(cover,quote=True)}" alt="{html.escape(name,quote=True)}" referrerpolicy="no-referrer">\n    <h3>{html.escape(name)}</h3>\n  </div>'
 def patch_legacy(existing,added_cards):
- block=START+'\n'+'\n'.join(added_cards)+'\n'+END
+ block=START+'\\n'+'\\n'.join(added_cards)+'\\n'+END
  if START in existing and END in existing:
   a,b=existing.index(START),existing.index(END)+len(END)
   return existing[:a]+block+existing[b:]
- # The legacy page has changed layout over time. Put the automated block immediately
- # before the closing body tag instead of depending on fragile whitespace around footer.
- m=re.search(r'</body>\\s*</html>\\s*
+ pos=existing.lower().rfind('</body>')
+ if pos>=0:
+  return existing[:pos]+'\\n'+block+'\\n'+existing[pos:]
+ return existing.rstrip()+'\\n'+block+'\\n'
 def inject_ui(index):
  css='''\n<style id="smart-game-ui"><nobr>\n.search-icon{opacity:1!important;visibility:visible!important}.search-clear,.category-close{font-family:Arial,sans-serif!important;line-height:1!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;text-align:center!important}.featured-section{padding:20px 22px 5px}.featured-section.is-hidden{display:none}.featured-header{display:flex;align-items:end;justify-content:space-between;gap:12px;margin:0 0 12px}.featured-title{margin:0;color:#fff;font-size:21px;font-weight:850;text-shadow:0 2px 6px rgba(0,0,0,.24)}.featured-subtitle{margin:0;color:rgba(255,255,255,.68);font-size:12px;font-weight:650}.featured-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:13px}.card-badges{position:absolute;left:8px;top:8px;z-index:3;display:flex;gap:5px;flex-wrap:wrap}.card-badge{padding:4px 7px;border-radius:999px;background:rgba(9,28,64,.86);color:#fff;font-size:10px;font-weight:850;box-shadow:0 3px 9px rgba(0,0,0,.22);backdrop-filter:blur(5px)}.card-badge.new{background:#0f6b4a}.card-badge.trending{background:#245fb7}.game-card.has-trending{box-shadow:0 7px 20px rgba(38,102,198,.22)}@media(max-width:1200px){.featured-grid{grid-template-columns:repeat(5,minmax(0,1fr))}}@media(max-width:900px){.featured-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}@media(max-width:700px){.featured-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.featured-section{padding-left:14px;padding-right:14px}}@media(max-width:570px){.featured-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.featured-header{align-items:flex-start;flex-direction:column}}\n</nobr></style>'''
  if 'id="smart-game-ui"' not in index:index=index.replace('</head>',css+'\n</head>',1)
