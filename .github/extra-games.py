@@ -2,6 +2,7 @@ from pathlib import Path
 import html, json, re, urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import date
+from game_validator import validate_candidate
 
 INDEX = Path('index.html')
 LEGACY = Path('legacy-index.html')
@@ -62,14 +63,7 @@ def good_candidate(z):
 
 
 def probe(z):
-    try:
-        rp = req(game_url(z), 8); body = rp.read(800); ct = (rp.headers.get('Content-Type') or '').lower()
-        page_ok = 200 <= rp.status < 400 and (b'<html' in body.lower() or b'<!doctype' in body.lower() or 'html' in ct)
-        ri = req(cover_url(z), 8); ib = ri.read(32); ict = (ri.headers.get('Content-Type') or '').lower()
-        image_ok = 200 <= ri.status < 400 and bool(ib) and ('image/' in ict or re.search(r'\.(png|jpe?g|webp|gif)(\?|$)', cover_url(z), re.I))
-        return z if page_ok and image_ok else None
-    except Exception:
-        return None
+    return z if validate_candidate(str(z.get('name','')), game_url(z), cover_url(z)) else None
 
 
 def score(z, index):
@@ -115,11 +109,16 @@ if needed == 0:
     raise SystemExit(0)
 
 zones = [z for z in get_json(ZONES_URL) if good_candidate(z)]
-seen_names = set(existing_titles); candidates = []
+seen_names = set(existing_titles)
+seen_urls = set()
+for _text in texts:
+    for _u in re.findall(r'onclick="openGame\\([\\\']([^\\\']+)', _text, re.I):
+        seen_urls.add(_u.split('#',1)[0].rstrip('/'))
+candidates = []
 for i, z in enumerate(zones):
-    n = norm(z.get('name', ''))
-    if not n or n in seen_names: continue
-    seen_names.add(n); candidates.append((i, z))
+    n = norm(z.get('name', '')); u = game_url(z).split('#',1)[0].rstrip('/')
+    if not n or n in seen_names or not u or u in seen_urls: continue
+    seen_names.add(n); seen_urls.add(u); candidates.append((i, z))
 candidates.sort(key=lambda iz: score(iz[1], iz[0]))
 
 verified = []
@@ -132,11 +131,11 @@ with ThreadPoolExecutor(max_workers=24) as ex:
             if len(verified) >= needed * 2:
                 break
 
-final = []; used = set(existing_titles)
+final = []; used_names = set(existing_titles); used_urls = set(seen_urls)
 for z in sorted(verified, key=lambda z: norm(z.get('name', ''))):
-    n = norm(z.get('name', ''))
-    if n in used: continue
-    used.add(n); final.append(z)
+    n = norm(z.get('name', '')); u = game_url(z).split('#',1)[0].rstrip('/')
+    if n in used_names or u in used_urls: continue
+    used_names.add(n); used_urls.add(u); final.append(z)
     if len(final) >= needed: break
 
 if len(final) < needed:
