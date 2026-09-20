@@ -95,7 +95,7 @@ def main():
   try:reg=json.loads(REGISTRY.read_text())
   except Exception:reg={}
  existing=extract_titles(legacy)|extract_titles(index)
-existing_urls=extract_urls(legacy)|extract_urls(index)
+ existing_urls=extract_urls(legacy)|extract_urls(index)
  if not reg:reg={k:{'first_seen':None} for k in existing}
  zones=get_json(ZONES);byname={norm(strip(str(z.get('name','')))):z for z in zones if int(z.get('id',-1))>=0 and norm(strip(str(z.get('name',''))))}
  candidates=[];seen=set(existing);seen_urls=set(existing_urls)
