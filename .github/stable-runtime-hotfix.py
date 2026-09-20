@@ -74,7 +74,65 @@ const write=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(_){}};
 const playKey=c=>norm(titleOf(c))+'|'+imageOf(c);
 const recordPlay=c=>{const h=read('ubg43_final_plays',{}),k=playKey(c),x=h[k]||{title:titleOf(c),plays:0,last:0};x.plays++;x.last=Date.now();h[k]=x;write('ubg43_final_plays',h)};
 const recordSearch=q=>{const n=norm(q);if(n.length<2)return;const h=read('ubg43_final_searches',{}),x=h[n]||{count:0,last:0};x.count++;x.last=Date.now();h[n]=x;write('ubg43_final_searches',h)};
-const openGame=url=>{const u=String(url||'').trim();if(!u)return false;try{const w=window.open(u,'_blank','noopener,noreferrer');if(!w)window.location.href=u;return true}catch(_){window.location.href=u;return true}};window.openGame=openGame;
+const escapeHtml=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+const isRawGame=u=>/^https:\/\/raw\.githubusercontent\.com\/gn-math\/html\//i.test(u);
+const rawBase=u=>{try{return new URL('.',u).href}catch(_){return u}};
+function buildGameWindow(w,title){
+  const d=w.document;
+  d.open();
+  d.write(`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(title||'UBG43 Game')}</title><style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#06142f;font-family:system-ui,sans-serif}#top{position:fixed;z-index:10;left:12px;top:12px;right:12px;height:42px;display:flex;align-items:center;gap:10px;padding:0 10px;border-radius:12px;background:rgba(6,20,47,.9);box-shadow:0 8px 24px rgba(0,0,0,.28);color:#fff;font-weight:800}#gameTitle{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}#direct{border:1px solid rgba(255,255,255,.2);background:#0d5be1;color:#fff;border-radius:9px;padding:7px 11px;font-weight:800;cursor:pointer}#stage{position:absolute;inset:0}#frame{width:100%;height:100%;border:0;display:block;background:#fff}</style></head><body><div id="top"><span id="gameTitle"></span><button id="direct" type="button">Open directly</button></div><div id="stage"></div></body></html>`);
+  d.close();
+  d.getElementById('gameTitle').textContent=title||'UBG43 Game';
+  d.getElementById('direct').addEventListener('click',()=>{try{w.location.href=w.__ubg43DirectUrl}catch(_){}});
+}
+async function mountGame(w,u,title){
+  if(!w||w.closed)return;
+  buildGameWindow(w,title);
+  w.__ubg43DirectUrl=u;
+  const stage=w.document.getElementById('stage');
+  const iframe=w.document.createElement('iframe');
+  iframe.id='frame';
+  iframe.title=title||'UBG43 game';
+  iframe.allow='autoplay; fullscreen; gamepad; clipboard-read; clipboard-write';
+  iframe.setAttribute('allowfullscreen','');
+  stage.appendChild(iframe);
+  if(isRawGame(u)){
+    try{
+      const controller=new AbortController();
+      const timer=setTimeout(()=>controller.abort(),10000);
+      const r=await fetch(u,{cache:'no-store',mode:'cors',signal:controller.signal});
+      clearTimeout(timer);
+      if(!r.ok)throw new Error('Game source unavailable');
+      let html=await r.text();
+      const base=rawBase(u).replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+      if(!/<base\b/i.test(html)) html=html.replace(/<head([^>]*)>/i,'<head$1><base href="${base}">');
+      const blobUrl=URL.createObjectURL(new Blob([html],{type:'text/html'}));
+      iframe.src=blobUrl;
+      iframe.addEventListener('load',()=>setTimeout(()=>{try{URL.revokeObjectURL(blobUrl)}catch(_){}},300000),{once:true});
+      return true;
+    }catch(_){
+      stage.innerHTML='<div style="display:grid;place-items:center;height:100%;padding:24px;color:#fff;text-align:center"><div><h2 style="margin:0 0 8px">This game could not be loaded inside UBG43.</h2><p style="opacity:.72">The game source did not allow the in-page player to load.</p><button id="fallback" style="border:0;border-radius:10px;padding:10px 14px;background:#0d5be1;color:#fff;font-weight:800;cursor:pointer">Open game directly</button></div></div>';
+      const fb=w.document.getElementById('fallback');if(fb)fb.onclick=()=>{w.location.href=u};
+      return false;
+    }
+  }
+  iframe.src=u;
+  return true;
+}
+const openGame=url=>{
+  const u=String(url||'').trim();
+  if(!u)return false;
+  let w=null;
+  try{w=window.open('about:blank','_blank')}catch(_){}
+  if(!w){
+    const old=document.getElementById('ubg43-popup-message');if(old)old.remove();
+    const n=document.createElement('div');n.id='ubg43-popup-message';n.textContent='Allow pop-ups for UBG43 to open games in a new tab.';n.style.cssText='position:fixed;z-index:3000;right:18px;bottom:18px;background:#06142f;color:#fff;padding:12px 15px;border-radius:11px;box-shadow:0 10px 28px rgba(0,0,0,.35);font-weight:800';
+    document.body.append(n);setTimeout(()=>n.remove(),4500);return false;
+  }
+  const title=arguments.length>1?arguments[1]:'UBG43 Game';
+  mountGame(w,u,title).catch(()=>{try{w.location.href=u}catch(_){ }});
+  return true;
+};
 function cards(){return grid?[...grid.querySelectorAll('.game-card')]:[]}
 async function loadLegacyIntoGrid(){
   if(cards().length>=300)return cards().length;
@@ -117,14 +175,14 @@ function bind(){
  search?.addEventListener('input',e=>{e.stopImmediatePropagation();const q=search.value.trim();if(clear)clear.style.display=q?'inline-flex':'none';showSuggestions(q);applyView()},{capture:true});
  search?.addEventListener('keydown',e=>{e.stopImmediatePropagation();if(e.key==='Enter'){e.preventDefault();setSearchMode(search.value)}else if(e.key==='Escape'){e.preventDefault();clearSearch()}},{capture:true});
  clear?.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();clearSearch()},{capture:true});
- $('randomGameButton')?.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();const pool=cards().filter(c=>c.style.display!=='none'),list=pool.length?pool:cards(),c=list[Math.floor(Math.random()*list.length)];if(c){recordPlay(c);openGame(urlOf(c));decorate();renderRails()}},{capture:true});
+ $('randomGameButton')?.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();const pool=cards().filter(c=>c.style.display!=='none'),list=pool.length?pool:cards(),c=list[Math.floor(Math.random()*list.length)];if(c){recordPlay(c);openGame(urlOf(c),titleOf(c));decorate();renderRails()}},{capture:true});
  $('reportGameButton')?.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();window.location.href=REPORT_URL},{capture:true});
  $('categoryToggle')?.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();openCategories()},{capture:true});
  $('categoryClose')?.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();closeCategories()},{capture:true});
  $('categoryOverlay')?.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();closeCategories()},{capture:true});
  [['trendPrev','trendingRail'],['trendNext','trendingRail'],['newPrev','newRail'],['newNext','newRail'],['recPrev','recommendRail'],['recNext','recommendRail']].forEach(([id,rid])=>$(id)?.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();const r=$(rid);if(r)r.scrollBy({left:Math.max(280,r.clientWidth*.8)*(id.includes('Prev')?-1:1),behavior:'smooth'})},{capture:true}));
  ['trendingRail','newRail','recommendRail'].forEach(id=>$(id)?.addEventListener('wheel',e=>{if(Math.abs(e.deltaY)>Math.abs(e.deltaX)){e.currentTarget.scrollLeft+=e.deltaY}},{passive:true}));
- document.addEventListener('click',e=>{const c=e.target.closest?.('.game-card');if(!c)return;e.preventDefault();e.stopImmediatePropagation();const u=urlOf(c);recordPlay(c);if(u)openGame(u);renderRails();decorate()},{capture:true});
+ document.addEventListener('click',e=>{const c=e.target.closest?.('.game-card');if(!c)return;e.preventDefault();e.stopImmediatePropagation();const u=urlOf(c);recordPlay(c);if(u)openGame(u,titleOf(c));renderRails();decorate()},{capture:true});
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('categorySidebar')?.classList.contains('open'))closeCategories()},{capture:true});
 }
 function sync(){cards().forEach(c=>{if(blockedTitle(c))c.remove();else wire(c)});decorate();renderRails();applyView();const s=$('status');if(s&&cards().length)s.textContent=cards().length+' games ready'}
