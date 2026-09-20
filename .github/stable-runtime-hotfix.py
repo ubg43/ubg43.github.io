@@ -132,6 +132,7 @@ const openGame=(url,title='UBG43 Game')=>{
   mountGame(w,u,title).catch(()=>{try{w.location.href=u}catch(_){ }});
   return true;
 };
+window.openGame=openGame;
 function cards(){return grid?[...grid.querySelectorAll('.game-card')]:[]}
 async function loadLegacyIntoGrid(){
   if(cards().length>=300)return cards().length;
