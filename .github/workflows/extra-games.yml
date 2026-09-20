@@ -46,4 +46,6 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add index.html legacy-index.html
           git commit -m 'Expand verified game library [game-builder]' || exit 0
+          git fetch origin main
+          git rebase origin/main
           git push
