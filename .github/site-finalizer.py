@@ -16,7 +16,7 @@ text = text.replace('https://forms.gle/zXYtnxwGvXmBrq9', REPORT_URL)
 required = [
     'id="gameGrid"', 'id="searchBar"', 'id="categoryToggle"',
     'id="randomGameButton"', 'id="reportGameButton"',
-    'window.openGame=openGame', 'function setSearchMode',
+    'window.openGame=openGame', 'function setSearchMode', 'about:blank', 'ubg43-final-runtime',
     'function isTrending', '.ubg43-badge.new', '.ubg43-badge.trending',
     REPORT_URL, 'legacy-index.html', 'zones.json'
 ]
@@ -26,7 +26,7 @@ if missing:
 
 forbidden = [
     'Building your game library…', 'Building your game library...',
-    "window.open('about:blank'", '<iframe src=',
+    
     'ubg43-site-protection-runtime', 'ubg43-hotfix-runtime',
     'ubg43-direct-launch-runtime'
 ]
@@ -47,4 +47,4 @@ with tempfile.TemporaryDirectory() as td:
             raise SystemExit(detail)
 
 INDEX.write_text(text, encoding='utf-8')
-print('FINAL SITE SANITY PASSED: search, direct launches, NEW/TRENDING badges, report link, and JavaScript syntax are valid.')
+print('FINAL SITE SANITY PASSED: search, about:blank game player, NEW/TRENDING badges, report link, and JavaScript syntax are valid.')
