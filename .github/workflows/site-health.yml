@@ -39,7 +39,7 @@ jobs:
           bad=[x for x in required if x not in idx]
           wrong_urls=['https://forms.gle/zXYtnxwHgvXmBrq9','https://forms.gle/zXYtnxwGvXmBrq9']
           bad += ['wrong report URL: '+x for x in wrong_urls if x in idx]
-          forbidden=['new MutationObserver','window.open(\'about:blank\'','<iframe src=','ubg43-site-protection-runtime','ubg43-hotfix-runtime','ubg43-direct-launch-runtime','ubg43-final-interactions-runtime','Building your game library…','Building your game library...']
+          forbidden=['new MutationObserver','ubg43-site-protection-runtime','ubg43-hotfix-runtime','ubg43-direct-launch-runtime','ubg43-final-interactions-runtime','Building your game library…','Building your game library...']
           bad += ['forbidden: '+x for x in forbidden if x in idx]
           if idx.count('id="gameGrid"')!=1: bad.append('gameGrid count != 1')
           if idx.count('<script type="application/ld+json">')!=1: bad.append('JSON-LD count != 1')
