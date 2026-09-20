@@ -102,7 +102,7 @@ existing_urls=extract_urls(legacy)|extract_urls(index)
  for z in zones:
   if int(z.get('id',-1))<0:continue
   n=strip(str(z.get('name','')));k=norm(n);u=game_url(z);c=cover_url(z)
-  if not n or k in seen or not u.startswith(('http://','https://')) or not c.startswith(('http://','https://')) or k.startswith('suggest games'):continue
+  if not n or k in BLOCKED_TITLES or k in seen or not u.startswith(('http://','https://')) or not c.startswith(('http://','https://')) or k.startswith('suggest games'):continue
   seen.add(k);candidates.append((n,u,c))
   if len(candidates)>=1450:break
  forced=[]
@@ -138,21 +138,23 @@ existing_urls=extract_urls(legacy)|extract_urls(index)
  need=max(0,TARGET-len(old));add=[]
  for n,u,c,local in newcards[:need]:
   k=normalize_title(n)
+  if k in BLOCKED_TITLES:continue
   fs=reg.get(k,{}).get('first_seen') or today
   reg[k]={'first_seen':fs,'url':normalize_url(u)}
   add.append((n,u,c,local,fs))
  combined=[];used_title=set();used_url=set()
  for item in old+add:
   tk=norm(item[0]);uk=item[1].split('#',1)[0].rstrip('/')
-  if tk in used_title or uk in used_url:continue
+  if tk in BLOCKED_TITLES or tk in used_title or uk in used_url:continue
   used_title.add(tk);used_url.add(uk);combined.append(item)
  if len(combined)<1000:
   print(f'Only {len(combined)} verified games available in this upstream pass; retaining the existing library and continuing')
  if sum(1 for x in combined if x[3])<100:
   print(f'Only {sum(1 for x in combined if x[3])} same-device multiplayer games verified in this pass; continuing without failing the library build')
  block=patch_legacy(legacy,[card(n,u,c,local,reg.get(norm(n),{}).get('first_seen') or today,i<18) for i,(n,u,c,local,_) in enumerate(combined)])
- index=inject_ui(index);LEGACY.write_text(block,encoding='utf-8');INDEX.write_text(index,encoding='utf-8');REGISTRY.parent.mkdir(parents=True,exist_ok=True);for bk in list(reg):
-   if normalize_title(bk) in BLOCKED_TITLES:reg.pop(bk,None)
-  REGISTRY.write_text(json.dumps(reg,indent=2,sort_keys=True)+'\n')
+ index=inject_ui(index);LEGACY.write_text(block,encoding='utf-8');INDEX.write_text(index,encoding='utf-8');REGISTRY.parent.mkdir(parents=True,exist_ok=True)
+ for bk in list(reg):
+  if normalize_title(bk) in BLOCKED_TITLES:reg.pop(bk,None)
+ REGISTRY.write_text(json.dumps(reg,indent=2,sort_keys=True)+'\n')
  print(f'FINAL VERIFIED BUILD: {len(combined)} games; {sum(1 for x in combined if x[3])} same-device multiplayer; smart categories/trending/new tags/recommendations enabled.')
 if __name__=='__main__':main()
