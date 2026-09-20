@@ -119,7 +119,7 @@ async function mountGame(w,u,title){
   iframe.src=u;
   return true;
 }
-const openGame=url=>{
+const openGame=(url,title='UBG43 Game')=>{
   const u=String(url||'').trim();
   if(!u)return false;
   let w=null;
@@ -129,7 +129,6 @@ const openGame=url=>{
     const n=document.createElement('div');n.id='ubg43-popup-message';n.textContent='Allow pop-ups for UBG43 to open games in a new tab.';n.style.cssText='position:fixed;z-index:3000;right:18px;bottom:18px;background:#06142f;color:#fff;padding:12px 15px;border-radius:11px;box-shadow:0 10px 28px rgba(0,0,0,.35);font-weight:800';
     document.body.append(n);setTimeout(()=>n.remove(),4500);return false;
   }
-  const title=arguments.length>1?arguments[1]:'UBG43 Game';
   mountGame(w,u,title).catch(()=>{try{w.location.href=u}catch(_){ }});
   return true;
 };
