@@ -11,6 +11,7 @@ ZONES='https://raw.githubusercontent.com/gn-math/assets/main/zones.json'; HTML_R
 RULES={'Action':['action','shooter','combat','battle','fight','war','zombie','ninja','stickman','assassin','gun','sniper','strike','rush','arena','brawler','fighter','hero'],'Adventure':['adventure','quest','platform','dungeon','maze','escape','explore','survival','island','parkour','treasure','mystery'],'Arcade':['arcade','flappy','runner','run','jump','brick','ball','bubble','match','pinball','snake','pong','breakout','stack','tap'],'Puzzle':['puzzle','logic','sudoku','2048','mahjong','word','memory','connect','block','brain','sort','merge','numbers','crossword','jigsaw'],'Racing':['racing','race','drift','car','cars','motor','bike','bmx','kart','traffic','drive','rally','formula','truck','rider'],'Sports':['football','soccer','basketball','baseball','golf','tennis','hockey','volleyball','bowling','pool','sports','skate','ski','boxing','wrestling','cricket'],'Strategy':['strategy','tower','defense','defence','battle','td','idle','tycoon','manager','kingdom','chess','checkers','warcraft','empire','tactics'],'Simulation':['simulator','simulation','farming','farm','restaurant','cooking','shop','business','city','hotel','airport','life','house','doctor','hospital','school','job'],'Casual':['clicker','idle','dress','makeup','color','drawing','quiz','trivia','fun','cute','music','piano','matching','decorate']}
 MPWORDS=['2 player','2-player','2p','local multiplayer','local co op','local co-op','same device','player 1','player 2','player one','player two','two players','two-player']; MPTITLES=['supreme duelist','basket random','soccer random','boxing random','volley random','rooftop snipers','get on top','stick duel','battle wheels','4 in a row','four in a row','12 mini battles','2 3 4 player']
 def norm(s):return re.sub(r'[^a-z0-9]+',' ',str(s or '').lower()).strip()
+BLOCKED_TITLES={'i woke up next to you again'}
 def strip(s):return html.unescape(re.sub(r'<[^>]+>','',s or '')).strip()
 def get_json(url):
  r=urllib.request.Request(url,headers={'User-Agent':'ubg43-game-builder/3.0'});return json.loads(urllib.request.urlopen(r,timeout=30).read().decode())
@@ -131,7 +132,7 @@ existing_urls=extract_urls(legacy)|extract_urls(index)
  dedup_old=[];seen_title=set();seen_url=set()
  for item in old:
   tk=normalize_title(item[0]);uk=normalize_url(item[1])
-  if not tk or tk in seen_title or uk in seen_url:continue
+  if not tk or tk in BLOCKED_TITLES or tk in seen_title or uk in seen_url:continue
   seen_title.add(tk);seen_url.add(uk);dedup_old.append(item)
  old=dedup_old
  need=max(0,TARGET-len(old));add=[]
@@ -150,6 +151,8 @@ existing_urls=extract_urls(legacy)|extract_urls(index)
  if sum(1 for x in combined if x[3])<100:
   print(f'Only {sum(1 for x in combined if x[3])} same-device multiplayer games verified in this pass; continuing without failing the library build')
  block=patch_legacy(legacy,[card(n,u,c,local,reg.get(norm(n),{}).get('first_seen') or today,i<18) for i,(n,u,c,local,_) in enumerate(combined)])
- index=inject_ui(index);LEGACY.write_text(block,encoding='utf-8');INDEX.write_text(index,encoding='utf-8');REGISTRY.parent.mkdir(parents=True,exist_ok=True);REGISTRY.write_text(json.dumps(reg,indent=2,sort_keys=True)+'\n')
+ index=inject_ui(index);LEGACY.write_text(block,encoding='utf-8');INDEX.write_text(index,encoding='utf-8');REGISTRY.parent.mkdir(parents=True,exist_ok=True);for bk in list(reg):
+   if normalize_title(bk) in BLOCKED_TITLES:reg.pop(bk,None)
+  REGISTRY.write_text(json.dumps(reg,indent=2,sort_keys=True)+'\n')
  print(f'FINAL VERIFIED BUILD: {len(combined)} games; {sum(1 for x in combined if x[3])} same-device multiplayer; smart categories/trending/new tags/recommendations enabled.')
 if __name__=='__main__':main()
