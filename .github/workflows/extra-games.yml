@@ -9,6 +9,7 @@ on:
       - '.github/library-guard.py'
       - '.github/library_guard.py'
       - '.github/game_validator.py'
+      - '.github/interaction-polish.py'
   schedule:
     - cron: '43 2 * * *'
   workflow_dispatch:
@@ -42,11 +43,13 @@ jobs:
         run: python3 .github/stable-runtime-hotfix.py
       - name: Apply final link and runtime sanity fixes
         run: python3 .github/site-finalizer.py
+      - name: Apply UBG43 search and badge interaction polish
+        run: python3 .github/interaction-polish.py
       - name: Commit expansion
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add index.html legacy-index.html .github/stable-runtime-hotfix.py
+          git add index.html legacy-index.html .github/stable-runtime-hotfix.py .github/interaction-polish.py
           git commit -m 'Expand verified game library [game-builder]' || exit 0
           git fetch origin main
           git rebase origin/main
