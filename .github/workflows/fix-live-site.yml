@@ -10,6 +10,7 @@ on:
       - '.github/game_validator.py'
       - '.github/site-finalizer.py'
       - '.github/interaction-polish.py'
+      - '.github/search-rail-visibility.py'
       - '.github/workflows/fix-live-site.yml'
       - 'legacy-index.html'
       - 'index.html'
@@ -21,7 +22,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   repair:
-    if: ${{ github.event_name != 'push' || (!contains(github.event.head_commit.message, '[live-fix]') && !contains(github.event.head_commit.message, '[game-builder]') && !contains(github.event.head_commit.message, '[undertale-builder]')) }}
+    if: ${{ github.event_name != 'push' || (!contains(github.event.head_commit.message, '[live-fix]') && !contains(github.event.head_commit.message, '[game-builder]') && !contains(github.event.head_commit.message, '[undertale-builder]') && !contains(github.event.head_commit.message, '[automation-hardening]')) }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -53,6 +54,8 @@ jobs:
         run: python3 .github/site-finalizer.py
       - name: Apply UBG43 search and badge interaction polish
         run: python3 .github/interaction-polish.py
+      - name: Apply search rail visibility rules
+        run: python3 .github/search-rail-visibility.py
       - name: Validate homepage structure and browser scripts
         run: |
           python3 - <<'PY'
@@ -60,7 +63,7 @@ jobs:
           import re,sys,tempfile,subprocess
           idx=Path('index.html').read_text(encoding='utf-8')
           leg=Path('legacy-index.html').read_text(encoding='utf-8')
-          required=['id="gameGrid"','id="searchBar"','id="categoryToggle"','id="randomGameButton"','id="reportGameButton"','window.openGame=openGame','function setSearchMode','function isTrending','ubg43-interaction-polish-runtime','ubg43-interaction-polish-style','Play games instantly with UBG43!','1000+ games','Trending Now','New Games','You may also like','https://forms.gle/zXYtnxwXhGvXmBrq9','legacy-index.html','zones.json','rel="canonical"','application/ld+json','.ubg43-badge.new','.ubg43-badge.trending','<title>UBG43 - 1000+ Unblocked Games</title>']
+          required=['id="gameGrid"','id="searchBar"','id="categoryToggle"','id="randomGameButton"','id="reportGameButton"','window.openGame=openGame','function setSearchMode','function isTrending','ubg43-interaction-polish-runtime','ubg43-interaction-polish-style','ubg43-search-rail-visibility','Play games instantly with UBG43!','1000+ games','Trending Now','New Games','You may also like','https://forms.gle/zXYtnxwXhGvXmBrq9','legacy-index.html','zones.json','rel="canonical"','application/ld+json','.ubg43-badge.new','.ubg43-badge.trending','<title>UBG43 - 1000+ Unblocked Games</title>']
           bad=[x for x in required if x not in idx]
           wrong=['https://forms.gle/zXYtnxwHgvXmBrq9','https://forms.gle/zXYtnxwGvXmBrq9']
           bad += ['wrong report URL: '+x for x in wrong if x in idx]
@@ -68,6 +71,8 @@ jobs:
           bad += ['forbidden runtime remains: '+x for x in forbidden if x in idx]
           if idx.count('id="gameGrid"')!=1: bad.append('gameGrid must exist exactly once')
           if idx.count('<script type="application/ld+json">')!=1: bad.append('JSON-LD count is wrong')
+          if idx.count('ubg43-search-rail-visibility')<1: bad.append('search rail visibility marker missing')
+          if '.ubg43-searching #trendingSection,.ubg43-searching #newSection{display:none!important}' not in idx: bad.append('search rails are not forced hidden in search mode')
           cards=re.findall(r'<(?:div|article)\s+class="game-card"[^>]*>',leg,re.I)
           titles=re.findall(r'<h3[^>]*>(.*?)</h3>',leg,re.I|re.S)
           clean=lambda s:re.sub(r'\s+',' ',re.sub(r'<[^>]+>','',s)).strip().casefold()
@@ -85,13 +90,13 @@ jobs:
               print('LIVE SITE VALIDATION FAILED')
               print('\n'.join(bad))
               sys.exit(1)
-          print(f'LIVE SITE VALIDATION PASSED: {len(cards)} unique legacy game cards; stable search, categories, random, report, carousels, recommendations, direct launches, and NEW/TRENDING badges.')
+          print(f'LIVE SITE VALIDATION PASSED: {len(cards)} unique legacy game cards; search hides homepage rails, clears back to homepage rails, NEW/TRENDING badges, categories, random, report, carousels, recommendations, direct launches, and JavaScript syntax are valid.')
           PY
       - name: Commit repaired site and runtime fix
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add index.html legacy-index.html .github/stable-runtime-hotfix.py .github/interaction-polish.py
+          git add index.html legacy-index.html .github/stable-runtime-hotfix.py .github/interaction-polish.py .github/search-rail-visibility.py
           git diff --cached --quiet && exit 0
           git commit -m 'Apply stable UBG43 homepage [live-fix]'
           git fetch origin main
