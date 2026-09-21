@@ -15,9 +15,10 @@ text = INDEX.read_text(encoding='utf-8')
 # Restore the proper browser title after the legacy finalizer's compatibility title.
 text = re.sub(r'<title>[^<]*</title>', f'<title>{TITLE}</title>', text, count=1, flags=re.I)
 
-# Keep Trending Now and New Games visible on the homepage and in search mode.
+# Keep Trending Now and New Games visible on the homepage, but hide them during active search.
 text = text.replace('.ubg43-home-secondary{display:none}', '.ubg43-home-secondary{display:block}')
-text = text.replace('.ubg43-searching .ubg43-home-secondary{display:none}', '.ubg43-searching .ubg43-home-secondary{display:block}')
+text = re.sub(r'\\.ubg43-searching\\s+\\.ubg43-home-secondary\\{display:(?:block|none)(?:!important)?\\}', '.ubg43-searching .ubg43-home-secondary{display:none!important}', text)
+text = re.sub(r'\\.ubg43-searching #trendingSection,\\.ubg43-searching #newSection\\{display:(?:block|none)!important\\}', '.ubg43-searching #trendingSection,.ubg43-searching #newSection{display:none!important}', text)
 
 style = f'''<style id="{STYLE_ID}">
 /* UBG43 interaction polish v2 */
