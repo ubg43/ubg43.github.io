@@ -4,6 +4,7 @@ on:
     paths:
       - '.github/extra-games.py'
       - '.github/stable-runtime-hotfix.py'
+      - '.github/site-finalizer.py'
       - '.github/workflows/extra-games.yml'
       - '.github/library-guard.py'
       - '.github/library_guard.py'
