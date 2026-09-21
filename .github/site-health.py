@@ -1,3 +1,4 @@
+# Stable-runtime validation baseline: canonical runtime is inserted at the final HTML body.
 from pathlib import Path
 # Health checks cover the stable homepage, strict game admission automation, duplicate protection, and live UI safeguards.
 import html,re,sys
