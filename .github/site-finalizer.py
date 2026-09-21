@@ -17,7 +17,7 @@ required = [
     'id="gameGrid"', 'id="searchBar"', 'id="categoryToggle"',
     'id="randomGameButton"', 'id="reportGameButton"',
     'window.openGame=openGame', 'function setSearchMode', 'about:blank', 'ubg43-final-runtime',
-    'function isTrending', '.ubg43-badge.new', '.ubg43-badge.trending',
+    'function isTrending', '.ubg43-badge.new', '.ubg43-badge.trending', "window.open(REPORT_URL,'_blank','noopener,noreferrer')",
     REPORT_URL, 'legacy-index.html', 'zones.json'
 ]
 missing = [x for x in required if x not in text]
@@ -27,7 +27,7 @@ if missing:
 forbidden = [
     'Building your game library…', 'Building your game library...',
     
-    'ubg43-site-protection-runtime', 'ubg43-hotfix-runtime',
+    'ubg43-site-protection-runtime', 'ubg43-hotfix-runtime', 'window.location.href=REPORT_URL',
     'ubg43-direct-launch-runtime'
 ]
 bad = [x for x in forbidden if x in text]
