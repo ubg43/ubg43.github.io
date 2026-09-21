@@ -83,7 +83,10 @@ text = re.sub(
     count=1,
     flags=re.I | re.S,
 )
-text = text.replace('</body>', f'{runtime}\n</body>', 1)
+body_pos = text.lower().rfind('</body>')
+if body_pos < 0:
+    raise SystemExit('body end marker not found')
+text = text[:body_pos] + runtime + '\n' + text[body_pos:]
 
 # Keep the NEW/TRENDING badge system present and styled.
 required = ['.ubg43-badge.new', '.ubg43-badge.trending', 'function isTrending', 'function setSearchMode', f'id="{SCRIPT_ID}"', f'id="{STYLE_ID}"']
