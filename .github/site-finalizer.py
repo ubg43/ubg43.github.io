@@ -13,15 +13,19 @@ text = INDEX.read_text(encoding='utf-8')
 text = text.replace('https://forms.gle/zXYtnxwHgvXmBrq9', REPORT_URL)
 text = text.replace('https://forms.gle/zXYtnxwGvXmBrq9', REPORT_URL)
 text = re.sub(r'<title>[^<]*</title>', '<title>UBG43 - 1000+ Unblocked Games</title>', text, count=1, flags=re.I)
-text = text.replace('.ubg43-home-secondary{display:block}', '.ubg43-home-secondary{display:block}')
-text = text.replace('.ubg43-searching #trendingSection,.ubg43-searching #newSection{display:none!important}', '.ubg43-searching #trendingSection,.ubg43-searching #newSection{display:block!important}')
+
+# Homepage rails are visible on the normal homepage and hidden only while search mode is active.
+text = text.replace('.ubg43-home-secondary{display:none}', '.ubg43-home-secondary{display:block}')
+text = text.replace('.ubg43-searching #trendingSection,.ubg43-searching #newSection{display:block!important}', '.ubg43-searching #trendingSection,.ubg43-searching #newSection{display:none!important}')
 
 required = [
     'id="gameGrid"', 'id="searchBar"', 'id="categoryToggle"',
     'id="randomGameButton"', 'id="reportGameButton"',
     'window.openGame=openGame', 'function setSearchMode', 'about:blank', 'ubg43-final-runtime',
     'function isTrending', '.ubg43-badge.new', '.ubg43-badge.trending', "window.open(REPORT_URL,'_blank','noopener,noreferrer')",
-    REPORT_URL, 'legacy-index.html', 'zones.json', '<title>UBG43 - 1000+ Unblocked Games</title>', '.ubg43-home-secondary{display:none}'
+    REPORT_URL, 'legacy-index.html', 'zones.json', '<title>UBG43 - 1000+ Unblocked Games</title>',
+    '.ubg43-home-secondary{display:block}', '.ubg43-searching #trendingSection,.ubg43-searching #newSection{display:none!important}',
+    'ubg43-search-rail-visibility'
 ]
 missing = [x for x in required if x not in text]
 if missing:
@@ -29,12 +33,11 @@ if missing:
 
 forbidden = [
     'Building your game library…', 'Building your game library...',
-    
     'ubg43-site-protection-runtime', 'ubg43-hotfix-runtime', 'window.location.href=REPORT_URL',
     'ubg43-direct-launch-runtime'
 ]
 bad = [x for x in forbidden if x in text]
-# The live game runtime must stay in an about:blank window and never expose a direct-launch control.
+
 runtime_start = text.find('<script id="ubg43-final-runtime">')
 runtime_end = text.find('</script>', runtime_start)
 if runtime_start >= 0 and runtime_end >= 0:
@@ -63,4 +66,4 @@ with tempfile.TemporaryDirectory() as td:
             raise SystemExit(detail)
 
 INDEX.write_text(text, encoding='utf-8')
-print('FINAL SITE SANITY PASSED: search, about:blank game player, NEW/TRENDING badges, report link, and JavaScript syntax are valid.')
+print('FINAL SITE SANITY PASSED: search hides homepage rails, clearing search restores them, about:blank game player, NEW/TRENDING badges, report link, and JavaScript syntax are valid.')
