@@ -45,6 +45,8 @@ jobs:
         run: python3 .github/site-finalizer.py
       - name: Apply UBG43 search and badge interaction polish
         run: python3 .github/interaction-polish.py
+      - name: Apply search rail visibility rules
+        run: python3 .github/search-rail-visibility.py
       - name: Commit Undertale collection
         run: |
           git config user.name 'github-actions[bot]'

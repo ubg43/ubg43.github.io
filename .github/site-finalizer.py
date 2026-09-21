@@ -17,6 +17,7 @@ text = re.sub(r'<title>[^<]*</title>', '<title>UBG43 - 1000+ Unblocked Games</ti
 # Homepage rails are visible on the normal homepage and hidden only while search mode is active.
 text = text.replace('.ubg43-home-secondary{display:none}', '.ubg43-home-secondary{display:block}')
 text = text.replace('.ubg43-searching #trendingSection,.ubg43-searching #newSection{display:block!important}', '.ubg43-searching #trendingSection,.ubg43-searching #newSection{display:none!important}')
+text = text.replace('.ubg43-category-view #trendingSection,.ubg43-category-view #newSection{display:block!important}', '.ubg43-category-view #trendingSection,.ubg43-category-view #newSection{display:none!important}')
 
 required = [
     'id="gameGrid"', 'id="searchBar"', 'id="categoryToggle"',

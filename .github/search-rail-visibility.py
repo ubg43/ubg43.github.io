@@ -23,10 +23,12 @@ text = re.sub(
 )
 
 style = """<style id="ubg43-search-rail-visibility">
-/* Search mode: show results only; homepage rails return automatically when search is cleared. */
+/* Search mode hides homepage rails. A selected category hides them too; All Games restores them. */
 .ubg43-searching .ubg43-home-secondary,
 .ubg43-searching #trendingSection,
-.ubg43-searching #newSection{display:none!important}
+.ubg43-searching #newSection,
+.ubg43-category-view #trendingSection,
+.ubg43-category-view #newSection{display:none!important}
 </style>"""
 
 text = re.sub(

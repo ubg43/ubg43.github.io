@@ -73,6 +73,7 @@ jobs:
           if idx.count('<script type="application/ld+json">')!=1: bad.append('JSON-LD count is wrong')
           if idx.count('ubg43-search-rail-visibility')<1: bad.append('search rail visibility marker missing')
           if '.ubg43-searching #trendingSection,.ubg43-searching #newSection{display:none!important}' not in idx: bad.append('search rails are not forced hidden in search mode')
+          if '.ubg43-category-view #trendingSection,.ubg43-category-view #newSection{display:none!important}' not in idx: bad.append('category rails are not hidden for selected categories')
           cards=re.findall(r'<(?:div|article)\s+class="game-card"[^>]*>',leg,re.I)
           titles=re.findall(r'<h3[^>]*>(.*?)</h3>',leg,re.I|re.S)
           clean=lambda s:re.sub(r'\s+',' ',re.sub(r'<[^>]+>','',s)).strip().casefold()
