@@ -30,6 +30,31 @@
 </style>
 <!-- UBG43 verified library source: zones.json -->
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"UBG43","alternateName":"UBG43 Unblocked Games","url":"https://ubg43.github.io/","description":"UBG43 is a fast unblocked games site with 1000+ games, quick search, automatic categories, new games, trending picks and personalized recommendations."}</script>
+<style id="ubg43-interaction-polish-style">
+/* UBG43 interaction polish v2 */
+.search-clear{
+  position:absolute !important;
+  right:8px !important;
+  top:50% !important;
+  width:38px !important;
+  height:38px !important;
+  transform:translateY(-50%) !important;
+  padding:0 !important;
+  margin:0 !important;
+  display:none;
+  align-items:center !important;
+  justify-content:center !important;
+  line-height:0 !important;
+  text-align:center !important;
+  text-indent:0 !important;
+  border:0 !important;
+  box-sizing:border-box !important;
+  font-size:21px !important;
+  font-weight:800 !important;
+}
+.search-clear:hover{background:#eef3fb;color:#12356d}
+.search-shell .results{pointer-events:auto}
+</style>
 </head>
 <body>
 <header class="site-header"><div class="header-inner"><div class="search-shell"><span class="search-icon" aria-hidden="true"></span><input id="searchBar" type="search" placeholder="Search games..." autocomplete="off" aria-label="Search games"><button id="searchClear" class="search-clear" type="button" aria-label="Clear search">×</button><div id="searchResults" class="results" aria-live="polite"></div></div><div class="header-actions"><button id="randomGameButton" class="action" type="button">🎲 Random Game</button><button id="reportGameButton" class="action" type="button">📝 Report / Suggest</button><button id="categoryToggle" class="cat-btn" type="button">☰ Categories</button></div></div></header>
@@ -4261,7 +4286,28 @@ const rawBase=u=>{try{return new URL('.',u).href}catch(_){return u}};
 function buildGameWindow(w,title){
   const d=w.document;
   d.open();
-  d.write(`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(title||'UBG43 Game')}</title><style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#06142f}#stage{position:fixed;inset:0;width:100%;height:100%}#frame{width:100%;height:100%;border:0;display:block;background:#fff}</style></head><body><div id="stage"></div></body></html>`);
+  d.write(`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(title||'UBG43 Game')}</title><style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#06142f}#stage{position:fixed;inset:0;width:100%;height:100%}#frame{width:100%;height:100%;border:0;display:block;background:#fff}</style></head><body><div id="stage"></div><script id="ubg43-interaction-polish-runtime">
+(()=>{
+'use strict';
+const shell=document.querySelector('.search-shell');
+const search=document.getElementById('searchBar');
+const results=document.getElementById('searchResults');
+const closeSearchUi=()=>{
+  if(results)results.classList.remove('open');
+  if(search)search.blur();
+};
+document.addEventListener('pointerdown',e=>{
+  if(shell && !shell.contains(e.target))closeSearchUi();
+},{capture:true});
+document.addEventListener('click',e=>{
+  if(shell && !shell.contains(e.target))closeSearchUi();
+},{capture:true});
+window.addEventListener('scroll',()=>{
+  if(results)results.classList.remove('open');
+},{passive:true});
+})();
+</script>
+</body></html>`);
   d.close();
 }
 async function mountGame(w,u,title){
