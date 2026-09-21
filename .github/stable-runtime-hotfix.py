@@ -194,6 +194,9 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 needle = '</body>'
 if needle.lower() not in s.lower():
     raise SystemExit('body end marker not found')
-s = re.sub(r'</body>', lambda _m: runtime + '\n</body>', s, count=1, flags=re.I)
+body_pos = s.lower().rfind('</body>')
+if body_pos < 0:
+    raise SystemExit('body end marker not found')
+s = s[:body_pos] + runtime + '\n</body>' + s[body_pos + len('</body>'):]
 p.write_text(s, encoding='utf-8')
 print('STABLE RUNTIME: about:blank game windows, no direct-launch controls, full legacy feed, working search/buttons/carousels/recommendations, and NEW/TRENDING badges.')
