@@ -28,7 +28,7 @@ if not LEGACY.exists(): errors.append('legacy-index.html is missing')
 if errors:
     print('HEALTH CHECK FAILED');print('\n'.join(errors));sys.exit(1)
 idx=INDEX.read_text(encoding='utf-8'); leg=LEGACY.read_text(encoding='utf-8')
-required=['id="gameGrid"','id="searchBar"','id="categoryToggle"','id="randomGameButton"','id="reportGameButton"','You may also like','Play games instantly with UBG43!','1000+ games','v3-carousel','v3-ribbon','zones.json','legacy-index.html','function openGame','rel="canonical"']
+required=['<title>Google Sites</title>','id="gameGrid"','id="searchBar"','id="categoryToggle"','id="randomGameButton"','id="reportGameButton"','You may also like','Play games instantly with UBG43!','1000+ games','v3-carousel','v3-ribbon','zones.json','legacy-index.html','function openGame','rel="canonical"']
 for needle in required:
     if needle not in idx: errors.append(f'index.html missing {needle}')
 for bad in ['id="loadingCard"','Loading games...','new MutationObserver(()=>normalize()).observe(document.body,{childList:true,subtree:true})','window.open(\'about:blank\'']:

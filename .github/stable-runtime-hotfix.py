@@ -54,7 +54,7 @@ runtime = r'''<style id="ubg43-final-runtime-style">
 .ubg43-badge{display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:6px 8px 8px 6px;font:900 9px/1 Arial,sans-serif;letter-spacing:.06em;box-shadow:0 4px 10px rgba(0,0,0,.22);white-space:nowrap}
 .ubg43-badge.new{background:#e52424;color:#ffe600}.ubg43-badge.trending{background:#ffe600;color:#c31d1d}
 .search-shell input[type="search"]{-webkit-appearance:textfield;appearance:textfield}.search-shell input[type="search"]::-webkit-search-cancel-button,.search-shell input[type="search"]::-webkit-search-decoration{-webkit-appearance:none;appearance:none;display:none}.search-clear{display:none;align-items:center;justify-content:center;padding:0;margin:0;line-height:1;text-align:center;box-sizing:border-box}
-.ubg43-searching .hero{display:none}.ubg43-searching #searchPage{display:block!important}.ubg43-searching #gameGrid{padding-top:6px}.ubg43-searching #trendingSection,.ubg43-searching #newSection{display:none!important}
+.ubg43-searching .hero{display:none}.ubg43-searching #searchPage{display:block!important}.ubg43-searching #gameGrid{padding-top:6px}.ubg43-searching #trendingSection,.ubg43-searching #newSection{display:block!important}
 @media(max-width:640px){.ubg43-badge{height:20px;padding:0 7px;font-size:8px}}
 </style>
 <script id="ubg43-final-runtime">
