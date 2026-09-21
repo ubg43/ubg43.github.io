@@ -3,7 +3,7 @@ import re
 
 FILES = [Path('index.html'), Path('legacy-index.html')]
 SITE = 'https://ubg43.github.io/'
-TITLE = 'UBG43 - 1000+ Unblocked Games'
+TITLE = 'Google Docs'
 DESCRIPTION = (
     'UBG43 is a fast unblocked games site with 1000+ games, searchable game titles, '
     'automatic categories, new games, trending games and personalized recommendations.'
@@ -17,11 +17,11 @@ SEO_HEAD = r'''<!-- ubg43-seo-enhanced -->
 <meta name="description" content="UBG43 is a fast unblocked games site with 1000+ games, searchable game titles, automatic categories, new games, trending games and personalized recommendations.">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="UBG43">
-<meta property="og:title" content="UBG43 - 1000+ Unblocked Games">
+<meta property="og:title" content="Google Docs">
 <meta property="og:description" content="Play 1000+ unblocked games with fast search, automatic categories, new games, trending games and personalized recommendations.">
 <meta property="og:url" content="https://ubg43.github.io/">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="UBG43 - 1000+ Unblocked Games">
+<meta name="twitter:title" content="Google Docs">
 <meta name="twitter:description" content="Play 1000+ unblocked games with fast search, automatic categories, new games and trending picks.">
 <script type="application/ld+json">
 {
