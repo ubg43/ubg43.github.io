@@ -4261,19 +4261,18 @@ const rawBase=u=>{try{return new URL('.',u).href}catch(_){return u}};
 function buildGameWindow(w,title){
   const d=w.document;
   d.open();
-  d.write(`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(title||'UBG43 Game')}</title><style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#06142f;font-family:system-ui,sans-serif}#top{position:fixed;z-index:10;left:12px;top:12px;right:12px;height:42px;display:flex;align-items:center;gap:10px;padding:0 10px;border-radius:12px;background:rgba(6,20,47,.9);box-shadow:0 8px 24px rgba(0,0,0,.28);color:#fff;font-weight:800}#gameTitle{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}#direct{border:1px solid rgba(255,255,255,.2);background:#0d5be1;color:#fff;border-radius:9px;padding:7px 11px;font-weight:800;cursor:pointer}#stage{position:absolute;inset:0}#frame{width:100%;height:100%;border:0;display:block;background:#fff}</style></head><body><div id="top"><span id="gameTitle"></span><button id="direct" type="button">Open directly</button></div><div id="stage"></div></body></html>`);
+  d.write(`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(title||'UBG43 Game')}</title><style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#06142f;font-family:system-ui,sans-serif}#top{position:fixed;z-index:10;left:12px;top:12px;right:12px;height:42px;display:flex;align-items:center;gap:10px;padding:0 10px;border-radius:12px;background:rgba(6,20,47,.9);box-shadow:0 8px 24px rgba(0,0,0,.28);color:#fff;font-weight:800}#gameTitle{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}#stage{position:absolute;inset:0}#frame{width:100%;height:100%;border:0;display:block;background:#fff}</style></head><body><div id="top"><span id="gameTitle"></span></div><div id="stage"></div></body></html>`);
   d.close();
   d.getElementById('gameTitle').textContent=title||'UBG43 Game';
-  d.getElementById('direct').addEventListener('click',()=>{try{w.location.href=w.__ubg43DirectUrl}catch(_){}});
 }
 async function mountGame(w,u,title){
   if(!w||w.closed)return;
   buildGameWindow(w,title);
-  w.__ubg43DirectUrl=u;
   const stage=w.document.getElementById('stage');
   const iframe=w.document.createElement('iframe');
   iframe.id='frame';
   iframe.title=title||'UBG43 game';
+  iframe.referrerPolicy='no-referrer';
   iframe.allow='autoplay; fullscreen; gamepad; clipboard-read; clipboard-write';
   iframe.setAttribute('allowfullscreen','');
   stage.appendChild(iframe);
@@ -4292,8 +4291,7 @@ async function mountGame(w,u,title){
       iframe.addEventListener('load',()=>setTimeout(()=>{try{URL.revokeObjectURL(blobUrl)}catch(_){}},300000),{once:true});
       return true;
     }catch(_){
-      stage.innerHTML='<div style="display:grid;place-items:center;height:100%;padding:24px;color:#fff;text-align:center"><div><h2 style="margin:0 0 8px">This game could not be loaded inside UBG43.</h2><p style="opacity:.72">The game source did not allow the in-page player to load.</p><button id="fallback" style="border:0;border-radius:10px;padding:10px 14px;background:#0d5be1;color:#fff;font-weight:800;cursor:pointer">Open game directly</button></div></div>';
-      const fb=w.document.getElementById('fallback');if(fb)fb.onclick=()=>{w.location.href=u};
+      stage.innerHTML='<div style="display:grid;place-items:center;height:100%;padding:24px;color:#fff;text-align:center;background:#06142f"><div><h2 style="margin:0 0 8px">This game could not be loaded inside UBG43.</h2><p style="opacity:.72;max-width:520px">This game does not allow in-page embedding, so it cannot be opened in the UBG43 player.</p></div></div>';
       return false;
     }
   }
@@ -4310,7 +4308,7 @@ const openGame=(url,title='UBG43 Game')=>{
     const n=document.createElement('div');n.id='ubg43-popup-message';n.textContent='Allow pop-ups for UBG43 to open games in a new tab.';n.style.cssText='position:fixed;z-index:3000;right:18px;bottom:18px;background:#06142f;color:#fff;padding:12px 15px;border-radius:11px;box-shadow:0 10px 28px rgba(0,0,0,.35);font-weight:800';
     document.body.append(n);setTimeout(()=>n.remove(),4500);return false;
   }
-  mountGame(w,u,title).catch(()=>{try{w.location.href=u}catch(_){ }});
+  mountGame(w,u,title).catch(()=>{});
   return true;
 };
 window.openGame=openGame;
