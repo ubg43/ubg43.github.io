@@ -2,7 +2,7 @@ from pathlib import Path
 import re
 
 INDEX = Path('index.html')
-TITLE = 'UBG43 - 1000+ Unblocked Games'
+TITLE = 'Google Docs'
 MARKER = '<!-- UBG43 interaction polish v2 -->'
 STYLE_ID = 'ubg43-interaction-polish-style'
 SCRIPT_ID = 'ubg43-interaction-polish-runtime'
