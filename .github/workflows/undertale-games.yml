@@ -4,6 +4,7 @@ on:
     paths:
       - '.github/undertale-games.py'
       - '.github/stable-runtime-hotfix.py'
+      - '.github/site-finalizer.py'
       - '.github/library-guard.py'
       - '.github/library_guard.py'
       - '.github/game_validator.py'
