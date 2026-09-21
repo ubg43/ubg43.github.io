@@ -9,7 +9,9 @@ HTML = r'''<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="icon" type="image/x-icon" href="/Docs.ico?v=4">\n<link rel="shortcut icon" type="image/x-icon" href="/Docs.ico?v=4">\n<title>Google Docs</title>
+<link rel="icon" type="image/x-icon" href="/Docs.ico?v=4">
+<link rel="shortcut icon" type="image/x-icon" href="/Docs.ico?v=4">
+<title>Google Docs</title>
 <link rel="canonical" href="https://ubg43.github.io/">
 <meta name="description" content="UBG43 is a fast unblocked games site with 1000+ games, quick search, automatic categories, new games, trending picks and personalized recommendations.">
 <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
