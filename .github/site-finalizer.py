@@ -13,7 +13,7 @@ text = INDEX.read_text(encoding='utf-8')
 text = text.replace('https://forms.gle/zXYtnxwHgvXmBrq9', REPORT_URL)
 text = text.replace('https://forms.gle/zXYtnxwGvXmBrq9', REPORT_URL)
 text = re.sub(r'<title>[^<]*</title>', '<title>UBG43 - 1000+ Unblocked Games</title>', text, count=1, flags=re.I)
-text = text.replace('.ubg43-home-secondary{display:block}', '.ubg43-home-secondary{display:none}')
+text = text.replace('.ubg43-home-secondary{display:block}', '.ubg43-home-secondary{display:block}')
 text = text.replace('.ubg43-searching #trendingSection,.ubg43-searching #newSection{display:none!important}', '.ubg43-searching #trendingSection,.ubg43-searching #newSection{display:block!important}')
 
 required = [

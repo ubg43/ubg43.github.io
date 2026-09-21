@@ -15,8 +15,8 @@ text = INDEX.read_text(encoding='utf-8')
 # Restore the proper browser title after the legacy finalizer's compatibility title.
 text = re.sub(r'<title>[^<]*</title>', f'<title>{TITLE}</title>', text, count=1, flags=re.I)
 
-# Keep the homepage clean: secondary rails remain hidden until search mode is active.
-text = text.replace('.ubg43-home-secondary{display:block}', '.ubg43-home-secondary{display:none}')
+# Keep Trending Now and New Games visible on the homepage and in search mode.
+text = text.replace('.ubg43-home-secondary{display:none}', '.ubg43-home-secondary{display:block}')
 text = text.replace('.ubg43-searching .ubg43-home-secondary{display:none}', '.ubg43-searching .ubg43-home-secondary{display:block}')
 
 style = f'''<style id="{STYLE_ID}">
@@ -95,4 +95,4 @@ if missing:
     raise SystemExit('Interaction polish validation failed: ' + ', '.join(missing))
 
 INDEX.write_text(text, encoding='utf-8')
-print('UBG43 interaction polish applied: outside-click search close, centered clear button, correct title, homepage rails hidden until search, and NEW/TRENDING badges preserved.')
+print('UBG43 interaction polish applied: outside-click search close, centered clear button, correct title, homepage rails visible on home and search, and NEW/TRENDING badges preserved.')
