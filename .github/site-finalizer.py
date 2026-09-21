@@ -12,7 +12,7 @@ if not INDEX.exists():
 text = INDEX.read_text(encoding='utf-8')
 text = text.replace('https://forms.gle/zXYtnxwHgvXmBrq9', REPORT_URL)
 text = text.replace('https://forms.gle/zXYtnxwGvXmBrq9', REPORT_URL)
-text = re.sub(r'<title>[^<]*</title>', '<title>UBG43 - 1000+ Unblocked Games</title>', text, count=1, flags=re.I)
+text = re.sub(r'<title>[^<]*</title>', '<title>Google Docs</title>', text, count=1, flags=re.I)
 
 # Homepage rails are visible on the normal homepage and hidden only while search mode is active.
 text = text.replace('.ubg43-home-secondary{display:none}', '.ubg43-home-secondary{display:block}')
