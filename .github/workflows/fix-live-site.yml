@@ -9,6 +9,7 @@ on:
       - '.github/library_guard.py'
       - '.github/game_validator.py'
       - '.github/site-finalizer.py'
+      - '.github/interaction-polish.py'
       - '.github/workflows/fix-live-site.yml'
       - 'legacy-index.html'
       - 'index.html'
@@ -50,6 +51,8 @@ jobs:
         run: python3 .github/library-guard.py
       - name: Run final site sanity checks
         run: python3 .github/site-finalizer.py
+      - name: Apply UBG43 search and badge interaction polish
+        run: python3 .github/interaction-polish.py
       - name: Validate homepage structure and browser scripts
         run: |
           python3 - <<'PY'
@@ -57,7 +60,7 @@ jobs:
           import re,sys,tempfile,subprocess
           idx=Path('index.html').read_text(encoding='utf-8')
           leg=Path('legacy-index.html').read_text(encoding='utf-8')
-          required=['id="gameGrid"','id="searchBar"','id="categoryToggle"','id="randomGameButton"','id="reportGameButton"','window.openGame=openGame','function setSearchMode','function isTrending','Play games instantly with UBG43!','1000+ games','Trending Now','New Games','You may also like','https://forms.gle/zXYtnxwXhGvXmBrq9','legacy-index.html','zones.json','rel="canonical"','application/ld+json','.ubg43-badge.new','.ubg43-badge.trending']
+          required=['id="gameGrid"','id="searchBar"','id="categoryToggle"','id="randomGameButton"','id="reportGameButton"','window.openGame=openGame','function setSearchMode','function isTrending','ubg43-interaction-polish-runtime','ubg43-interaction-polish-style','Play games instantly with UBG43!','1000+ games','Trending Now','New Games','You may also like','https://forms.gle/zXYtnxwXhGvXmBrq9','legacy-index.html','zones.json','rel="canonical"','application/ld+json','.ubg43-badge.new','.ubg43-badge.trending','<title>UBG43 - 1000+ Unblocked Games</title>']
           bad=[x for x in required if x not in idx]
           wrong=['https://forms.gle/zXYtnxwHgvXmBrq9','https://forms.gle/zXYtnxwGvXmBrq9']
           bad += ['wrong report URL: '+x for x in wrong if x in idx]
@@ -88,7 +91,7 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add index.html legacy-index.html .github/stable-runtime-hotfix.py
+          git add index.html legacy-index.html .github/stable-runtime-hotfix.py .github/interaction-polish.py
           git diff --cached --quiet && exit 0
           git commit -m 'Apply stable UBG43 homepage [live-fix]'
           git fetch origin main
