@@ -13,7 +13,7 @@ on:
       - '.github/game_validator.py'
       - '.github/interaction-polish.py'
       - '.github/search-rail-visibility.py'
-workflow_dispatch:
+  workflow_dispatch:
 permissions:
   contents: write
 concurrency:
