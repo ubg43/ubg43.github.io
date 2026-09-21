@@ -32,13 +32,13 @@ forbidden = [
 ]
 bad = [x for x in forbidden if x in text]
 # The live game runtime must stay in an about:blank window and never expose a direct-launch control.
-runtime_match = re.search(r'<script\\b[^>]*id=["\']ubg43-final-runtime["\'][^>]*>.*?</script>', text, flags=re.I | re.S)
+runtime_match = re.search(r'<script\\b[^>]*id=["\\\']ubg43-final-runtime["\\\'][^>]*>.*?</script>', text, flags=re.I | re.S)
 if runtime_match:
     runtime = runtime_match.group(0)
     for marker in ('Open directly', 'Open game directly', 'w.location.href=u', 'window.location.href=u'):
         if marker in runtime:
             bad.append('forbidden direct-launch marker in game runtime: ' + marker)
-    if not re.search(r"window\\.open\\(\\s*['\"]about:blank['\"]", runtime):
+    if not re.search(r"window\\.open\\(\\s*['\\\"]about:blank['\\\"]", runtime):
         bad.append('game runtime does not open games in about:blank')
 else:
     bad.append('canonical game runtime missing')
