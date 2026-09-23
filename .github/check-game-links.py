@@ -39,7 +39,13 @@ def check(item):
         signals=sum(1 for x in SIGNALS if x in head)
         if "raw.githubusercontent.com/gn-math/html/" in url:
             return title,url,True,""
-        if signals<1 and len(body)<600: return title,url,False,"no recognizable game signal"
+        if signals<1 and len(body)<600:
+            # Small launcher pages (for example a "Click to Play" wrapper) are
+            # valid when they point to another HTTPS game page.
+            hrefs=re.findall(r'href=["\'](https://[^"\']+)["\']', text, re.I)
+            if hrefs and any("play" in h.lower() or "game" in h.lower() for h in hrefs):
+                return title,url,True,""
+            return title,url,False,"no recognizable game signal"
         return title,url,True,""
     except HTTPError as e: return title,url,False,f"HTTP {e.code}"
     except (URLError,TimeoutError,OSError,ValueError) as e: return title,url,False,str(e)[:180]
