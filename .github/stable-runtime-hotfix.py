@@ -210,7 +210,45 @@ const fallbackTrendingKeys=new Set();
 function isTrending(c){return globalCount(c)>0||fallbackTrendingKeys.has(keyOf(c))}
 function badge(c,text,cls){const box=c.querySelector('.ubg43-badges')||(()=>{const x=document.createElement('div');x.className='ubg43-badges';c.append(x);return x})();const b=document.createElement('span');b.className='ubg43-badge '+cls;b.textContent=text;box.append(b)}
 function decorate(){const cs=cards();cs.forEach(c=>{c.querySelector('.ribbons')?.remove();c.querySelector('.ubg43-badges')?.remove();if(isNew(c))badge(c,'NEW','new');if(isTrending(c))badge(c,'TRENDING','trending')})}
-function wire(c){if(!c)return;c.tabIndex=0;if(!c.dataset.url)c.dataset.url=urlOf(c)}
+const IMAGE_PROXY='https://images.weserv.nl/?url=';
+const KNOWN_IMAGE_ALTERNATES={'blumgi dragon':['https://bitlifeonline.github.io/blumgi-dragon/logo.png','https://retrobowl-25.github.io/thumbs/blumgi-dragon.webp','https://edumaths.github.io/img/blumgi-dragon.png']};
+function imageTitle(img){return String(img?.alt||img?.closest?.('.game-card')?.querySelector?.('h3')?.textContent||'UBG43 Game').trim()}
+function fallbackCover(title){
+  const clean=String(title||'UBG43 Game').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').slice(0,42);
+  const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360"><defs><linearGradient id="g" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#0b1f4d"/><stop offset="1" stop-color="#2563eb"/></linearGradient></defs><rect width="640" height="360" rx="22" fill="url(#g)"/><circle cx="530" cy="74" r="82" fill="#fff" fill-opacity=".08"/><circle cx="96" cy="302" r="118" fill="#fff" fill-opacity=".06"/><text x="320" y="190" text-anchor="middle" font-family="Arial,sans-serif" font-size="28" font-weight="800" fill="#fff">'+clean+'</text><text x="320" y="226" text-anchor="middle" font-family="Arial,sans-serif" font-size="14" font-weight="700" fill="#dbeafe">UBG43 GAME</text></svg>';
+  return 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(svg);
+}
+function imageProxy(src){return IMAGE_PROXY+encodeURIComponent(String(src||'').replace(/^https?:\/\//i,''))+'&w=640&h=360&fit=cover&output=webp'}
+function handleImageError(img){
+  if(!img||img.dataset.ubg43ImageFallbackDone==='1')return;
+  const title=norm(imageTitle(img)), alternates=KNOWN_IMAGE_ALTERNATES[title]||[];
+  let step=Number(img.dataset.ubg43ImageStep||0);
+  const source=img.dataset.ubg43ImageSource||img.getAttribute('src')||'';
+  if(step<alternates.length){
+    const next=alternates[step++];
+    img.dataset.ubg43ImageStep=String(step);
+    img.src=next;
+    return;
+  }
+  if(step===alternates.length){
+    img.dataset.ubg43ImageStep=String(step+1);
+    img.src=imageProxy(source);
+    return;
+  }
+  img.dataset.ubg43ImageFallbackDone='1';
+  img.src=fallbackCover(imageTitle(img));
+}
+function wireImage(img){
+  if(!img||img.tagName!=='IMG')return;
+  if(img.dataset.ubg43ImageWired==='1')return;
+  img.dataset.ubg43ImageWired='1';
+  if(!img.dataset.ubg43ImageSource)img.dataset.ubg43ImageSource=img.getAttribute('src')||'';
+  img.addEventListener('error',()=>handleImageError(img),{passive:true});
+  if(img.complete&&img.naturalWidth===0&&img.getAttribute('src'))setTimeout(()=>handleImageError(img),0);
+}
+function repairImages(){cards().forEach(c=>c.querySelectorAll?.('img').forEach(wireImage))}
+document.addEventListener('error',e=>{const el=e.target;if(el?.tagName==='IMG')handleImageError(el)},true);
+function wire(c){if(!c)return;c.tabIndex=0;if(!c.dataset.url)c.dataset.url=urlOf(c);c.querySelectorAll?.('img').forEach(wireImage)}
 function applyView(){const q=norm(search?.value||''),cat=window.__ubg43ActiveCategory||'All Games',cs=cards();cs.forEach(c=>{const text=norm(titleOf(c)),catOk=cat==='All Games'||(cat==='New Games'?isNew(c):cat==='Trending'?isTrending(c):(c.dataset.category||'Casual')===cat);c.style.display=catOk&&(!q||text.includes(q))?'':'none'});const shown=cs.filter(c=>c.style.display!=='none').length;if($('status'))$('status').textContent=`${shown} games shown`}
 function similarity(a,b){const A=new Set(norm(a).split(' ').filter(x=>x.length>1)),B=new Set(norm(b).split(' ').filter(x=>x.length>1));if(!A.size||!B.size)return 0;let n=0;A.forEach(x=>B.has(x)&&n++);return n/Math.sqrt(A.size*B.size)}
 function fillRail(rail,srcs){if(!rail)return;rail.innerHTML='';const used=new Set();srcs.forEach(src=>{if(blockedTitle(src))return;const k=keyOf(src);if(used.has(k))return;used.add(k);const c=src.cloneNode(true);c.dataset.url=urlOf(src);c.style.display='';c.hidden=false;c.querySelector('.ribbons')?.remove();c.querySelector('.ubg43-badges')?.remove();rail.append(c);wire(c);if(isNew(src))badge(c,'NEW','new');if(isTrending(src))badge(c,'TRENDING','trending')});if(srcs.length){const d=document.createElement('div');d.className='done';d.innerHTML='<span>That’s all for now ✨<small>More games are added automatically.</small></span>';rail.append(d)}}
@@ -252,7 +290,7 @@ function bind(){
  document.addEventListener('click',e=>{const c=e.target.closest?.('.game-card');if(!c)return;e.preventDefault();e.stopImmediatePropagation();const u=urlOf(c);recordPlay(c);if(u)openGame(u,titleOf(c));renderRails();decorate()},{capture:true});
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('categorySidebar')?.classList.contains('open'))closeCategories()},{capture:true});
 }
-function sync(){cards().forEach(c=>{if(blockedTitle(c))c.remove();else wire(c)});decorate();renderRails();applyView();const s=$('status');if(s&&cards().length)s.textContent=cards().length+' games ready'}
+function sync(){cards().forEach(c=>{if(blockedTitle(c))c.remove();else wire(c)});repairImages();decorate();renderRails();applyView();const s=$('status');if(s&&cards().length)s.textContent=cards().length+' games ready'}
 async function loadGlobalTrending(){
   if(globalTrending.loading)return;
   globalTrending.loading=true;updateTrendRailState();
