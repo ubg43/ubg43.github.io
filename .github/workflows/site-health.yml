@@ -9,6 +9,7 @@ on:
       - '.github/site-health.py'
       - '.github/repair-ui.py'
       - '.github/stable-runtime-hotfix.py'
+      - '.github/resolve-game-images.py'
       - '.github/game_validator.py'
       - '.github/library-guard.py'
       - '.github/auto-categories.py'
