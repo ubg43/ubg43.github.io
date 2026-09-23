@@ -4442,7 +4442,7 @@ function isTrending(c){return globalCount(c)>0||fallbackTrendingKeys.has(keyOf(c
 function badge(c,text,cls){const box=c.querySelector('.ubg43-badges')||(()=>{const x=document.createElement('div');x.className='ubg43-badges';c.append(x);return x})();const b=document.createElement('span');b.className='ubg43-badge '+cls;b.textContent=text;box.append(b)}
 function decorate(){const cs=cards();cs.forEach(c=>{c.querySelector('.ribbons')?.remove();c.querySelector('.ubg43-badges')?.remove();if(isNew(c))badge(c,'NEW','new');if(isTrending(c))badge(c,'TRENDING','trending')})}
 const IMAGE_PROXY='https://images.weserv.nl/?url=';
-const KNOWN_IMAGE_ALTERNATES={'blumgi dragon':['https://pokigamez.github.io/images/blumgi-dragon.png','https://retrobowl-25.github.io/thumbs/blumgi-dragon.webp','https://bitlifeonline.github.io/blumgi-dragon/logo.png']};
+const KNOWN_IMAGE_ALTERNATES={'blumgi dragon':['https://pokigamez.github.io/images/blumgi-dragon.png','https://retrobowl-25.github.io/thumbs/blumgi-dragon.webp','https://bitlifeonline.github.io/blumgi-dragon/logo.png'],'obby steal an egg online':['https://topgames.gg/data/image/game/obby-steal-an-egg.jpg','https://topgames.gg/data/image/game/obby-steal-an-egg.webp','https://topgames.gg/data/image/game/steal-an-egg.png']};
 function imageTitle(img){return String(img?.alt||img?.closest?.('.game-card')?.querySelector?.('h3')?.textContent||'UBG43 Game').trim()}
 function imageProxy(src){return IMAGE_PROXY+encodeURIComponent(String(src||'').replace(/^https?:\/\//i,''))+'&w=640&h=360&fit=cover&output=webp'}
 function markImageUnavailable(img){
