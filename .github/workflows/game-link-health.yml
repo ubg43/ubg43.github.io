@@ -11,6 +11,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+# Verify every current game URL, not just card structure.
 jobs:
   game-links:
     runs-on: ubuntu-latest
