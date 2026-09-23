@@ -4254,7 +4254,7 @@
     <img loading="lazy" src="https://topgames.gg/data/image/game/obby-steal-an-egg.png" alt="Obby Steal An Egg Online" referrerpolicy="no-referrer">
     <h3>Obby Steal An Egg Online</h3>
   </div>
-<div class="game-card" data-category="Casual" data-new-since="2026-09-24" data-source="topgames-embed" onclick="openGame('https://topgames.gg/embed/meccha-chameleon-online?pub_id=&preroll=0')">
+<div class="game-card" data-category="Casual" data-new-since="2026-09-24" data-source="topgames-embed" data-trending-featured="true" onclick="openGame('https://topgames.gg/embed/meccha-chameleon-online?pub_id=&preroll=0')">
     <img loading="lazy" src="https://topgames.gg/data/image/game/meccha-chameleon-online.png" alt="Meccha Chameleon Online" referrerpolicy="no-referrer">
     <h3>Meccha Chameleon Online</h3>
   </div>
@@ -4487,7 +4487,7 @@ function fillRail(rail,srcs){if(!rail)return;rail.innerHTML='';const used=new Se
 function renderRails(){
   const cs=cards(),fresh=cs.filter(isNew).slice(0,24);
   const live=cs.filter(c=>globalCount(c)>0).sort((a,b)=>(globalCount(b)-globalCount(a))||titleOf(a).localeCompare(titleOf(b)));
-  const temporarySeed=!live.length?cs.filter(c=>c.dataset.trendingSeed==='true'&&!live.includes(c)).slice(0,1):[];
+  const temporarySeed=!live.length?((cs.find(c=>c.dataset.trendingFeatured==='true'&&!live.includes(c))||cs.find(c=>c.dataset.trendingSeed==='true'&&!live.includes(c)))?[cs.find(c=>c.dataset.trendingFeatured==='true'&&!live.includes(c))||cs.find(c=>c.dataset.trendingSeed==='true'&&!live.includes(c))]:[]):[];
   const starterPool=cs.filter(c=>isNew(c)&&!live.includes(c));
   const starterNew=temporarySeed.concat(starterPool.filter(c=>!temporarySeed.includes(c))).slice(0,4);
   const starterOther=cs.filter(c=>!isNew(c)&&!live.includes(c)).slice(0,24);
