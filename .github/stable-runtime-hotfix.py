@@ -211,14 +211,16 @@ function isTrending(c){return globalCount(c)>0||fallbackTrendingKeys.has(keyOf(c
 function badge(c,text,cls){const box=c.querySelector('.ubg43-badges')||(()=>{const x=document.createElement('div');x.className='ubg43-badges';c.append(x);return x})();const b=document.createElement('span');b.className='ubg43-badge '+cls;b.textContent=text;box.append(b)}
 function decorate(){const cs=cards();cs.forEach(c=>{c.querySelector('.ribbons')?.remove();c.querySelector('.ubg43-badges')?.remove();if(isNew(c))badge(c,'NEW','new');if(isTrending(c))badge(c,'TRENDING','trending')})}
 const IMAGE_PROXY='https://images.weserv.nl/?url=';
-const KNOWN_IMAGE_ALTERNATES={'blumgi dragon':['https://bitlifeonline.github.io/blumgi-dragon/logo.png','https://retrobowl-25.github.io/thumbs/blumgi-dragon.webp','https://edumaths.github.io/img/blumgi-dragon.png']};
+const KNOWN_IMAGE_ALTERNATES={'blumgi dragon':['https://pokigamez.github.io/images/blumgi-dragon.png','https://retrobowl-25.github.io/thumbs/blumgi-dragon.webp','https://bitlifeonline.github.io/blumgi-dragon/logo.png']};
 function imageTitle(img){return String(img?.alt||img?.closest?.('.game-card')?.querySelector?.('h3')?.textContent||'UBG43 Game').trim()}
-function fallbackCover(title){
-  const clean=String(title||'UBG43 Game').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').slice(0,42);
-  const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360"><defs><linearGradient id="g" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#0b1f4d"/><stop offset="1" stop-color="#2563eb"/></linearGradient></defs><rect width="640" height="360" rx="22" fill="url(#g)"/><circle cx="530" cy="74" r="82" fill="#fff" fill-opacity=".08"/><circle cx="96" cy="302" r="118" fill="#fff" fill-opacity=".06"/><text x="320" y="190" text-anchor="middle" font-family="Arial,sans-serif" font-size="28" font-weight="800" fill="#fff">'+clean+'</text><text x="320" y="226" text-anchor="middle" font-family="Arial,sans-serif" font-size="14" font-weight="700" fill="#dbeafe">UBG43 GAME</text></svg>';
-  return 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(svg);
-}
 function imageProxy(src){return IMAGE_PROXY+encodeURIComponent(String(src||'').replace(/^https?:\/\//i,''))+'&w=640&h=360&fit=cover&output=webp'}
+function markImageUnavailable(img){
+  if(!img)return;
+  img.dataset.ubg43ImageFallbackDone='1';
+  img.style.visibility='hidden';
+  const card=img.closest?.('.game-card');
+  if(card)card.classList.add('ubg43-image-unavailable');
+}
 function handleImageError(img){
   if(!img||img.dataset.ubg43ImageFallbackDone==='1')return;
   const title=norm(imageTitle(img)), alternates=KNOWN_IMAGE_ALTERNATES[title]||[];
@@ -230,13 +232,12 @@ function handleImageError(img){
     img.src=next;
     return;
   }
-  if(step===alternates.length){
+  if(step===alternates.length && source && !/^https?:\/\/images\.weserv\.nl\//i.test(img.src||'')){
     img.dataset.ubg43ImageStep=String(step+1);
     img.src=imageProxy(source);
     return;
   }
-  img.dataset.ubg43ImageFallbackDone='1';
-  img.src=fallbackCover(imageTitle(img));
+  markImageUnavailable(img);
 }
 function wireImage(img){
   if(!img||img.tagName!=='IMG')return;
