@@ -45,6 +45,8 @@ jobs:
           PY
       - name: Write stable UBG43 homepage
         run: python3 .github/repair-ui.py
+      - name: Resolve real game cover images
+        run: python3 .github/resolve-game-images.py
       - name: Harden stable runtime and restore interaction badges
         run: python3 .github/stable-runtime-hotfix.py
       - name: Remove duplicate game cards
