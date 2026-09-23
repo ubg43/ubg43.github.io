@@ -35,12 +35,13 @@ jobs:
           import re,sys,tempfile,subprocess
           idx=Path('index.html').read_text(encoding='utf-8')
           leg=Path('legacy-index.html').read_text(encoding='utf-8')
-          required=['id="gameGrid"','id="searchBar"','id="categoryToggle"','id="randomGameButton"','id="reportGameButton"','window.openGame=openGame','Play games instantly with UBG43!','1000+ games','Trending Now','New Games','You may also like','https://forms.gle/zXYtnxwXhGvXmBrq9','legacy-index.html','zones.json','rel="canonical"','application/ld+json','function setSearchMode','function isTrending','window.openGame=openGame','.ubg43-badge.new','.ubg43-badge.trending','wewynhmybroxzynaxnrx.supabase.co','SUPABASE_TRENDING_URL','function loadGlobalTrending','Popular picks based on play activity','const isRawGame=u=>/^https:\\/\\/raw\\.githubusercontent\\.com\\//i.test(u);','function stripKnownAds(html){','let html=stripKnownAds(await r.text());','doubleclick.net','googlesyndication.com','adsterra.com','propellerads.com','monetag.com','popads.net','popcash.net','new MutationObserver(clean)']
+          required=['id="gameGrid"','id="searchBar"','id="categoryToggle"','id="randomGameButton"','id="reportGameButton"','window.openGame=openGame','Play games instantly with UBG43!','1000+ games','Trending Now','New Games','You may also like','https://forms.gle/zXYtnxwXhGvXmBrq9','legacy-index.html','zones.json','rel="canonical"','application/ld+json','function setSearchMode','function isTrending','window.openGame=openGame','.ubg43-badge.new','.ubg43-badge.trending','wewynhmybroxzynaxnrx.supabase.co','SUPABASE_TRENDING_URL','function loadGlobalTrending','Popular picks based on play activity','const isRawGame=u=>/^https:\\/\\/raw\\.githubusercontent\\.com\\//i.test(u);','function stripKnownAds(html){','let html=stripKnownAds(await r.text());','doubleclick.net','googlesyndication.com','adsterra.com','propellerads.com','monetag.com','popads.net','popcash.net','new MutationObserver(clean)','resolve-game-images.py','function handleImageError(img)','REAL COVER RESOLVER COMPLETE']
           bad=[x for x in required if x not in idx]
           wrong_urls=['https://forms.gle/zXYtnxwHgvXmBrq9','https://forms.gle/zXYtnxwGvXmBrq9']
           bad += ['wrong report URL: '+x for x in wrong_urls if x in idx]
           forbidden=['ubg43-site-protection-runtime','ubg43-hotfix-runtime','ubg43-direct-launch-runtime','ubg43-final-interactions-runtime','Building your game library…','Building your game library...']
           bad += ['forbidden: '+x for x in forbidden if x in idx]
+          if 'fallbackCover(' in idx or 'data:image/svg+xml' in idx: bad.append('generated image fallback remains in homepage')
           if idx.count('id="gameGrid"')!=1: bad.append('gameGrid count != 1')
           if idx.count('<script type="application/ld+json">')!=1: bad.append('JSON-LD count != 1')
           if not Path('robots.txt').exists(): bad.append('robots.txt missing')
