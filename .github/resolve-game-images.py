@@ -23,8 +23,14 @@ from urllib.error import HTTPError, URLError
 
 INDEX = Path("index.html")
 LEGACY = Path("legacy-index.html")
-MAX_SEARCHES = 24
-UA = "Mozilla/5.0 (compatible; UBG43-Cover-Resolver/1.0; +https://ubg43.github.io/)"
+MAX_SEARCHES = 48
+UA = "Mozilla/5.0 (compatible; UBG43-Cover-Resolver/1.1; +https://ubg43.github.io/)"
+LOW_CONFIDENCE_HOSTS = {
+    "encrypted-tbn0.gstatic.com",
+    "avatars.githubusercontent.com",
+    "repository-images.githubusercontent.com",
+    "user-images.githubusercontent.com",
+}
 
 class MetaParser(HTMLParser):
     def __init__(self) -> None:
@@ -84,6 +90,15 @@ def card_title(card: str) -> str:
 def image_url(card: str) -> str:
     m = re.search(r'<img\b[^>]*\bsrc=["\']([^"\']+)["\']', card, re.I)
     return html.unescape(m.group(1)) if m else ""
+
+def low_confidence(url: str) -> bool:
+    if not url or url.lower().startswith("data:"):
+        return True
+    try:
+        host = urlparse(url).hostname or ""
+    except Exception:
+        host = ""
+    return host.lower() in LOW_CONFIDENCE_HOSTS
 
 def resolve_metadata(page_url: str, body: str) -> list[str]:
     p = MetaParser()
@@ -174,10 +189,10 @@ def process_file(path: Path) -> tuple[str, int, int]:
     searches=0
     replacements={}
     for pos, (card, cur_ok) in enumerate(zip(cards, statuses)):
-        if cur_ok:
+        cur=urls[pos]
+        if cur_ok and not low_confidence(cur):
             continue
         title=card_title(card)
-        cur=urls[pos]
         url=game_url(card)
         candidates=[]
         if url:
