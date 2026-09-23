@@ -4488,14 +4488,52 @@ function renderRails(){
   updateTrendRailState();
   decorate();
 }
-function recommendations(q){if(!recSection||!recRail)return;const ph=read('ubg43_final_plays',{}),sh=read('ubg43_final_searches',{}),n=norm(q),out=cards().filter(c=>!norm(titleOf(c)).includes(n)).map(c=>{let score=similarity(titleOf(c),q)*.72;score+=(ph[playKey(c)]?.plays||0)*.08;Object.entries(sh).forEach(([k,v])=>score+=similarity(titleOf(c),k)*Math.min(5,v.count||0)*.05);if(isNew(c))score+=.1;return {c,score}}).sort((a,b)=>b.score-a.score||titleOf(a.c).localeCompare(titleOf(b.c))).slice(0,24).map(x=>x.c);fillRail(recRail,out);recSection.classList.toggle('hidden',!out.length)}
+function recommendations(q){
+  if(!recSection||!recRail)return;
+  const cs=cards(),n=norm(q);
+  if(!n){recSection.classList.add('hidden');recRail.innerHTML='';return}
+  const ph=read('ubg43_final_plays',{}),sh=read('ubg43_final_searches',{});
+  const searchHits=cs.filter(c=>norm(titleOf(c)).includes(n)&&!blockedTitle(c));
+  const catAffinity=Object.create(null),playAffinity=Object.create(null);
+  searchHits.forEach(c=>{const cat=String(c.dataset.category||'').trim();if(cat)catAffinity[cat]=(catAffinity[cat]||0)+1});
+  Object.entries(ph).forEach(([k,v])=>{
+    const plays=Math.min(20,Number(v?.plays||0));
+    if(plays<=0)return;
+    cs.forEach(c=>{
+      const sim=similarity(titleOf(c),String(v?.title||k));
+      if(sim>0)playAffinity[keyOf(c)]=(playAffinity[keyOf(c)]||0)+sim*Math.log2(plays+1);
+    });
+  });
+  const qTokens=new Set(n.split(' ').filter(x=>x.length>1));
+  const out=cs.filter(c=>{
+    const t=norm(titleOf(c));
+    return t&&!t.includes(n)&&!blockedTitle(c);
+  }).map(c=>{
+    const title=titleOf(c),t=norm(title),cat=String(c.dataset.category||'').trim();
+    let score=similarity(title,q)*1.15;
+    const tTokens=new Set(t.split(' ').filter(x=>x.length>1));
+    let shared=0;qTokens.forEach(x=>{if(tTokens.has(x))shared++});
+    if(shared)score+=Math.min(.72,shared*.18);
+    if(cat&&catAffinity[cat])score+=Math.min(.9,catAffinity[cat]*.16);
+    score+=(playAffinity[keyOf(c)]||0)*.16;
+    Object.entries(sh).forEach(([k,v])=>{
+      const sv=similarity(title,k),count=Math.min(10,Number(v?.count||0));
+      if(sv>0)score+=sv*(.12+Math.log2(count+1)*.04);
+    });
+    if(isNew(c))score+=.04;
+    if(isTrending(c))score+=.025;
+    return {c,score};
+  }).sort((a,b)=>b.score-a.score||titleOf(a.c).localeCompare(titleOf(b.c))).slice(0,24).map(x=>x.c);
+  fillRail(recRail,out);
+  recSection.classList.toggle('hidden',!out.length);
+}
 function setSearchMode(q){q=q.trim();if(!q){clearSearch();return}window.__ubg43SearchMode=true;document.body.classList.add('ubg43-searching');$('trendingSection')?.style.setProperty('display','none','important');$('newSection')?.style.setProperty('display','none','important');if(searchPage)searchPage.classList.remove('hidden');if(searchPageText)searchPageText.textContent=`Showing matching games for “${q}”.`;recordSearch(q);applyView();recommendations(q);results?.classList.remove('open');search?.blur()}
 function clearSearch(){window.__ubg43SearchMode=false;document.body.classList.remove('ubg43-searching');if(search)search.value='';if(clear)clear.style.display='none';results?.classList.remove('open');searchPage?.classList.add('hidden');recSection?.classList.add('hidden');$('trendingSection')?.style.removeProperty('display');$('newSection')?.style.removeProperty('display');applyView();window.scrollTo({top:0,behavior:'smooth'})}
 function showSuggestions(q){if(!results)return;results.innerHTML='';const n=norm(q);if(!n){results.classList.remove('open');return}const hits=cards().filter(c=>norm(titleOf(c)).includes(n)).slice(0,7);if(!hits.length){const d=document.createElement('div');d.className='search-empty';d.textContent='No matching games yet';results.append(d);results.classList.add('open');return}hits.forEach(c=>{const b=document.createElement('button');b.type='button';b.className='search-result';b.innerHTML='<img alt=""><span class="search-copy"><span class="search-title"></span><span class="search-label">Play game</span></span>';b.querySelector('img').src=imageOf(c);b.querySelector('img').alt=titleOf(c);b.querySelector('.search-title').textContent=titleOf(c);b.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();if(search)search.value=titleOf(c);setSearchMode(titleOf(c))},{capture:true});results.append(b)});results.classList.add('open')}
 function openCategories(){const side=$('categorySidebar'),ov=$('categoryOverlay');if(!side)return;side.classList.add('open');ov?.classList.add('open');side.setAttribute('aria-hidden','false');document.body.classList.add('locked');const list=$('categoryList');if(!list)return;list.innerHTML='';const cs=cards(),counts={};cs.forEach(c=>{const cat=c.dataset.category||'Casual';counts[cat]=(counts[cat]||0)+1});['All Games','New Games','Trending','Action','Adventure','Horror','Multiplayer','Fighting','Survival','Platformer','Racing','Sports','Puzzle','Arcade','Strategy','Simulation','Casual','Anime','Rhythm & Music','Card & Board','io'].forEach(cat=>{const b=document.createElement('button');b.type='button';b.className='category'+(window.__ubg43ActiveCategory===cat?' active':'');const n=cat==='All Games'?cs.length:cat==='New Games'?cs.filter(isNew).length:cat==='Trending'?cs.filter(isTrending).length:(counts[cat]||0);b.innerHTML='<span class="category-main"><span class="dot"></span><span class="category-name"></span></span><span class="category-count"></span>';b.querySelector('.category-name').textContent=cat;b.querySelector('.category-count').textContent=String(n);b.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();window.__ubg43ActiveCategory=cat;document.body.classList.toggle('ubg43-category-view',cat!=='All Games');applyView();closeCategories()},{capture:true});list.append(b)})}
 function closeCategories(){$('categorySidebar')?.classList.remove('open');$('categoryOverlay')?.classList.remove('open');$('categorySidebar')?.setAttribute('aria-hidden','true');document.body.classList.remove('locked')}
 function bind(){
- search?.addEventListener('input',e=>{e.stopImmediatePropagation();const q=search.value.trim();if(clear)clear.style.display=q?'inline-flex':'none';document.body.classList.toggle('ubg43-searching',!!q);showSuggestions(q);if(!q)clearSearch();else applyView()},{capture:true});
+ search?.addEventListener('input',e=>{e.stopImmediatePropagation();const q=search.value.trim();if(clear)clear.style.display=q?'inline-flex':'none';document.body.classList.toggle('ubg43-searching',!!q);showSuggestions(q);if(!q)clearSearch();else {applyView();recommendations(q)}},{capture:true});
  search?.addEventListener('keydown',e=>{e.stopImmediatePropagation();if(e.key==='Enter'){e.preventDefault();setSearchMode(search.value)}else if(e.key==='Escape'){e.preventDefault();clearSearch()}},{capture:true});
  clear?.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();clearSearch()},{capture:true});
  $('randomGameButton')?.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();const pool=cards().filter(c=>c.style.display!=='none'),list=pool.length?pool:cards(),c=list[Math.floor(Math.random()*list.length)];if(c){recordPlay(c);openGame(urlOf(c),titleOf(c));decorate();renderRails()}},{capture:true});
