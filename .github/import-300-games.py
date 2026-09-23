@@ -9,7 +9,7 @@ from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
-MARKER = "<!-- UBG43 300-game expansion v1 -->"
+MARKERS = ("<!-- UBG43 300-game expansion v1 -->", "<!-- UBG43 300-game expansion v2 -->")
 LEGACY = Path("legacy-index.html")
 INDEX = Path("index.html")
 TARGET = 300
@@ -230,7 +230,7 @@ def main():
         raise SystemExit("legacy-index.html or index.html missing")
     legacy = LEGACY.read_text(encoding="utf-8")
     index = INDEX.read_text(encoding="utf-8")
-    if MARKER in legacy:
+    if any(marker in legacy for marker in MARKERS):
         print("300-game expansion already present; nothing to do.")
         return
 
