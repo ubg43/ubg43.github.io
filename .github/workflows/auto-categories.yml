@@ -52,6 +52,8 @@ jobs:
         run: python3 .github/loading-polish.py
       - name: Apply final UBG43 UI polish
         run: python3 .github/repair-ui.py
+      - name: Resolve real game cover images
+        run: python3 .github/resolve-game-images.py
       - name: Harden stable runtime and restore interaction badges
         run: python3 .github/stable-runtime-hotfix.py
       - name: Apply final link and runtime sanity fixes
