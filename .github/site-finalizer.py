@@ -25,6 +25,7 @@ required = [
     'window.openGame=openGame', 'function setSearchMode', 'about:blank', 'ubg43-final-runtime',
     'function isTrending', '.ubg43-badge.new', '.ubg43-badge.trending', "window.open(REPORT_URL,'_blank','noopener,noreferrer')",
     REPORT_URL, 'legacy-index.html', 'zones.json', '<title>Google Docs</title>',
+    'wewynhmybroxzynaxnrx.supabase.co', 'SUPABASE_TRENDING_URL', 'function loadGlobalTrending', 'Popular picks based on play activity',
     '.ubg43-home-secondary{display:block}', '.ubg43-searching #trendingSection,.ubg43-searching #newSection{display:none!important}'
 ]
 missing = [x for x in required if x not in text]
@@ -37,6 +38,43 @@ forbidden = [
     'ubg43-direct-launch-runtime'
 ]
 bad = [x for x in forbidden if x in text]
+
+# Verify the canonical game player is the automatic ad-filter path for every hosted game.
+ad_required = [
+    'const isRawGame=u=>/^https:\\/\\/raw\\.githubusercontent\\.com\\//i.test(u);',
+    'const AD_HOST_PATTERNS=',
+    'function stripKnownAds(html){',
+    'let html=stripKnownAds(await r.text());',
+    'new MutationObserver(clean)',
+    'doubleclick.net',
+    'googlesyndication.com',
+    'adsterra.com',
+    'propellerads.com',
+    'monetag.com',
+    'popads.net',
+    'popcash.net'
+]
+bad += ['automatic ad-filter wiring missing: '+x for x in ad_required if x not in text]
+raw_game_urls = re.findall(r'https://raw\.githubusercontent\.com/[^\'\"\s<>]+', text, flags=re.I)
+if not raw_game_urls:
+    bad.append('no hosted raw game URLs found to validate the ad-filter launch path')
+
+# All current automated game-library builders must reapply the canonical runtime,
+# so newly added cards inherit the same ad filtering automatically.
+builder_workflows = [
+    '.github/workflows/extra-games.yml',
+    '.github/workflows/undertale-games.yml',
+    '.github/workflows/auto-categories.yml',
+    '.github/workflows/fix-live-site.yml'
+]
+for wf in builder_workflows:
+    wp = Path(wf)
+    if not wp.exists():
+        bad.append('game builder workflow missing: '+wf)
+    else:
+        ws = wp.read_text(encoding='utf-8')
+        if 'python3 .github/stable-runtime-hotfix.py' not in ws:
+            bad.append('game builder does not reapply stable runtime: '+wf)
 
 runtime_start = text.find('<script id="ubg43-final-runtime">')
 runtime_end = text.find('</script>', runtime_start)
