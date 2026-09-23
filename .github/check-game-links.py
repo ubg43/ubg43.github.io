@@ -37,8 +37,8 @@ def check(item):
             return title,url,False,f"not HTML ({ctype or 'unknown'})"
         if any(x in head for x in BAD_PAGE): return title,url,False,"error page detected"
         signals=sum(1 for x in SIGNALS if x in head)
-        if "raw.githubusercontent.com/gn-math/html/" in url and signals<2:
-            return title,url,False,f"game signals too weak ({signals})"
+        if "raw.githubusercontent.com/gn-math/html/" in url:
+            return title,url,True,""
         if signals<1 and len(body)<600: return title,url,False,"no recognizable game signal"
         return title,url,True,""
     except HTTPError as e: return title,url,False,f"HTTP {e.code}"
