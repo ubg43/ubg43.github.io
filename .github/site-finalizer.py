@@ -40,6 +40,15 @@ forbidden = [
 bad = [x for x in forbidden if x in text]
 
 # Verify the canonical game player is the automatic ad-filter path for every hosted game.
+# Cover handling must use real published game art, never generated/AI artwork.
+cover_required = [
+    'resolve-game-images.py',
+    'REAL COVER RESOLVER COMPLETE',
+    'function handleImageError(img)'
+]
+bad += ['real-cover wiring missing: '+x for x in cover_required if x not in text]
+if 'fallbackCover(' in text or 'data:image/svg+xml' in text:
+    bad.append('generated/AI-style image fallback remains in runtime')
 ad_required = [
     'const isRawGame=u=>/^https:\\/\\/raw\\.githubusercontent\\.com\\//i.test(u);',
     'const AD_HOST_PATTERNS=',
