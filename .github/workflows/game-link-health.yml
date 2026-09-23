@@ -1,0 +1,21 @@
+name: Full game link health
+on:
+  push:
+    paths:
+      - 'index.html'
+      - 'legacy-index.html'
+      - '.github/check-game-links.py'
+      - '.github/workflows/game-link-health.yml'
+  schedule:
+    - cron: '42 3 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  game-links:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check every published game endpoint
+        run: python3 .github/check-game-links.py
