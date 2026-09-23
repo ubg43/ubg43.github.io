@@ -155,6 +155,14 @@ async function mountGame(w,u,title){
       clearTimeout(timer);
       if(!r.ok)throw new Error('Game source unavailable');
       let html=stripKnownAds(await r.text());
+      // Repair root-relative asset paths for raw GitHub game files before using a blob URL.
+      try{
+        const srcUrl=new URL(u),parts=srcUrl.pathname.split('/').filter(Boolean);
+        if(parts.length>=3){
+          const repoBase=srcUrl.origin+'/'+parts.slice(0,3).join('/')+'/';
+          html=html.replace(/((?:src|href)=\")\/(?!\/)/gi,'$1'+repoBase);
+        }
+      }catch(_){}
       const base=rawBase(u).replace(/&/g,'&amp;').replace(/"/g,'&quot;');
       if(!/<base\b/i.test(html)) html=html.replace(/<head([^>]*)>/i,'<head$1><base href="${base}">');
       const blobUrl=URL.createObjectURL(new Blob([html],{type:'text/html'}));
