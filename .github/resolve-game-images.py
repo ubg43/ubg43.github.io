@@ -163,14 +163,21 @@ def replace_src(card: str, new_url: str) -> str:
 def process_file(path: Path) -> tuple[str, int, int]:
     text = path.read_text(encoding="utf-8")
     pat = re.compile(r'<div class="game-card"[^>]*>[\s\S]*?</div>', re.I)
-    changed=0; unresolved=0; searches=0
-    def repl(m):
-        nonlocal changed, unresolved, searches
-        card=m.group(0)
+    matches = list(pat.finditer(text))
+    cards = [m.group(0) for m in matches]
+    urls = [image_url(c) for c in cards]
+    from concurrent.futures import ThreadPoolExecutor
+    with ThreadPoolExecutor(max_workers=20) as pool:
+        statuses = list(pool.map(lambda u: bool(u) and fetch_ok(u), urls))
+    changed=0
+    unresolved=0
+    searches=0
+    replacements={}
+    for pos, (card, cur_ok) in enumerate(zip(cards, statuses)):
+        if cur_ok:
+            continue
         title=card_title(card)
-        cur=image_url(card)
-        if cur and fetch_ok(cur):
-            return card
+        cur=urls[pos]
         url=game_url(card)
         candidates=[]
         if url:
@@ -182,23 +189,34 @@ def process_file(path: Path) -> tuple[str, int, int]:
         valid=None
         for cand in candidates:
             if fetch_ok(cand):
-                valid=cand; break
+                valid=cand
+                break
         if valid is None and searches < MAX_SEARCHES:
             searches += 1
             for cand in github_search_candidates(title):
-                valid=cand if fetch_ok(cand) else None
-                if valid: break
-            time.sleep(0.15)
-        if valid:
-            if cur != valid:
-                changed += 1
-                return replace_src(card, valid)
-            return card
-        unresolved += 1
-        return card
-    new=pat.sub(repl,text)
-    if new != text:
+                if fetch_ok(cand):
+                    valid=cand
+                    break
+            time.sleep(0.08)
+        if valid and cur != valid:
+            replacements[pos] = valid
+            changed += 1
+        else:
+            unresolved += 1
+    if replacements:
+        parts=[]
+        cursor=0
+        for pos,m in enumerate(matches):
+            parts.append(text[cursor:m.start()])
+            card=m.group(0)
+            parts.append(replace_src(card,replacements[pos]) if pos in replacements else card)
+            cursor=m.end()
+        parts.append(text[cursor:])
+        new=''.join(parts)
         path.write_text(new,encoding="utf-8")
+    else:
+        new=text
+    print(f"{path}: checked={len(cards)} changed={changed} unresolved={unresolved} github_searches={searches}")
     return str(path), changed, unresolved
 
 for target in (INDEX, LEGACY):
