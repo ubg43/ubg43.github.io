@@ -68,7 +68,7 @@ const SUPABASE_TRENDING_URL='https://wewynhmybroxzynaxnrx.supabase.co';
 const SUPABASE_TRENDING_KEY='sb_publishable_9-0Y5XyyOzpnILu1cb6dHg_j8234P2p';
 const SUPABASE_TRENDING_HEADERS={'apikey':SUPABASE_TRENDING_KEY,'Authorization':'Bearer '+SUPABASE_TRENDING_KEY,'Content-Type':'application/json'};
 const globalTrending={ready:false,loading:false,failed:false,updatedAt:null,counts:Object.create(null)};
-const BLOCKED_TITLE_PATTERNS=['[!] comments','suggest games','d4c9vfywyu','1 date danger','five nights at last breath',"five nights at epstein's",'five nights at epstein'];
+const BLOCKED_TITLE_PATTERNS=['[!] comments','suggest games','d4c9vfywyu','1 date danger','five nights at last breath',"five nights at epstein's",'five nights at epstein','five night's at shrek's hotel',"five nights at shrek's hotel",'five nights at shreks hotel'];
 const blockedTitle=c=>{const t=String(c?.querySelector('h3')?.textContent||'').trim().toLowerCase();return BLOCKED_TITLE_PATTERNS.some(x=>t.includes(x))||t.startsWith('[!]')};
 const norm=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
 const titleOf=c=>(c?.querySelector('h3')?.textContent||'').trim();
