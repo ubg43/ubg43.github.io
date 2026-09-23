@@ -733,7 +733,6 @@
     <img loading="lazy" src="https://raw.githubusercontent.com/gn-math/covers/main/273.png" alt="BlockPost" referrerpolicy="no-referrer">
     <h3>BlockPost</h3>
   </div>
-
 <div class="game-card" data-category="Anime" onclick="window.open('https://ubg42.github.io/Retro/PokemonSapphireVersion.html','_blank')">
 		<img loading="lazy" src="https://ubg42.github.io/img/PokemonSapphireVersion.jpg" alt="Pokemon Sapphire Version">
 		<h3>Pokemon Sapphire Version</h3>
@@ -1358,7 +1357,6 @@
 		<img loading="lazy" src="https://ubg42.github.io/img/SnowRider3D.png" alt="Snow Rider 3D">
 		<h3>Snow Rider 3D</h3>
 	</div>
-
 <div class="game-card" data-category="Arcade" data-new-since="2026-09-16" data-source="gn-math-verified" onclick="window.open('https://raw.githubusercontent.com/gn-math/html/main/149.html','_blank')">
     <img loading="lazy" src="https://raw.githubusercontent.com/gn-math/covers/main/149.png" alt="Ball Blast" referrerpolicy="no-referrer">
     <h3>Ball Blast</h3>
@@ -3827,7 +3825,6 @@
     <img loading="lazy" src="https://raw.githubusercontent.com/gn-math/covers/main/762.png" alt="Cheese Rolling" referrerpolicy="no-referrer">
     <h3>Cheese Rolling</h3>
   </div>
-
 <div class="game-card" data-category="Casual" data-new-since="2026-09-18" onclick="openGame('https://raw.githubusercontent.com/gn-math/html/main/753.html')">
     <img loading="lazy" src="https://raw.githubusercontent.com/gn-math/covers/main/753.png" alt="Breaklock" referrerpolicy="no-referrer">
     <h3>Breaklock</h3>
@@ -4268,7 +4265,7 @@ const SUPABASE_TRENDING_URL='https://wewynhmybroxzynaxnrx.supabase.co';
 const SUPABASE_TRENDING_KEY='sb_publishable_9-0Y5XyyOzpnILu1cb6dHg_j8234P2p';
 const SUPABASE_TRENDING_HEADERS={'apikey':SUPABASE_TRENDING_KEY,'Authorization':'Bearer '+SUPABASE_TRENDING_KEY,'Content-Type':'application/json'};
 const globalTrending={ready:false,loading:false,failed:false,updatedAt:null,counts:Object.create(null)};
-const BLOCKED_TITLE_PATTERNS=['[!] comments','suggest games','d4c9vfywyu','1 date danger','five nights at last breath',"five nights at epstein's",'five nights at epstein'];
+const BLOCKED_TITLE_PATTERNS=['[!] comments','suggest games','d4c9vfywyu','1 date danger'];
 const blockedTitle=c=>{const t=String(c?.querySelector('h3')?.textContent||'').trim().toLowerCase();return BLOCKED_TITLE_PATTERNS.some(x=>t.includes(x))||t.startsWith('[!]')};
 const norm=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
 const titleOf=c=>(c?.querySelector('h3')?.textContent||'').trim();
