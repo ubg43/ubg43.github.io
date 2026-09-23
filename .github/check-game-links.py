@@ -33,7 +33,7 @@ def check(item):
         text=body.decode("utf-8","ignore").lower(); head=text[:50000]
         if not (200<=status<400): return title,url,False,f"HTTP {status}"
         if len(body)<80: return title,url,False,f"response too small ({len(body)} bytes)"
-        if "text/html" not in ctype and b"<html" not in body.lower() and b"<!doctype" not in body.lower() and b"<head" not in body.lower() and b"<embed" not in body.lower() and b"<title" not in body.lower():
+        if "text/html" not in ctype and b"<html" not in body.lower() and b"<!doctype" not in body.lower() and b"<head" not in body.lower() and b"<embed" not in body.lower() and b"<title" not in body.lower() and b"<iframe" not in body.lower():
             return title,url,False,f"not HTML ({ctype or 'unknown'})"
         if any(x in head for x in BAD_PAGE): return title,url,False,"error page detected"
         signals=sum(1 for x in SIGNALS if x in head)
