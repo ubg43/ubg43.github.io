@@ -42,12 +42,24 @@ bad = [x for x in forbidden if x in text]
 # Verify the canonical game player is the automatic ad-filter path for every hosted game.
 # Cover handling must use real published game art, never generated/AI artwork.
 cover_required = [
-    'resolve-game-images.py',
-    'REAL COVER RESOLVER COMPLETE',
     'function handleImageError(img)'
 ]
-bad += ['real-cover wiring missing: '+x for x in cover_required if x not in text]
-if 'fallbackCover(' in text or 'data:image/svg+xml' in text:
+bad += ['real-cover runtime missing: '+x for x in cover_required if x not in text]
+
+resolver_path = Path('.github/resolve-game-images.py')
+resolver_text = resolver_path.read_text(encoding='utf-8') if resolver_path.exists() else ''
+resolver_required = [
+    'def resolve_metadata(',
+    'def low_confidence(',
+    'No generated or AI-created artwork is used.'
+]
+bad += ['real-cover resolver missing: '+x for x in resolver_required if x not in resolver_text]
+
+runtime_sources = [text]
+stable_runtime = Path('.github/stable-runtime-hotfix.py')
+if stable_runtime.exists():
+    runtime_sources.append(stable_runtime.read_text(encoding='utf-8'))
+if any('fallbackCover(' in src or 'data:image/svg+xml' in src for src in runtime_sources):
     bad.append('generated/AI-style image fallback remains in runtime')
 ad_required = [
     'const isRawGame=u=>/^https:\\/\\/raw\\.githubusercontent\\.com\\//i.test(u);',
