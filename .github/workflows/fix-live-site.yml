@@ -4,6 +4,7 @@ on:
     paths:
       - '.github/repair-ui.py'
       - '.github/stable-runtime-hotfix.py'
+      - '.github/resolve-game-images.py'
       - '.github/dedupe-games.py'
       - '.github/library-guard.py'
       - '.github/library_guard.py'
