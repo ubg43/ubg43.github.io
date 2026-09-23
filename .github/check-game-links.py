@@ -8,7 +8,7 @@ from urllib.request import Request, urlopen
 
 LEGACY=Path("legacy-index.html"); INDEX=Path("index.html")
 TIMEOUT=12; MAX_BYTES=70000; WORKERS=32
-SIGNALS=("<canvas","<iframe","<script","phaser","pixi","construct","unity","godot","playcanvas","keydown","keyup","pointerdown","touchstart","requestanimationframe","gamepad","javascript game")
+SIGNALS=("<canvas","<iframe","<script","phaser","pixi","construct","unity","godot","playcanvas","ruffle","keydown","keyup","pointerdown","touchstart","requestanimationframe","gamepad","javascript game")
 BAD_PAGE=("404 not found","page not found","access denied","forbidden","service unavailable","this site can't be reached","this page could not be found")
 
 def clean(v):
@@ -32,8 +32,8 @@ def check(item):
             body=r.read(MAX_BYTES); status=int(r.status); ctype=(r.headers.get("Content-Type") or "").lower()
         text=body.decode("utf-8","ignore").lower(); head=text[:50000]
         if not (200<=status<400): return title,url,False,f"HTTP {status}"
-        if len(body)<120: return title,url,False,f"response too small ({len(body)} bytes)"
-        if "text/html" not in ctype and b"<html" not in body.lower() and b"<!doctype" not in body.lower():
+        if len(body)<80: return title,url,False,f"response too small ({len(body)} bytes)"
+        if "text/html" not in ctype and b"<html" not in body.lower() and b"<!doctype" not in body.lower() and b"<head" not in body.lower() and b"<embed" not in body.lower():
             return title,url,False,f"not HTML ({ctype or 'unknown'})"
         if any(x in head for x in BAD_PAGE): return title,url,False,"error page detected"
         signals=sum(1 for x in SIGNALS if x in head)
