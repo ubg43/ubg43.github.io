@@ -230,7 +230,7 @@ def main():
         raise SystemExit("legacy-index.html or index.html missing")
     legacy = LEGACY.read_text(encoding="utf-8")
     index = INDEX.read_text(encoding="utf-8")
-    if any(marker in legacy for marker in MARKERS):
+    if any(marker in legacy for marker in MARKERS) or "data-source=\"ubg43-300-expansion-2026\"" in legacy or "data-source="\'ubg43-300-expansion-2026\'" in legacy:
         print("300-game expansion already present; nothing to do.")
         return
 
