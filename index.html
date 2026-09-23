@@ -4242,7 +4242,7 @@
     <h3>Animal Crossing (GAMECUBE)</h3>
   </div>
 
-<div class="game-card" data-category="Multiplayer" data-new-since="2026-09-24" data-source="topgames-embed" onclick="openGame('https://topgames.gg/embed/rivals?pub_id=&preroll=0')">
+<div class="game-card" data-category="Multiplayer" data-new-since="2026-09-24" data-source="topgames-embed" data-trending-featured="true" onclick="openGame('https://topgames.gg/embed/rivals?pub_id=&preroll=0')">
     <img loading="lazy" src="https://topgames.gg/data/image/game/rivals.png" alt="Rivals Online" referrerpolicy="no-referrer">
     <h3>Rivals Online</h3>
   </div>
@@ -4487,7 +4487,7 @@ function fillRail(rail,srcs){if(!rail)return;rail.innerHTML='';const used=new Se
 function renderRails(){
   const cs=cards(),fresh=cs.filter(isNew).slice(0,24);
   const live=cs.filter(c=>globalCount(c)>0).sort((a,b)=>(globalCount(b)-globalCount(a))||titleOf(a).localeCompare(titleOf(b)));
-  const temporarySeed=!live.length?((cs.find(c=>c.dataset.trendingFeatured==='true'&&!live.includes(c))||cs.find(c=>c.dataset.trendingSeed==='true'&&!live.includes(c)))?[cs.find(c=>c.dataset.trendingFeatured==='true'&&!live.includes(c))||cs.find(c=>c.dataset.trendingSeed==='true'&&!live.includes(c))]:[]):[];
+  const temporaryFeatured=!live.length?cs.filter(c=>c.dataset.trendingFeatured==='true'&&!live.includes(c)).slice(0,2):[]; const temporarySeed=temporaryFeatured.length?temporaryFeatured:(!live.length?cs.filter(c=>c.dataset.trendingSeed==='true'&&!live.includes(c)).slice(0,1):[]);
   const starterPool=cs.filter(c=>isNew(c)&&!live.includes(c));
   const starterNew=temporarySeed.concat(starterPool.filter(c=>!temporarySeed.includes(c))).slice(0,4);
   const starterOther=cs.filter(c=>!isNew(c)&&!live.includes(c)).slice(0,24);
