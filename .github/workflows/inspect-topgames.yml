@@ -77,3 +77,25 @@ jobs:
             echo "--- links to yandex/static assets ---"
             grep -Eoi 'https?://[^"'"'"' <>()]+' "/tmp/${name}.html" | grep -Ei 'yandex|static|games' | sort -u | head -150 || true
           done
+
+
+      - name: Test direct CDN game files
+        shell: bash
+        run: |
+          set -euxo pipefail
+          for pair in             "steal_cdn|https://app-580426.cdn.games.yandex.net/580426/pr8news651eea9ccyvedugx9c5ce1st4_brotli/index.html"             "meccha_cdn|https://app-593207.cdn.games.yandex.net/593207/7mufd9blfjva1kvmagdoyg7krmngdw6k_brotli/index.html"
+          do
+            name="${pair%%|*}"
+            url="${pair#*|}"
+            echo "===== $name ====="
+            curl -I -L --max-time 30 --compressed -sS "$url" | sed -n '1,120p' || true
+            curl -L --max-time 30 --compressed -sS -o "/tmp/${name}.html" "$url" || true
+            echo "--- size ---"
+            wc -c "/tmp/${name}.html" || true
+            echo "--- references ---"
+            grep -Eoi 'https?://[^"'"'"' <>()]+' "/tmp/${name}.html" | sort -u | head -200 || true
+            echo "--- local assets/scripts ---"
+            grep -Eoi '(src|href|data-src|url\()=["'''']?[^"''' )>]+' "/tmp/${name}.html" | head -200 || true
+            echo "--- frame/security markers ---"
+            grep -Ei 'x-frame|content-security|frame-ancestors|serviceWorker|manifest|wasm|unity|construct|playcanvas|phaser' "/tmp/${name}.html" | head -120 || true
+          done
