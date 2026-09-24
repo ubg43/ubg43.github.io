@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const base = "https://cdn.jsdelivr.net/gh/giorgirick2-gif/game-webports-onawebsite@main/buckshot-roulette/";
+  const base = "https://raw.githubusercontent.com/giorgirick2-gif/game-webports-onawebsite/main/buckshot-roulette/";
   const PARTS = Object.freeze({
     pck: 17,
     wasm: 3
