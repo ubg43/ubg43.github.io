@@ -21,7 +21,7 @@ jobs:
       - name: Test direct game iframes
         shell: bash
         run: |
-          cat > /tmp/test.mjs <<'EOF'
+          cat > test-game-sources.mjs <<'EOF
           import { chromium } from "playwright";
           const targets = [
             ["steal", "https://app-580426.cdn.games.yandex.net/580426/pr8news651eea9ccyvedugx9c5ce1st4_brotli/index.html"],
@@ -46,4 +46,4 @@ jobs:
           }
           await browser.close();
           EOF
-          node /tmp/test.mjs
+          node test-game-sources.mjs
