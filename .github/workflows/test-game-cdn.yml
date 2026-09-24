@@ -1,0 +1,26 @@
+name: Test direct game CDN
+
+on:
+  push:
+    branches:
+      - debug/topgames-embed-sources
+  workflow_dispatch:
+
+jobs:
+  cdn:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check game CDN files
+        shell: bash
+        run: |
+          set -euo pipefail
+          for url in             "https://app-580426.cdn.games.yandex.net/580426/pr8news651eea9ccyvedugx9c5ce1st4_brotli/index.html"             "https://app-593207.cdn.games.yandex.net/593207/7mufd9blfjva1kvmagdoyg7krmngdw6k_brotli/index.html"
+          do
+            echo "=== $url ==="
+            curl -sS -I -L --max-time 20 "$url" | grep -Ei 'HTTP/|content-type:|x-frame-options:|content-security-policy:|location:' || true
+            curl -sS -L --max-time 20 -o /tmp/game.html "$url"
+            wc -c /tmp/game.html
+            grep -Eoi '<script[^>]+src="[^"]+"' /tmp/game.html | head -30 || true
+            grep -Eoi '<iframe[^>]+src="[^"]+"' /tmp/game.html | head -10 || true
+            grep -Eoi 'https?://[^"'"'"' <>()]+' /tmp/game.html | head -30 || true
+          done
