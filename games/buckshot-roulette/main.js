@@ -66,10 +66,15 @@
       return originalFetch(input, ...args);
     };
 
-    if (typeof window.godotRunStart !== "function") {
-      throw new Error("Buckshot Roulette engine did not initialize.");
+    // main.js is loaded before the Godot bootstrap script in the source HTML.
+    // Wait for the bootstrap function instead of racing it.
+    const deadline = Date.now() + 30000;
+    while (typeof window.godotRunStart !== "function") {
+      if (Date.now() >= deadline) {
+        throw new Error("Buckshot Roulette engine did not initialize.");
+      }
+      await new Promise(resolve => setTimeout(resolve, 25));
     }
-
     window.godotRunStart();
   }
 
