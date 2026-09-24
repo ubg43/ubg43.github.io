@@ -4367,6 +4367,13 @@ async function mountGame(w,u,title){
   iframe.allow='autoplay; fullscreen; gamepad; clipboard-read; clipboard-write';
   iframe.setAttribute('allowfullscreen','');
   stage.appendChild(iframe);
+  // Buckshot Roulette uses a very large Godot package. Use the port's published
+  // web build inside the existing about:blank player instead of rebuilding it
+  // into a Blob, which can stall on large-memory browsers.
+  if(/buckshot roulette/i.test(String(title||'')) || /games\/buckshot-roulette\/?$/i.test(u)){
+    iframe.src='https://gn-math.github.io/web-port/buckshot-roulette/';
+    return true;
+  }
   if(isRawGame(u)){
     try{
       const controller=new AbortController();
