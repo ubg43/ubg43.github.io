@@ -7,6 +7,7 @@
 <link rel="shortcut icon" type="image/x-icon" href="/Docs.ico?v=4">
 <title>Google Docs</title>
 <link rel="canonical" href="https://ubg43.github.io/">
+<link rel="preload" as="image" href="https://cdn.jsdelivr.net/gh/StaticQuasar931/Images@33622c94ba20a582d9214ecf2af3f7650904d6ca/eggthumb.png" fetchpriority="high">
 <meta name="description" content="UBG43 is a fast unblocked games site with 1000+ games, quick search, automatic categories, new games, trending picks and personalized recommendations.">
 <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
 <meta property="og:type" content="website">
@@ -4251,7 +4252,7 @@
     <h3>Steal A Egg Online</h3>
   </div>
 <div class="game-card" data-category="Platformer" data-new-since="2026-09-24" data-source="topgames-embed" onclick="openGame('https://topgames.gg/embed/obby-steal-an-egg?pub_id=&preroll=0')">
-    <img loading="lazy" src="https://cdn.jsdelivr.net/gh/StaticQuasar931/Images@main/eggthumb.png" alt="Obby Steal An Egg Online" referrerpolicy="no-referrer">
+    <img loading="eager" fetchpriority="high" decoding="sync" src="https://cdn.jsdelivr.net/gh/StaticQuasar931/Images@33622c94ba20a582d9214ecf2af3f7650904d6ca/eggthumb.png" alt="Obby Steal An Egg Online" referrerpolicy="no-referrer">
     <h3>Obby Steal An Egg Online</h3>
   </div>
 <div class="game-card" data-category="Casual" data-new-since="2026-09-24" data-source="topgames-embed" data-trending-featured="true" onclick="openGame('https://topgames.gg/embed/meccha-chameleon-online?pub_id=&preroll=0')">
@@ -4446,7 +4447,7 @@ function isTrending(c){return globalCount(c)>0||fallbackTrendingKeys.has(keyOf(c
 function badge(c,text,cls){const box=c.querySelector('.ubg43-badges')||(()=>{const x=document.createElement('div');x.className='ubg43-badges';c.append(x);return x})();const b=document.createElement('span');b.className='ubg43-badge '+cls;b.textContent=text;box.append(b)}
 function decorate(){const cs=cards();cs.forEach(c=>{c.querySelector('.ribbons')?.remove();c.querySelector('.ubg43-badges')?.remove();if(isNew(c))badge(c,'NEW','new');if(isTrending(c))badge(c,'TRENDING','trending')})}
 const IMAGE_PROXY='https://images.weserv.nl/?url=';
-const KNOWN_IMAGE_ALTERNATES={'blumgi dragon':['https://pokigamez.github.io/images/blumgi-dragon.png','https://retrobowl-25.github.io/thumbs/blumgi-dragon.webp','https://bitlifeonline.github.io/blumgi-dragon/logo.png'],'obby steal an egg online':['https://cdn.jsdelivr.net/gh/StaticQuasar931/Images@main/eggplay.png','https://topgames.gg/data/image/game/obby-steal-an-egg.png']};
+const KNOWN_IMAGE_ALTERNATES={'blumgi dragon':['https://pokigamez.github.io/images/blumgi-dragon.png','https://retrobowl-25.github.io/thumbs/blumgi-dragon.webp','https://bitlifeonline.github.io/blumgi-dragon/logo.png'],'obby steal an egg online':['https://cdn.jsdelivr.net/gh/StaticQuasar931/Images@33622c94ba20a582d9214ecf2af3f7650904d6ca/eggplay.png','https://topgames.gg/data/image/game/obby-steal-an-egg.png']};
 function imageTitle(img){return String(img?.alt||img?.closest?.('.game-card')?.querySelector?.('h3')?.textContent||'UBG43 Game').trim()}
 function imageProxy(src){return IMAGE_PROXY+encodeURIComponent(String(src||'').replace(/^https?:\/\//i,''))+'&w=640&h=360&fit=cover&output=webp'}
 function markImageUnavailable(img){
