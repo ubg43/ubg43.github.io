@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <base href="https://cdn.jsdelivr.net/gh/giorgirick2-gif/game-webports-onawebsite@main/buckshot-roulette/">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
+  <title>Buckshot Roulette</title>
+  <link rel="stylesheet" href="https://ubg43.github.io/games/buckshot-roulette/style.css?v=2">
+  <link rel="icon" type="image/png" href="https://cdn.jsdelivr.net/gh/giorgirick2-gif/game-webports-onawebsite@main/buckshot-roulette/buckshot-roulette.icon.png">
+  <link rel="apple-touch-icon" href="https://cdn.jsdelivr.net/gh/giorgirick2-gif/game-webports-onawebsite@main/buckshot-roulette/buckshot-roulette.apple-touch-icon.png">
+</head>
+<body>
+  <div id="loading-text" style="position:absolute;z-index:20;inset:24px auto auto 0;width:100%;text-align:center;font:700 42px/1.2 system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#fff;pointer-events:none;">LOADING BUCKSHOT ROULETTE...</div>
+  <canvas id="canvas">Your browser does not support the canvas tag.</canvas>
+  <noscript>Your browser does not support JavaScript.</noscript>
+  <div id="status">
+    <img id="status-splash" src="https://cdn.jsdelivr.net/gh/giorgirick2-gif/game-webports-onawebsite@main/buckshot-roulette/buckshot-roulette.png" alt="">
+    <progress id="status-progress"></progress>
+    <div id="status-notice"></div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/gh/giorgirick2-gif/game-webports-onawebsite@main/buckshot-roulette/buckshot-roulette.js"></script>
+  <script>
+    const GODOT_CONFIG = {
+      "args": [],
+      "canvasResizePolicy": 2,
+      "ensureCrossOriginIsolationHeaders": false,
+      "executable": "buckshot-roulette",
+      "experimentalVK": false,
+      "fileSizes": {
+        "buckshot-roulette.pck": 344705792,
+        "buckshot-roulette.wasm": 43444261
+      },
+      "focusCanvas": false,
+      "gdextensionLibs": []
+    };
+    const GODOT_THREADS_ENABLED = false;
+    const engine = new Engine(GODOT_CONFIG);
+
+    function run() {
+      const loadingText = document.getElementById("loading-text");
+      const statusOverlay = document.getElementById("status");
+      const statusProgress = document.getElementById("status-progress");
+      const statusNotice = document.getElementById("status-notice");
+      loadingText.remove();
+      let initializing = true;
+      let statusMode = "";
+
+      function setStatusMode(mode) {
+        if (statusMode === mode || !initializing) return;
+        if (mode === "hidden") {
+          statusOverlay.remove();
+          initializing = false;
+          return;
+        }
+        statusOverlay.style.visibility = "visible";
+        statusProgress.style.display = mode === "progress" ? "block" : "none";
+        statusNotice.style.display = mode === "notice" ? "block" : "none";
+        statusMode = mode;
+      }
+
+      function setStatusNotice(text) {
+        statusNotice.textContent = text;
+      }
+
+      function displayFailureNotice(err) {
+        console.error(err);
+        setStatusNotice(err instanceof Error ? err.message : String(err || "Unknown error."));
+        setStatusMode("notice");
+        initializing = false;
+      }
+
+      const missing = Engine.getMissingFeatures({ threads: GODOT_THREADS_ENABLED });
+      if (missing.length !== 0) {
+        displayFailureNotice("The following features required to run the Godot game are missing:\n" + missing.join("\n"));
+        return;
+      }
+
+      setStatusMode("progress");
+      engine.startGame({
+        onProgress(current, total) {
+          if (current > 0 && total > 0) {
+            statusProgress.value = current;
+            statusProgress.max = total;
+          } else {
+            statusProgress.removeAttribute("value");
+            statusProgress.removeAttribute("max");
+          }
+        }
+      }).then(() => setStatusMode("hidden"), displayFailureNotice);
+    }
+
+    window.godotRunStart = run;
+  </script>
+  <script src="https://ubg43.github.io/games/buckshot-roulette/main.js?v=2"></script>
+</body>
+</html>
