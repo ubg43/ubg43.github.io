@@ -1,101 +1,86 @@
 (() => {
   "use strict";
 
-  const base = "https://raw.githubusercontent.com/giorgirick2-gif/game-webports-onawebsite/main/buckshot-roulette/";
-  const PARTS = Object.freeze({
-    pck: 17,
-    wasm: 3
-  });
+  const BASE = "https://raw.githubusercontent.com/fowntain/web-port-doge/main/buckshot-roulette/";
+  const PCK_PARTS = 17;
+  const WASM_PARTS = 3;
+  const PCK_SIZE = 344705792;
+  const WASM_SIZE = 43444261;
 
-  const loadingText = () => document.getElementById("loading-text");
-  const notice = () => document.getElementById("status-notice");
-  const progress = () => document.getElementById("status-progress");
-  const status = () => document.getElementById("status");
-
-  function showError(error) {
-    console.error("Buckshot Roulette load error:", error);
-    const message = error instanceof Error ? error.message : String(error || "Unknown error");
-    const el = notice();
-    const overlay = status();
-    const text = loadingText();
-    if (text) text.textContent = "BUCKSHOT ROULETTE COULD NOT LOAD";
-    if (overlay) overlay.style.visibility = "visible";
-    if (progress()) progress().style.display = "none";
-    if (el) {
-      el.style.display = "block";
-      el.textContent = "Load error: " + message;
-    }
+  function findGameFetch() {
+    return typeof window.fetch === "function" ? window.fetch.bind(window) : fetch;
   }
 
-  async function fetchPart(url, index, total) {
-    const response = await fetch(url, { cache: "force-cache", mode: "cors" });
-    if (!response.ok) {
-      throw new Error("Missing game data part " + index + "/" + total + " (HTTP " + response.status + ")");
-    }
-    return new Uint8Array(await response.arrayBuffer());
+  async function fetchPart(url, label) {
+    const response = await findGameFetch()(url, { cache: "force-cache", mode: "cors" });
+    if (!response.ok) throw new Error("Unable to load " + label + " (HTTP " + response.status + ")");
+    return response;
   }
 
-  async function mergeFile(name, count) {
-    const urls = Array.from({ length: count }, (_, i) => base + name + ".part" + (i + 1));
-    const parts = await Promise.all(urls.map((url, i) => fetchPart(url, i + 1, count)));
-    const size = parts.reduce((total, part) => total + part.byteLength, 0);
-    const merged = new Uint8Array(size);
-    let offset = 0;
-    for (const part of parts) {
-      merged.set(part, offset);
-      offset += part.byteLength;
-    }
-    return URL.createObjectURL(new Blob([merged], { type: "application/octet-stream" }));
-  }
+  function makeStream(prefix, count, padded, totalSize) {
+    let part = 1;
+    let remaining = 0;
 
-  async function waitForGodotRunner(timeoutMs = 15000) {
-    const start = Date.now();
-    while (typeof window.godotRunStart !== "function") {
-      if (Date.now() - start > timeoutMs) {
-        throw new Error("Godot game engine did not finish initializing.");
+    const stream = new ReadableStream({
+      async pull(controller) {
+        if (part > count) {
+          controller.close();
+          return;
+        }
+        try {
+          const suffix = padded ? String(part).padStart(2, "0") : String(part);
+          const response = await fetchPart(BASE + prefix + suffix, prefix + suffix);
+          const buffer = await response.arrayBuffer();
+          remaining += buffer.byteLength;
+          controller.enqueue(new Uint8Array(buffer));
+          part++;
+        } catch (error) {
+          controller.error(error);
+        }
       }
-      await new Promise(resolve => setTimeout(resolve, 25));
-    }
+    });
+
+    return new Response(stream, {
+      status: 200,
+      headers: {
+        "Content-Type": prefix.includes(".wasm") ? "application/wasm" : "application/octet-stream",
+        "Content-Length": String(totalSize)
+      }
+    });
   }
 
   async function start() {
-    try {
-      await waitForGodotRunner();
+    const originalFetch = window.fetch.bind(window);
 
-      const text = loadingText();
-      const p = progress();
-      if (text) text.textContent = "LOADING BUCKSHOT ROULETTE...";
-      if (p) {
-        p.style.display = "block";
-        p.removeAttribute("value");
-        p.removeAttribute("max");
+    window.fetch = async function(input, ...args) {
+      const url = typeof input === "string" ? input : (input && input.url) || "";
+
+      if (url.endsWith("buckshot-roulette.pck")) {
+        return makeStream("buckshot-roulette.pck.part", PCK_PARTS, false, PCK_SIZE);
       }
 
-      const [pckUrl, wasmUrl] = await Promise.all([
-        mergeFile("buckshot-roulette.pck", PARTS.pck),
-        mergeFile("buckshot-roulette.wasm", PARTS.wasm)
-      ]);
+      if (url.endsWith("buckshot-roulette.wasm")) {
+        return makeStream("buckshot-roulette.wasm.part", WASM_PARTS, false, WASM_SIZE);
+      }
 
-      const originalFetch = window.fetch;
-      window.fetch = async (input, ...args) => {
-        const url = typeof input === "string" ? input : input?.url || "";
-        let pathname = url;
-        try { pathname = new URL(url, location.href).pathname; } catch (_) {}
-        if (pathname.endsWith("/buckshot-roulette.pck")) return originalFetch(pckUrl, ...args);
-        if (pathname.endsWith("/buckshot-roulette.wasm")) return originalFetch(wasmUrl, ...args);
-        return originalFetch(input, ...args);
-      };
+      return originalFetch(input, ...args);
+    };
 
-      window.addEventListener("pagehide", () => {
-        try { URL.revokeObjectURL(pckUrl); } catch (_) {}
-        try { URL.revokeObjectURL(wasmUrl); } catch (_) {}
-      }, { once: true });
-
-      window.godotRunStart();
-    } catch (error) {
-      showError(error);
+    if (typeof window.godotRunStart !== "function") {
+      throw new Error("Buckshot Roulette engine did not initialize.");
     }
+
+    window.godotRunStart();
   }
 
-  start();
+  start().catch(error => {
+    console.error("Buckshot Roulette loader error:", error);
+    const status = document.getElementById("status-notice");
+    const overlay = document.getElementById("status");
+    if (status) {
+      status.textContent = error && error.message ? error.message : "Unable to load Buckshot Roulette.";
+      status.style.display = "block";
+    }
+    if (overlay) overlay.style.visibility = "visible";
+  });
 })();
