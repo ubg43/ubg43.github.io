@@ -957,6 +957,10 @@
   "fitness empire": {
     "first_seen": "2026-09-18"
   },
+  "five night s at shrek s hotel": {
+    "first_seen": "2026-09-24",
+    "url": "https://raw.githubusercontent.com/gn-math/html/main/764.html"
+  },
   "five nights at candy s": {
     "first_seen": null
   },
@@ -964,7 +968,8 @@
     "first_seen": null
   },
   "five nights at epstein s": {
-    "first_seen": null
+    "first_seen": "2026-09-24",
+    "url": "https://raw.githubusercontent.com/gn-math/html/main/710-fix.html"
   },
   "five nights at freddy s": {
     "first_seen": null
@@ -1000,7 +1005,8 @@
     "first_seen": null
   },
   "five nights at last breath": {
-    "first_seen": null
+    "first_seen": "2026-09-24",
+    "url": "https://raw.githubusercontent.com/gn-math/html/main/750-u.html"
   },
   "five nights at winston s": {
     "first_seen": null
