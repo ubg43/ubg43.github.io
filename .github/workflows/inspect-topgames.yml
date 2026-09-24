@@ -54,3 +54,26 @@ jobs:
             echo "--- iframe/script references ---"
             grep -Eoi '.{0,200}(iframe|script|src=|game|webpack|main\.js|yandex).{0,350}' "/tmp/${name}.html" | head -120 || true
           done
+
+
+      - name: Inspect final Yandex app pages
+        shell: bash
+        run: |
+          set -euxo pipefail
+          for pair in             "steal_final|https://yandex.com/games/app/steal-an-egg-580426?utm_source=distrib&is-united-page=1&skip-guard=1&header=no&utm_medium=topgames.gg&clid=10575041&flags=%7B%22adv_sticky_banner_disabled%22%3Atrue%7D"             "obby_final|https://yandex.com/games/app/obby-steal-an-egg-593207?utm_source=distrib&is-united-page=1&skip-guard=1&header=no&utm_medium=topgames.gg&clid=10575041&flags=%7B%22adv_sticky_banner_disabled%22%3Atrue%7D"             "meccha_final|https://yandex.com/games/app/meccha-chameleon-593207?utm_source=distrib&is-united-page=1&skip-guard=1&header=no&utm_medium=topgames.gg&clid=10575041&flags=%7B%22adv_sticky_banner_disabled%22%3Atrue%7D"
+          do
+            name="${pair%%|*}"
+            url="${pair#*|}"
+            echo "===== $name ====="
+            curl -L --max-time 30 --compressed -sS -D "/tmp/${name}.headers" -o "/tmp/${name}.html" "$url" || true
+            echo "--- headers ---"
+            grep -Ei 'HTTP/|x-frame-options:|content-type:|location:' "/tmp/${name}.headers" || true
+            echo "--- size ---"
+            wc -c "/tmp/${name}.html" || true
+            echo "--- keywords ---"
+            grep -Eoi '.{0,220}(iframe|gameUrl|game_url|embed|static|bundle|sdk|appData|gameData|play).{0,380}' "/tmp/${name}.html" | head -160 || true
+            echo "--- script src ---"
+            grep -Eoi '<script[^>]+src="[^"]+"' "/tmp/${name}.html" | head -100 || true
+            echo "--- links to yandex/static assets ---"
+            grep -Eoi 'https?://[^"'"'"' <>()]+' "/tmp/${name}.html" | grep -Ei 'yandex|static|games' | sort -u | head -150 || true
+          done
