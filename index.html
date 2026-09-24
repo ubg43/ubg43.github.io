@@ -1194,7 +1194,7 @@
 		<img loading="lazy" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTatFe_hCokL0bOJ7ZNZ-hhhMdMBKoK_B9V4w&s" alt="Snail Bob">
 		<h3>Snail Bob</h3>
 	</div>
-<div class="game-card" data-category="Casual" data-new-since="2026-09-16" data-source="gn-math-verified" onclick="openGame('https://gn-math.github.io/web-port/buckshot-roulette/','Buckshot Roulette')">
+<div class="game-card" data-category="Casual" data-new-since="2026-09-16" data-source="gn-math-verified" onclick="openGame('https://cdn.jsdelivr.net/gh/genizy/web-port@main/buckshot-roulette/index.html','Buckshot Roulette')">
     <img loading="lazy" src="https://raw.githubusercontent.com/gn-math/covers/main/205.png" alt="Buckshot Roulette" referrerpolicy="no-referrer">
     <h3>Buckshot Roulette</h3>
   </div>
@@ -4371,7 +4371,7 @@ async function mountGame(w,u,title){
   // web build inside the existing about:blank player instead of rebuilding it
   // into a Blob, which can stall on large-memory browsers.
   if(/buckshot roulette/i.test(String(title||'')) || /games\/buckshot-roulette\/?$/i.test(u)){
-    iframe.src='https://gn-math.github.io/web-port/buckshot-roulette/';
+    iframe.src='https://cdn.jsdelivr.net/gh/genizy/web-port@main/buckshot-roulette/index.html';
     return true;
   }
   if(isRawGame(u)){
