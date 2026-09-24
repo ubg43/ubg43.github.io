@@ -1,0 +1,35 @@
+name: Inspect TopGames Sources
+
+on:
+  push:
+    branches:
+      - debug/topgames-embed-sources
+  workflow_dispatch:
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch TopGames pages and inspect redirects
+        shell: bash
+        run: |
+          set -euxo pipefail
+          for pair in             "rivals|https://topgames.gg/embed/rivals?pub_id=&preroll=0"             "steal|https://topgames.gg/embed/steal-an-egg?pub_id=&preroll=0"             "obby|https://topgames.gg/embed/obby-steal-an-egg?pub_id=&preroll=0"             "meccha|https://topgames.gg/embed/meccha-chameleon-online?pub_id=&preroll=0"
+          do
+            name="${pair%%|*}"
+            url="${pair#*|}"
+            echo "===== $name ====="
+            echo "URL: $url"
+            curl -L --max-time 30 --compressed -sS -D "/tmp/${name}.headers" -o "/tmp/${name}.html" "$url" || true
+            echo "--- final headers ---"
+            sed -n '1,80p' "/tmp/${name}.headers" || true
+            echo "--- page size ---"
+            wc -c "/tmp/${name}.html" || true
+            echo "--- url-like references ---"
+            grep -Eoi 'https?://[^"'"'"' <>()]+' "/tmp/${name}.html" | sort -u | head -100 || true
+            echo "--- iframe/src/href snippets ---"
+            grep -Eoi '.{0,180}(iframe|src=|location|window\.open|yandex).{0,260}' "/tmp/${name}.html" | head -80 || true
+            echo "--- first 12k ---"
+            head -c 12000 "/tmp/${name}.html" || true
+            echo
+          done
