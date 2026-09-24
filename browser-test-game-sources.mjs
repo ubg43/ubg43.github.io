@@ -25,6 +25,7 @@ for (const [name,url] of targets) {
       });
     } catch {}
   }
+  for (const f of page.frames().slice(1)) { try { console.log("HTML "+name+" "+JSON.stringify((await f.content()).slice(0,14000))); } catch {} }
   console.log(JSON.stringify({name,url,finalPageUrl:page.url(),frameCount:page.frames().length,frames,frameInfo,errors:errors.slice(0,20)}));
   await page.close();
 }
