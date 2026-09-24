@@ -79,8 +79,10 @@
       const originalFetch = window.fetch;
       window.fetch = async (input, ...args) => {
         const url = typeof input === "string" ? input : input?.url || "";
-        if (url.endsWith("buckshot-roulette.pck")) return originalFetch(pckUrl, ...args);
-        if (url.endsWith("buckshot-roulette.wasm")) return originalFetch(wasmUrl, ...args);
+        let pathname = url;
+        try { pathname = new URL(url, location.href).pathname; } catch (_) {}
+        if (pathname.endsWith("/buckshot-roulette.pck")) return originalFetch(pckUrl, ...args);
+        if (pathname.endsWith("/buckshot-roulette.wasm")) return originalFetch(wasmUrl, ...args);
         return originalFetch(input, ...args);
       };
 
