@@ -4383,6 +4383,9 @@ async function mountGame(w,u,title){
       html=stripKnownAds(html);
       html=html.replace(/<base\b[^>]*>/i,'<base href="'+assetBase+'">');
       if(!/<base\b/i.test(html)) html=html.replace(/<head([^>]*)>/i,'<head$1><base href="'+assetBase+'">');
+      // Use UBG43's patched chunk loader, which fetches the large game assets
+      // from GitHub raw instead of the blocked jsDelivr CDN.
+      html=html.replace(/<script\b[^>]*src=["']main\.js["'][^>]*>\s*<\/script>/i,'<script src="https://ubg43.github.io/games/buckshot-roulette/main.js?v=3"><\/script>');
       // Remove third-party ad/analytics scripts left by the original shell.
       html=html.replace(/<script[^>]*src=["'][^"']*(?:googletagmanager|googlesyndication)[^"']*["'][^>]*>\s*<\/script>/gi,'');
       html=html.replace(/<script[^>]*>[^<]*(?:googletagmanager|googlesyndication)[\s\S]*?<\/script>/gi,'');
