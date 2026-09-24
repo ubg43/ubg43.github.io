@@ -33,3 +33,24 @@ jobs:
             head -c 12000 "/tmp/${name}.html" || true
             echo
           done
+
+
+      - name: Inspect direct providers
+        shell: bash
+        run: |
+          set -euxo pipefail
+          for pair in             "rivals_provider|https://veck.io/"             "steal_yandex|https://yandex.com/games/app/580426?utm_source=distrib&is-united-page=1&skip-guard=1&header=no&utm_medium=topgames.gg&clid=10575041&flags=%7B%22adv_sticky_banner_disabled%22%3Atrue%7D"             "meccha_yandex|https://yandex.com/games/app/593207?utm_source=distrib&is-united-page=1&skip-guard=1&header=no&utm_medium=topgames.gg&clid=10575041&flags=%7B%22adv_sticky_banner_disabled%22%3Atrue%7D"
+          do
+            name="${pair%%|*}"
+            url="${pair#*|}"
+            echo "===== DIRECT $name ====="
+            curl -L --max-time 30 --compressed -sS -D "/tmp/${name}.headers" -o "/tmp/${name}.html" "$url" || true
+            echo "--- headers ---"
+            sed -n '1,80p' "/tmp/${name}.headers" || true
+            echo "--- size ---"
+            wc -c "/tmp/${name}.html" || true
+            echo "--- refs ---"
+            grep -Eoi 'https?://[^"'"'"' <>()]+' "/tmp/${name}.html" | sort -u | head -150 || true
+            echo "--- iframe/script references ---"
+            grep -Eoi '.{0,200}(iframe|script|src=|game|webpack|main\.js|yandex).{0,350}' "/tmp/${name}.html" | head -120 || true
+          done
