@@ -4367,9 +4367,8 @@ async function mountGame(w,u,title){
   iframe.allow='autoplay; fullscreen; gamepad; clipboard-read; clipboard-write';
   iframe.setAttribute('allowfullscreen','');
   stage.appendChild(iframe);
-  // Buckshot Roulette: use the independent Stratus Games web port.
-  // Rewrite its asset base to raw.githubusercontent.com so no Genizy/jsDelivr
-  // dependency is used.
+  // Buckshot Roulette: use the independent Stratus Games web port and
+  // rewrite its asset base to GitHub Raw.
   if(/buckshot roulette/i.test(String(title||'')) || /205-ff\.html$/i.test(u)){
     try{
       const controller=new AbortController();
