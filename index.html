@@ -1194,7 +1194,7 @@
 		<img loading="lazy" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTatFe_hCokL0bOJ7ZNZ-hhhMdMBKoK_B9V4w&s" alt="Snail Bob">
 		<h3>Snail Bob</h3>
 	</div>
-<div class="game-card" data-category="Casual" data-new-since="2026-09-16" data-source="gn-math-verified" onclick="openGame('https://raw.githubusercontent.com/Stratus-Games/Buckshot-NEWEST-Port/V1.14/index.html','Buckshot Roulette')">
+<div class="game-card" data-category="Casual" data-new-since="2026-09-16" data-source="gn-math-verified" onclick="openGame('https://raw.githubusercontent.com/fowntain/web-port-doge/main/buckshot-roulette/index.html','Buckshot Roulette')" data-maintenance="true">
     <img loading="lazy" src="https://raw.githubusercontent.com/gn-math/covers/main/205.png" alt="Buckshot Roulette" referrerpolicy="no-referrer">
     <h3>Buckshot Roulette</h3>
   </div>
@@ -4367,14 +4367,14 @@ async function mountGame(w,u,title){
   iframe.allow='autoplay; fullscreen; gamepad; clipboard-read; clipboard-write';
   iframe.setAttribute('allowfullscreen','');
   stage.appendChild(iframe);
-  // Buckshot Roulette: use the independent Stratus Games web port and
-  // rewrite its asset base to GitHub Raw.
+  // Buckshot Roulette: use the independent 17-PCK/3-WASM web port.
+  // Rewrite only its asset base and use the UBG43 low-memory streaming loader.
   if(/buckshot roulette/i.test(String(title||'')) || /205-ff\.html$/i.test(u)){
     try{
       const controller=new AbortController();
       const timer=setTimeout(()=>controller.abort(),15000);
-      const sourceUrl='https://raw.githubusercontent.com/Stratus-Games/Buckshot-NEWEST-Port/V1.14/index.html';
-      const assetBase='https://raw.githubusercontent.com/Stratus-Games/Buckshot-NEWEST-Port/V1.14/';
+      const sourceUrl='https://raw.githubusercontent.com/fowntain/web-port-doge/main/buckshot-roulette/index.html';
+      const assetBase='https://raw.githubusercontent.com/fowntain/web-port-doge/main/buckshot-roulette/';
       const r=await fetch(sourceUrl,{cache:'no-store',mode:'cors',signal:controller.signal});
       clearTimeout(timer);
       if(!r.ok)throw new Error('Buckshot source unavailable (HTTP '+r.status+')');
@@ -4382,8 +4382,7 @@ async function mountGame(w,u,title){
       html=stripKnownAds(html);
       html=html.replace(/<base\b[^>]*>/i,'<base href="'+assetBase+'">');
       if(!/<base\b/i.test(html))html=html.replace(/<head([^>]*)>/i,'<head$1><base href="'+assetBase+'">');
-      // Ensure the independent loader remains intact; it handles the split
-      // WASM/PCK assets itself using IndexedDB and streamed responses.
+      html=html.replace(/<script\b[^>]*src=["']main\.js["'][^>]*>\s*<\/script>/i,'<script src="https://ubg43.github.io/games/buckshot-roulette/main.js?v=4"><\/script>');
       const blobUrl=URL.createObjectURL(new Blob([html],{type:'text/html'}));
       iframe.src=blobUrl;
       iframe.addEventListener('load',()=>setTimeout(()=>{try{URL.revokeObjectURL(blobUrl)}catch(_){ }},300000),{once:true});
@@ -4468,7 +4467,7 @@ function isNew(c){if(c.dataset.new==='1'||c.dataset.new==='true')return true;con
 const fallbackTrendingKeys=new Set();
 function isTrending(c){return globalCount(c)>0||fallbackTrendingKeys.has(keyOf(c))}
 function badge(c,text,cls){const box=c.querySelector('.ubg43-badges')||(()=>{const x=document.createElement('div');x.className='ubg43-badges';c.append(x);return x})();const b=document.createElement('span');b.className='ubg43-badge '+cls;b.textContent=text;box.append(b)}
-const MAINTENANCE_TITLE_KEYS=new Set(['steal a egg online','obby steal an egg online','meccha chameleon online']);
+const MAINTENANCE_TITLE_KEYS=new Set(['steal a egg online','obby steal an egg online','meccha chameleon online','buckshot roulette']);
 function isMaintenance(c){return MAINTENANCE_TITLE_KEYS.has(norm(titleOf(c)))}
 function decorate(){const cs=cards();cs.forEach(c=>{c.querySelector('.ribbons')?.remove();c.querySelector('.ubg43-badges')?.remove();if(isNew(c))badge(c,'NEW','new');if(isTrending(c))badge(c,'TRENDING','trending');if(isMaintenance(c))badge(c,'MAINTENANCE','maintenance')})}
 const IMAGE_PROXY='https://images.weserv.nl/?url=';
