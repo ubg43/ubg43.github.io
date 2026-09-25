@@ -1,11 +1,8 @@
-
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-    <title>buckshot roulette</title>
-
-        <!-- Favicon -->
-    <base href="https://rawcdn.githack.com/genizy/google-class/6d6085a31333cefe30ee2077deec9a2fe2dd6e50/buckshot-roulette/">
+		<title>Buckshot Roulette</title>
+		<base href="https://rawcdn.githack.com/genizy/google-class/6d6085a31333cefe30ee2077deec9a2fe2dd6e50/buckshot-roulette/">
 		<style>
 body {
 	touch-action: none;
@@ -109,7 +106,9 @@ body {
 }
 		</style>
 		<link id='-gd-engine-icon' rel='icon' type='image/png' href='index.icon.png' />
-</head>
+<link rel='apple-touch-icon' href='index.apple-touch-icon.png'/>
+
+	</head>
 	<body>
 		<canvas id="canvas">
 			HTML5 canvas appears to be unsupported in the current browser.<br >
@@ -131,6 +130,7 @@ body {
 			</div>
 			<div id="status-notice" class="godot" style="display: none;"></div> 
 		</div>
+		<script src="coi-serviceworker.min.js"></script>
 		<script src="index.js"></script>
 		<script>
 const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":345408288,"index.wasm":28972640},"focusCanvas":true,"gdextensionLibs":[]};
