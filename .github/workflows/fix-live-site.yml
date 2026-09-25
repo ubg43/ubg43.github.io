@@ -13,7 +13,6 @@ on:
       - '.github/interaction-polish.py'
       - '.github/search-rail-visibility.py'
       - '.github/workflows/fix-live-site.yml'
-      - '.github/import-300-games.py'
       - 'legacy-index.html'
       - 'index.html'
   workflow_dispatch:
@@ -44,8 +43,18 @@ jobs:
           else:
               print('Stable runtime script already uses a safe replacement callback.')
           PY
-      - name: Import 300 validated non-duplicate games
-        run: python3 .github/import-300-games.py
+      - name: Verify published library size
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          for name in ('index.html','legacy-index.html'):
+              text=Path(name).read_text(encoding='utf-8')
+              cards=re.findall(r'<(?:div|article)\\s+class="game-card"[^>]*>',text,re.I)
+              if len(cards)<300:
+                  raise SystemExit(f'{name}: only {len(cards)} game cards; at least 300 are required')
+              print(f'{name}: {len(cards)} game cards')
+          PY
       - name: Write stable UBG43 homepage
         run: python3 .github/repair-ui.py
       - name: Resolve real game cover images
