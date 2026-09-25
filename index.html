@@ -4292,8 +4292,8 @@ const SUPABASE_TRENDING_HEADERS={'apikey':SUPABASE_TRENDING_KEY,'Authorization':
 const globalTrending={ready:false,loading:false,failed:false,updatedAt:null,counts:Object.create(null)};
 const BLOCKED_TITLE_PATTERNS=['[!] comments','suggest games','d4c9vfywyu','1 date danger'];
 const blockedTitle=c=>{const t=String(c?.querySelector('h3')?.textContent||'').trim().toLowerCase();return BLOCKED_TITLE_PATTERNS.some(x=>t.includes(x))||t.startsWith('[!]')};
-const norm=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
-const rawSearch=s=>String(s??'').normalize('NFKC').replace(/[\\u200B-\\u200D\\uFEFF]/g,'').toLowerCase().trim().replace(/\\s+/g,' ');
+const norm=s=>String(s||'').normalize('NFKC').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+const rawSearch=s=>String(s??'').normalize('NFKC').replace(/[\\u200B-\\u200D\\uFEFF]/g,'').replace(/\\s+/g,' ').trim().toLowerCase();
 const isExactSymbolQuery=s=>/^[^a-z0-9\\s][a-z0-9]{1,2}$/i.test(rawSearch(s));
 const searchMatches=(title,query)=>{
   const q=rawSearch(query);
@@ -4301,8 +4301,12 @@ const searchMatches=(title,query)=>{
   const t=rawSearch(title);
   if(t===q)return true;
   if(isExactSymbolQuery(q))return false;
-  const nq=norm(q);
-  return !!nq&&norm(title).includes(nq);
+  const nq=norm(q),nt=norm(title);
+  if(!nq||!nt)return false;
+  if(nt.includes(nq))return true;
+  const queryWords=nq.split(' ').filter(Boolean);
+  const titleWords=nt.split(' ').filter(Boolean);
+  return queryWords.length>1&&queryWords.every(w=>titleWords.some(tw=>tw.startsWith(w)));
 };
 const titleOf=c=>(c?.querySelector('h3')?.textContent||'').trim();
 const urlOf=c=>{const d=c?.dataset?.url;if(d)return d;const a=c?.getAttribute('onclick')||'',m=a.match(/openGame\(\s*[\'\"]([^\'\"]+)/i);if(m)return m[1];const w=a.match(/window\.open\(\s*[\'\"]([^\'\"]+)/i);if(w)return w[1];return c?.querySelector('a[href]')?.href||''};
@@ -4539,9 +4543,9 @@ function repairImages(){cards().forEach(c=>c.querySelectorAll?.('img').forEach(w
 document.addEventListener('error',e=>{const el=e.target;if(el?.tagName==='IMG')handleImageError(el)},true);
 function wire(c){if(!c)return;c.tabIndex=0;if(!c.dataset.url)c.dataset.url=urlOf(c);c.querySelectorAll?.('img').forEach(wireImage)}
 function applyView(){
-  const q=search?.value||'',exact=isExactSymbolQuery(q),cat=window.__ubg43ActiveCategory||'All Games',cs=cards();
+  const q=search?.value||'',hasSearch=!!rawSearch(q),exact=isExactSymbolQuery(q),cat=window.__ubg43ActiveCategory||'All Games',cs=cards();
   cs.forEach(c=>{
-    const catOk=exact||cat==='All Games'||(cat==='New Games'?isNew(c):cat==='Trending'?isTrending(c):(c.dataset.category||'Casual')===cat);
+    const catOk=hasSearch||exact||cat==='All Games'||(cat==='New Games'?isNew(c):cat==='Trending'?isTrending(c):(c.dataset.category||'Casual')===cat);
     c.style.display=catOk&&searchMatches(titleOf(c),q)?'':'none';
   });
   const shown=cs.filter(c=>c.style.display!=='none').length;
