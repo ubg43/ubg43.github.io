@@ -4670,10 +4670,14 @@ async function loadGlobalTrending(){
     if(!r.ok)throw new Error('Supabase trending '+r.status);
     const rows=await r.json(),map=Object.create(null);
     (Array.isArray(rows)?rows:[]).forEach(x=>{const k=String(x?.game_key||'');const n=Number(x?.play_count||0);if(k&&Number.isFinite(n)&&n>0)map[k]=n});
+    const previous=globalTrending.counts;
+    let changed=Object.keys(map).length!==Object.keys(previous).length;
+    if(!changed)for(const k of Object.keys(map)){if(Number(previous[k]||0)!==Number(map[k]||0)){changed=true;break}}
     globalTrending.counts=map;
     globalTrending.updatedAt=new Date().toISOString();
     globalTrending.ready=true;
     globalTrending.failed=false;
+    if(!changed){globalTrending.loading=false;updateTrendRailState();return;}
   }catch(_){globalTrending.failed=true}
   globalTrending.loading=false;updateTrendRailState();decorate();renderRails();applyView();
 }
