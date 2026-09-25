@@ -23,7 +23,7 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           idx=Path('index.html').read_text(encoding='utf-8')
-          required=['wewynhmybroxzynaxnrx.supabase.co','SUPABASE_TRENDING_URL','function loadGlobalTrending','Most played across UBG43','window.openGame=openGame','id="gameGrid"','id="searchBar"']
+          required=['wewynhmybroxzynaxnrx.supabase.co','SUPABASE_TRENDING_URL','function loadGlobalTrending','Trending Now','window.openGame=openGame','id="gameGrid"','id="searchBar"','Popular picks based on play activity']
           bad=[x for x in required if x not in idx]
           for old in ('api.counterapi.dev','ubg43-global-trending-v1','global-trending.json'):
               if old in idx: bad.append('old trending backend remains: '+old)
