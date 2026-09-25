@@ -1,34 +1,36 @@
-name: Debug Supabase trending syntax
+name: Validate homepage JavaScript
 on:
   push:
+    paths:
+      - 'index.html'
+      - '.github/workflows/debug-supabase-syntax.yml'
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
   debug:
-    if: ${{ github.event_name != 'push' || !contains(github.event.head_commit.message, '[live-fix]') }}
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - run: python3 .github/activate-supabase-trending.py
-      - run: python3 .github/stable-runtime-hotfix.py
-      - name: Print JavaScript syntax errors
+      - name: Check homepage scripts
         run: |
           python3 - <<'PY'
           from pathlib import Path
           import re, subprocess, tempfile
           idx=Path('index.html').read_text(encoding='utf-8')
           scripts=re.findall(r'<script([^>]*)>(.*?)</script>',idx,re.I|re.S)
+          errors=[]
           with tempfile.TemporaryDirectory() as td:
               for i,(attrs,body) in enumerate(scripts):
-                  if 'application/ld+json' in attrs.lower() or not body.strip(): continue
-                  f=Path(td)/f'script{i}.js';f.write_text(body,encoding='utf-8')
+                  if 'application/ld+json' in attrs.lower() or not body.strip():
+                      continue
+                  f=Path(td)/f'script{i}.js'
+                  f.write_text(body,encoding='utf-8')
                   r=subprocess.run(['node','--check',str(f)],capture_output=True,text=True)
                   if r.returncode:
-                      print('SCRIPT',i)
-                      print(r.stderr)
-                      print('--- context ---')
-                      lines=body.splitlines()
-                      for line in range(max(0,len(lines)-10),min(len(lines),len(lines)+10)):
-                          print(f'{line+1}: {lines[line]}')
+                      errors.append(r.stderr.strip() or f'Script {i} failed syntax validation')
+          if errors:
+              raise SystemExit('HOMEPAGE JAVASCRIPT FAILED:\n'+'\n'.join(errors))
+          print('HOMEPAGE JAVASCRIPT PASSED')
           PY
