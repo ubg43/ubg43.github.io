@@ -4478,7 +4478,7 @@ async function loadLegacyIntoGrid(){
     const d=new DOMParser().parseFromString(await r.text(),'text/html');
     const source=[...d.querySelectorAll('.game-card')];
     if(source.length<100)throw new Error('legacy game count too low');
-    grid.textContent=''; const seen=new Set();
+    grid.textContent=''; invalidateCards(); const seen=new Set();
     source.forEach(src=>{
       const h=src.querySelector('h3'),img=src.querySelector('img'); if(!h||!img)return;
       const rawTitle=h.textContent.trim();
@@ -4487,6 +4487,7 @@ async function loadLegacyIntoGrid(){
       const c=src.cloneNode(true),a=c.getAttribute('onclick')||'',m=a.match(/openGame\(\s*[\'\"]([^\'\"]+)/i);
       if(m)c.dataset.url=m[1]; seen.add(title); grid.append(c);
     });
+    invalidateCards();
   }catch(_){}
   return cards().length;
 }
@@ -4647,14 +4648,14 @@ function bind(){
  search?.addEventListener('input',e=>{e.stopImmediatePropagation();const q=search.value.trim();if(clear)clear.style.display=q?'inline-flex':'none';document.body.classList.toggle('ubg43-searching',!!q);showSuggestions(q);if(!q)clearSearch();else {applyView();recommendations(q)}},{capture:true});
  search?.addEventListener('keydown',e=>{e.stopImmediatePropagation();if(e.key==='Enter'){e.preventDefault();setSearchMode(search.value)}else if(e.key==='Escape'){e.preventDefault();clearSearch()}},{capture:true});
  clear?.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();clearSearch()},{capture:true});
- $('randomGameButton')?.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();const pool=cards().filter(c=>c.style.display!=='none'),list=pool.length?pool:cards(),c=list[Math.floor(Math.random()*list.length)];if(c){recordPlay(c);openGame(urlOf(c),titleOf(c));decorate();renderRails()}},{capture:true});
+ $('randomGameButton')?.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();const pool=cards().filter(c=>c.style.display!=='none'),list=pool.length?pool:cards(),c=list[Math.floor(Math.random()*list.length)];if(c){recordPlay(c);openGame(urlOf(c),titleOf(c));renderRails()}},{capture:true});
  $('reportGameButton')?.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();window.open(REPORT_URL,'_blank','noopener,noreferrer')},{capture:true});
  $('categoryToggle')?.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();openCategories()},{capture:true});
  $('categoryClose')?.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();closeCategories()},{capture:true});
  $('categoryOverlay')?.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();closeCategories()},{capture:true});
  [['trendPrev','trendingRail'],['trendNext','trendingRail'],['newPrev','newRail'],['newNext','newRail'],['recPrev','recommendRail'],['recNext','recommendRail']].forEach(([id,rid])=>$(id)?.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();const r=$(rid);if(r)r.scrollBy({left:Math.max(280,r.clientWidth*.8)*(id.includes('Prev')?-1:1),behavior:'smooth'})},{capture:true}));
  ['trendingRail','newRail','recommendRail'].forEach(id=>$(id)?.addEventListener('wheel',e=>{if(Math.abs(e.deltaY)>Math.abs(e.deltaX)){e.currentTarget.scrollLeft+=e.deltaY}},{passive:true}));
- document.addEventListener('click',e=>{const c=e.target.closest?.('.game-card');if(!c)return;e.preventDefault();e.stopImmediatePropagation();const u=urlOf(c);recordPlay(c);if(u)openGame(u,titleOf(c));renderRails();decorate()},{capture:true});
+ document.addEventListener('click',e=>{const c=e.target.closest?.('.game-card');if(!c)return;e.preventDefault();e.stopImmediatePropagation();const u=urlOf(c);recordPlay(c);if(u)openGame(u,titleOf(c));renderRails()},{capture:true});
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('categorySidebar')?.classList.contains('open'))closeCategories()},{capture:true});
 }
 function sync(){cards().forEach(c=>{if(blockedTitle(c))c.remove();else wire(c)});repairImages();decorate();renderRails();applyView();const s=$('status');if(s&&cards().length)s.textContent=cards().length+' games ready'}
@@ -4679,7 +4680,7 @@ function start(){
   bind();sync();updateTrendRailState();
   loadGlobalTrending();
   setInterval(loadGlobalTrending,60000);
-  loadLegacyIntoGrid().then(()=>{sync();setTimeout(sync,700);setTimeout(sync,1800);setTimeout(sync,3500);loadGlobalTrending()}).catch(()=>{sync();loadGlobalTrending()});
+  loadLegacyIntoGrid().then(()=>{sync();loadGlobalTrending()}).catch(()=>{sync();loadGlobalTrending()});
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
