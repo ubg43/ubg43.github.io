@@ -4565,7 +4565,7 @@ function renderRails(){
 function recommendations(q){
   if(!recSection||!recRail)return;
   const cs=cards(),n=norm(q);
-  if(!n){recSection.classList.add('hidden');recRail.innerHTML='';return}
+  if(!n||isExactSymbolQuery(q)){recSection.classList.add('hidden');recRail.innerHTML='';return}
   const ph=read('ubg43_final_plays',{}),sh=read('ubg43_final_searches',{});
   const searchHits=cs.filter(c=>searchMatches(titleOf(c),q)&&!blockedTitle(c));
   const catAffinity=Object.create(null),playAffinity=Object.create(null);
