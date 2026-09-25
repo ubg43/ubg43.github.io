@@ -2062,6 +2062,7 @@
 		<h3>Rocket Soccer Derby</h3>
 	</div>
 <div class="game-card" data-category="Casual" data-new-since="2026-09-16" data-source="gn-math-verified" onclick="openGame('https://raw.githubusercontent.com/fowntain/web-port-doge/main/buckshot-roulette/index.html','Buckshot Roulette')" data-maintenance="true">
+  <div class="ubg43-badges" aria-label="Maintenance status"><span class="ubg43-badge maintenance">MAINTENANCE</span></div>
     <img loading="lazy" src="https://raw.githubusercontent.com/gn-math/covers/main/205.png" alt="Buckshot Roulette" referrerpolicy="no-referrer">
     <h3>Buckshot Roulette</h3>
   </div>
@@ -4254,10 +4255,12 @@
     <h3>Five Night&#x27;s at Shrek&#x27;s Hotel</h3>
   </div>
 <div class="game-card" data-category="Casual" data-new-since="2026-09-24" data-source="topgames-embed" data-trending-seed="true" data-maintenance="true" onclick="openGame('https://app-580426.cdn.games.yandex.net/580426/pr8news651eea9ccyvedugx9c5ce1st4_brotli/index.html')">
+  <div class="ubg43-badges" aria-label="Maintenance status"><span class="ubg43-badge maintenance">MAINTENANCE</span></div>
   <img loading="lazy" src="https://topgames.gg/data/image/game/steal-an-egg.png" alt="Steal A Egg Online" referrerpolicy="no-referrer">
   <h3>Steal A Egg Online</h3>
 </div>
 <div class="game-card" data-category="Platformer" data-new-since="2026-09-24" data-source="topgames-embed" data-maintenance="true" onclick="openGame('https://app-593207.cdn.games.yandex.net/593207/7mufd9blfjva1kvmagdoyg7krmngdw6k_brotli/index.html')">
+  <div class="ubg43-badges" aria-label="Maintenance status"><span class="ubg43-badge maintenance">MAINTENANCE</span></div>
   <img loading="lazy" fetchpriority="high" src="https://cdn.jsdelivr.net/gh/StaticQuasar931/Images@33622c94ba20a582d9214ecf2af3f7650904d6ca/eggthumb.png" alt="Obby Steal An Egg Online" referrerpolicy="no-referrer">
   <h3>Obby Steal An Egg Online</h3>
 </div>
@@ -4269,7 +4272,7 @@
 <style id="ubg43-final-runtime-style">
 .ubg43-badges{position:absolute;left:9px;top:9px;z-index:20;display:flex;flex-direction:column;gap:5px;pointer-events:none}
 .ubg43-badge{display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:6px 8px 8px 6px;font:900 9px/1 Arial,sans-serif;letter-spacing:.06em;box-shadow:0 4px 10px rgba(0,0,0,.22);white-space:nowrap}
-.ubg43-badge.new{background:#e52424;color:#ffe600}.ubg43-badge.trending{background:#ffe600;color:#c31d1d}
+.ubg43-badge.new{background:#e52424;color:#ffe600}.ubg43-badge.trending{background:#ffe600;color:#c31d1d}.ubg43-badge.maintenance{background:#f59e0b;color:#fff}
 .search-shell .search-clear{display:none;align-items:center;justify-content:center;padding:0!important;line-height:1!important;text-align:center!important;text-indent:0!important;font-family:Arial,sans-serif!important}
 .arrow{display:grid!important;place-items:center!important;padding:0!important;line-height:1!important;text-align:center!important;text-indent:0!important;font-family:Arial,sans-serif!important}
 .sidebar{transform:translate3d(105%,0,0);transition:transform .34s cubic-bezier(.22,.9,.28,1)!important;will-change:transform}.sidebar.open{transform:translate3d(0,0,0)!important}.overlay{display:block!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important;transition:opacity .28s ease,visibility 0s linear .28s!important;backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}.overlay.open{visibility:visible!important;opacity:1!important;pointer-events:auto!important;transition:opacity .28s ease,visibility 0s linear 0s!important}.sidebar.open .category{animation:ubg43-category-in .38s cubic-bezier(.2,.8,.25,1) both;animation-delay:var(--ubg43-category-delay,0ms)}@keyframes ubg43-category-in{from{opacity:0;transform:translate3d(22px,0,0)}to{opacity:1;transform:translate3d(0,0,0)}}.category{will-change:transform,opacity}@media(prefers-reduced-motion:reduce){.sidebar,.overlay,.category{transition:none!important}.sidebar.open .category{animation:none!important}}
@@ -4442,8 +4445,10 @@ async function loadLegacyIntoGrid(){
 function isNew(c){if(c.dataset.new==='1'||c.dataset.new==='true')return true;const d=Date.parse(c.dataset.newSince||c.dataset.date||'');return Number.isFinite(d)&&Date.now()-d<45*86400000}
 const fallbackTrendingKeys=new Set();
 function isTrending(c){return globalCount(c)>0||fallbackTrendingKeys.has(keyOf(c))}
+const MAINTENANCE_TITLE_KEYS=new Set(['buckshot roulette','steal a egg online','obby steal an egg online','meccha chameleon online']);
+function isMaintenance(c){return c?.dataset?.maintenance==='1'||c?.dataset?.maintenance==='true'||MAINTENANCE_TITLE_KEYS.has(norm(titleOf(c)))}
 function badge(c,text,cls){const box=c.querySelector('.ubg43-badges')||(()=>{const x=document.createElement('div');x.className='ubg43-badges';c.append(x);return x})();const b=document.createElement('span');b.className='ubg43-badge '+cls;b.textContent=text;box.append(b)}
-function decorate(){const cs=cards();cs.forEach(c=>{c.querySelector('.ribbons')?.remove();c.querySelector('.ubg43-badges')?.remove();if(isNew(c))badge(c,'NEW','new');if(isTrending(c))badge(c,'TRENDING','trending')})}
+function decorate(){const cs=cards();cs.forEach(c=>{c.querySelector('.ribbons')?.remove();c.querySelector('.ubg43-badges')?.remove();if(isNew(c))badge(c,'NEW','new');if(isTrending(c))badge(c,'TRENDING','trending');if(isMaintenance(c))badge(c,'MAINTENANCE','maintenance')})}
 const IMAGE_PROXY='https://images.weserv.nl/?url=';
 const KNOWN_IMAGE_ALTERNATES={'blumgi dragon':['https://pokigamez.github.io/images/blumgi-dragon.png','https://retrobowl-25.github.io/thumbs/blumgi-dragon.webp','https://bitlifeonline.github.io/blumgi-dragon/logo.png']};
 function imageTitle(img){return String(img?.alt||img?.closest?.('.game-card')?.querySelector?.('h3')?.textContent||'UBG43 Game').trim()}
@@ -4486,7 +4491,7 @@ document.addEventListener('error',e=>{const el=e.target;if(el?.tagName==='IMG')h
 function wire(c){if(!c)return;c.tabIndex=0;if(!c.dataset.url)c.dataset.url=urlOf(c);c.querySelectorAll?.('img').forEach(wireImage)}
 function applyView(){const q=norm(search?.value||''),cat=window.__ubg43ActiveCategory||'All Games',cs=cards();cs.forEach(c=>{const text=norm(titleOf(c)),catOk=cat==='All Games'||(cat==='New Games'?isNew(c):cat==='Trending'?isTrending(c):(c.dataset.category||'Casual')===cat);c.style.display=catOk&&(!q||text.includes(q))?'':'none'});const shown=cs.filter(c=>c.style.display!=='none').length;if($('status'))$('status').textContent=`${shown} games shown`}
 function similarity(a,b){const A=new Set(norm(a).split(' ').filter(x=>x.length>1)),B=new Set(norm(b).split(' ').filter(x=>x.length>1));if(!A.size||!B.size)return 0;let n=0;A.forEach(x=>B.has(x)&&n++);return n/Math.sqrt(A.size*B.size)}
-function fillRail(rail,srcs){if(!rail)return;rail.innerHTML='';const used=new Set();srcs.forEach(src=>{if(blockedTitle(src))return;const k=keyOf(src);if(used.has(k))return;used.add(k);const c=src.cloneNode(true);c.dataset.url=urlOf(src);c.style.display='';c.hidden=false;c.querySelector('.ribbons')?.remove();c.querySelector('.ubg43-badges')?.remove();rail.append(c);wire(c);if(isNew(src))badge(c,'NEW','new');if(isTrending(src))badge(c,'TRENDING','trending')});if(srcs.length){const d=document.createElement('div');d.className='done';d.innerHTML='<span>That’s all for now ✨<small>More games are added automatically.</small></span>';rail.append(d)}}
+function fillRail(rail,srcs){if(!rail)return;rail.innerHTML='';const used=new Set();srcs.forEach(src=>{if(blockedTitle(src))return;const k=keyOf(src);if(used.has(k))return;used.add(k);const c=src.cloneNode(true);c.dataset.url=urlOf(src);c.style.display='';c.hidden=false;c.querySelector('.ribbons')?.remove();c.querySelector('.ubg43-badges')?.remove();rail.append(c);wire(c);if(isNew(src))badge(c,'NEW','new');if(isTrending(src))badge(c,'TRENDING','trending');if(isMaintenance(c))badge(c,'MAINTENANCE','maintenance')});if(srcs.length){const d=document.createElement('div');d.className='done';d.innerHTML='<span>That’s all for now ✨<small>More games are added automatically.</small></span>';rail.append(d)}}
 function renderRails(){
   const cs=cards(),fresh=cs.filter(isNew).slice(0,24);
   const live=cs.filter(c=>globalCount(c)>0).sort((a,b)=>(globalCount(b)-globalCount(a))||titleOf(a).localeCompare(titleOf(b)));
