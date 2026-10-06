@@ -4495,7 +4495,8 @@ function categoryCounts(){
   return counts;
 }
 async function loadLegacyIntoGrid(){
-  if(cards().length>=300)return cards().length;
+  if(cards().length>=300)return false;
+  let changed=false;
   try{
     const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),7000);
     const r=await fetch('legacy-index.html?stable=1',{cache:'no-store',signal:controller.signal});
@@ -4515,8 +4516,9 @@ async function loadLegacyIntoGrid(){
     });
     grid.append(fragment);
     invalidateCards();
+    changed=true;
   }catch(_){}
-  return cards().length;
+  return changed;
 }
 function isNew(c){if(c.dataset.new==='1'||c.dataset.new==='true')return true;const d=Date.parse(c.dataset.newSince||c.dataset.date||'');return Number.isFinite(d)&&Date.now()-d<45*86400000}
 const fallbackTrendingKeys=new Set();
@@ -4642,9 +4644,9 @@ function recommendations(q){
   Object.entries(ph).forEach(([k,v])=>{
     const plays=Math.min(20,Number(v?.plays||0));
     if(plays<=0)return;
-    cs.forEach(c=>{
-      const sim=similarity(titleOf(c),String(v?.title||k));
-      if(sim>0)playAffinity[keyOf(c)]=(playAffinity[keyOf(c)]||0)+sim*Math.log2(plays+1);
+    index.forEach(meta=>{
+      const sim=similarity(meta.title,String(v?.title||k));
+      if(sim>0)playAffinity[keyOf(meta.c)]=(playAffinity[keyOf(meta.c)]||0)+sim*Math.log2(plays+1);
     });
   });
   const qTokens=new Set(n.split(' ').filter(x=>x.length>1));
@@ -4723,7 +4725,13 @@ function bind(){
  document.addEventListener('click',e=>{const c=e.target.closest?.('.game-card');if(!c)return;e.preventDefault();e.stopImmediatePropagation();const u=urlOf(c);recordPlay(c);if(u)openGame(u,titleOf(c));renderRails()},{capture:true});
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('categorySidebar')?.classList.contains('open'))closeCategories()},{capture:true});
 }
-function sync(){cards().forEach(c=>{if(blockedTitle(c))c.remove();else wire(c)});repairImages();decorate();renderRails();applyView();const s=$('status');if(s&&cards().length)s.textContent=cards().length+' games ready'}
+function sync(){
+  let removed=false;
+  cards().forEach(c=>{if(blockedTitle(c)){c.remove();removed=true}else wire(c)});
+  if(removed)invalidateCards();
+  repairImages();decorate();renderRails();applyView();
+  const s=$('status');if(s&&cards().length)s.textContent=cards().length+' games ready';
+}
 async function loadGlobalTrending(){
   if(globalTrending.loading)return;
   globalTrending.loading=true;updateTrendRailState();
