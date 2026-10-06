@@ -4572,6 +4572,8 @@ function wireImage(img){
   if(!img||img.tagName!=='IMG')return;
   if(img.dataset.ubg43ImageWired==='1')return;
   img.dataset.ubg43ImageWired='1';
+  img.decoding='async';
+  if(!img.getAttribute('loading'))img.loading='lazy';
   if(!img.dataset.ubg43ImageSource)img.dataset.ubg43ImageSource=img.getAttribute('src')||'';
   img.addEventListener('error',()=>handleImageError(img),{passive:true});
   if(img.complete&&img.naturalWidth===0&&img.getAttribute('src'))setTimeout(()=>handleImageError(img),0);
@@ -4590,7 +4592,13 @@ function applyView(){
   });
   if($('status'))$('status').textContent=shown+' games shown';
 }
-function similarity(a,b){const A=new Set(norm(a).split(' ').filter(x=>x.length>1)),B=new Set(norm(b).split(' ').filter(x=>x.length>1));if(!A.size||!B.size)return 0;let n=0;A.forEach(x=>B.has(x)&&n++);return n/Math.sqrt(A.size*B.size)}
+function similarityNorm(a,b){
+  const A=new Set(String(a||'').split(' ').filter(x=>x.length>1)),B=new Set(String(b||'').split(' ').filter(x=>x.length>1));
+  if(!A.size||!B.size)return 0;
+  let n=0;A.forEach(x=>B.has(x)&&n++);
+  return n/Math.sqrt(A.size*B.size);
+}
+function similarity(a,b){return similarityNorm(norm(a),norm(b))}
 function fillRail(rail,srcs){
   if(!rail)return;
   rail.textContent='';
@@ -4642,11 +4650,11 @@ function recommendations(q){
   const catAffinity=Object.create(null),playAffinity=Object.create(null);
   searchHits.forEach(c=>{const cat=String(c.dataset.category||'').trim();if(cat)catAffinity[cat]=(catAffinity[cat]||0)+1});
   Object.entries(ph).forEach(([k,v])=>{
-    const plays=Math.min(20,Number(v?.plays||0));
-    if(plays<=0)return;
+    const plays=Math.min(20,Number(v?.plays||0)),sourceNorm=norm(v?.title||k),weight=Math.log2(plays+1);
+    if(plays<=0||!sourceNorm)return;
     index.forEach(meta=>{
-      const sim=similarity(meta.title,String(v?.title||k));
-      if(sim>0)playAffinity[keyOf(meta.c)]=(playAffinity[keyOf(meta.c)]||0)+sim*Math.log2(plays+1);
+      const sim=similarityNorm(meta.norm,sourceNorm);
+      if(sim>0)playAffinity[keyOf(meta.c)]=(playAffinity[keyOf(meta.c)]||0)+sim*weight;
     });
   });
   const qTokens=new Set(n.split(' ').filter(x=>x.length>1));
@@ -4656,7 +4664,7 @@ function recommendations(q){
   }).map(meta=>{
     const c=meta.c,title=meta.title,t=meta.norm,cat=String(c.dataset.category||'').trim();
     let score=0;
-    const direct=similarity(title,q);
+    const direct=similarityNorm(t,n);
     score+=direct*1.15;
     const tTokens=new Set(t.split(' ').filter(x=>x.length>1));
     let shared=0;qTokens.forEach(x=>{if(tTokens.has(x))shared++});
@@ -4664,7 +4672,7 @@ function recommendations(q){
     if(cat&&catAffinity[cat])score+=Math.min(.9,catAffinity[cat]*.16);
     score+=(playAffinity[keyOf(c)]||0)*.16;
     Object.entries(sh).forEach(([k,v])=>{
-      const sv=similarity(title,k),count=Math.min(10,Number(v?.count||0));
+      const sv=similarityNorm(t,norm(k)),count=Math.min(10,Number(v?.count||0));
       if(sv>0)score+=sv*(.12+Math.log2(count+1)*.04);
     });
     if(isNew(c))score+=.04;
