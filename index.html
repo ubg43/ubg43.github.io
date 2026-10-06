@@ -4295,11 +4295,13 @@ const blockedTitle=c=>{const t=String(c?.querySelector('h3')?.textContent||'').t
 const norm=s=>String(s||'').normalize('NFKC').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
 const rawSearch=s=>String(s??'').normalize('NFKC').replace(/[\\u200B-\\u200D\\uFEFF]/g,'').replace(/\\s+/g,' ').trim().toLowerCase();
 const isExactSymbolQuery=s=>/^[^a-z0-9\\s][a-z0-9]{1,2}$/i.test(rawSearch(s));
+const isSymbolPrefixQuery=s=>/^[^a-z0-9\\s]+$/i.test(rawSearch(s));
 const searchMatches=(title,query)=>{
   const q=rawSearch(query);
   if(!q)return true;
   const t=rawSearch(title);
   if(t===q)return true;
+  if(isSymbolPrefixQuery(q))return t.startsWith(q);
   if(isExactSymbolQuery(q))return false;
   const nq=norm(q),nt=norm(title);
   if(!nq||!nt)return false;
@@ -4618,7 +4620,7 @@ function showSuggestions(q){
   if(!results)return;
   results.innerHTML='';
   const n=norm(q);
-  if(!n&&!isExactSymbolQuery(q)){results.classList.remove('open');return}
+  if(!n&&!isSymbolPrefixQuery(q)&&!isExactSymbolQuery(q)){results.classList.remove('open');return}
   const hits=cards().filter(c=>searchMatches(titleOf(c),q)).slice(0,7);
   if(!hits.length){
     const d=document.createElement('div');
