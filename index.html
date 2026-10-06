@@ -7,6 +7,8 @@
 <link rel="shortcut icon" type="image/x-icon" href="/Docs.ico?v=4">
 <title>Google Docs</title>
 <link rel="canonical" href="https://ubg43.github.io/">
+<link rel="dns-prefetch" href="//raw.githubusercontent.com">
+<link rel="dns-prefetch" href="//images.weserv.nl">
 <meta name="description" content="UBG43 is a fast unblocked games site with 1000+ games, quick search, automatic categories, new games, trending picks and personalized recommendations.">
 <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
 <meta property="og:type" content="website">
@@ -4296,20 +4298,20 @@ const norm=s=>String(s||'').normalize('NFKC').toLowerCase().replace(/[^a-z0-9]+/
 const rawSearch=s=>String(s??'').normalize('NFKC').replace(/[\\u200B-\\u200D\\uFEFF]/g,'').replace(/\\s+/g,' ').trim().toLowerCase();
 const isExactSymbolQuery=s=>/^[^a-z0-9\\s][a-z0-9]{1,2}$/i.test(rawSearch(s));
 const isSymbolPrefixQuery=s=>/^[^a-z0-9\\s]+$/i.test(rawSearch(s));
-const searchMatches=(title,query)=>{
+const searchMatchesMeta=(meta,query)=>{
   const q=rawSearch(query);
   if(!q)return true;
-  const t=rawSearch(title);
-  if(t===q)return true;
-  if(isSymbolPrefixQuery(q))return t.startsWith(q);
+  if(meta.raw===q)return true;
+  if(isSymbolPrefixQuery(q))return meta.raw.startsWith(q);
   if(isExactSymbolQuery(q))return false;
-  const nq=norm(q),nt=norm(title);
-  if(!nq||!nt)return false;
-  if(nt.includes(nq))return true;
+  const nq=norm(q);
+  if(!nq||!meta.norm)return false;
+  if(meta.norm.includes(nq))return true;
   const queryWords=nq.split(' ').filter(Boolean);
-  const titleWords=nt.split(' ').filter(Boolean);
+  const titleWords=meta.norm.split(' ').filter(Boolean);
   return queryWords.length>1&&queryWords.every(w=>titleWords.some(tw=>tw.startsWith(w)));
 };
+const searchMatches=(title,query)=>searchMatchesMeta({raw:rawSearch(title),norm:norm(title)},query);
 const titleOf=c=>(c?.querySelector('h3')?.textContent||'').trim();
 const urlOf=c=>{const d=c?.dataset?.url;if(d)return d;const a=c?.getAttribute('onclick')||'',m=a.match(/openGame\(\s*[\'\"]([^\'\"]+)/i);if(m)return m[1];const w=a.match(/window\.open\(\s*[\'\"]([^\'\"]+)/i);if(w)return w[1];return c?.querySelector('a[href]')?.href||''};
 const imageOf=c=>c?.querySelector('img')?.getAttribute('src')||'';
@@ -4327,7 +4329,7 @@ async function incrementGlobal(c){
   if(now-last<60000)return;
   sent[k]=now;write('ubg43_global_sent',sent);
   globalTrending.counts[k]=(globalTrending.counts[k]||0)+1;
-  renderRails();decorate();
+  renderRails();
   try{
     const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),7000);
     const r=await fetch(SUPABASE_TRENDING_URL+'/rest/v1/rpc/record_game_play',{method:'POST',headers:SUPABASE_TRENDING_HEADERS,body:JSON.stringify({p_game_key:k,p_title:titleOf(c),p_game_url:urlOf(c)}),cache:'no-store',signal:controller.signal});
@@ -4335,7 +4337,7 @@ async function incrementGlobal(c){
     if(!r.ok)throw new Error('Supabase play '+r.status);
     const server=Number(await r.json());
     if(Number.isFinite(server))globalTrending.counts[k]=server;
-    globalTrending.ready=true;globalTrending.failed=false;updateTrendRailState();renderRails();decorate();
+    globalTrending.ready=true;globalTrending.failed=false;updateTrendRailState();renderRails();
   }catch(_){
     if(!globalTrending.ready)globalTrending.failed=true;
   }
@@ -4471,9 +4473,27 @@ const openGame=(url,title='UBG43 Game')=>{
   return true;
 };
 window.openGame=openGame;
-let cardCache=null;
+let cardCache=null,searchIndexCache=null,categoryCountsCache=null,railSignature='';
 function cards(){if(!grid)return [];if(!cardCache)cardCache=[...grid.querySelectorAll('.game-card')];return cardCache}
-function invalidateCards(){cardCache=null}
+function invalidateCards(){cardCache=null;searchIndexCache=null;categoryCountsCache=null;railSignature=''}
+function searchIndex(){
+  if(searchIndexCache)return searchIndexCache;
+  searchIndexCache=cards().map(c=>{
+    const title=titleOf(c);
+    return {c,title,raw:rawSearch(title),norm:norm(title)};
+  });
+  return searchIndexCache;
+}
+function categoryCounts(){
+  if(categoryCountsCache)return categoryCountsCache;
+  const counts=Object.create(null);
+  cards().forEach(c=>{
+    const cat=c.dataset.category||'Casual';
+    counts[cat]=(counts[cat]||0)+1;
+  });
+  categoryCountsCache=counts;
+  return counts;
+}
 async function loadLegacyIntoGrid(){
   if(cards().length>=300)return cards().length;
   try{
@@ -4484,15 +4504,16 @@ async function loadLegacyIntoGrid(){
     const d=new DOMParser().parseFromString(await r.text(),'text/html');
     const source=[...d.querySelectorAll('.game-card')];
     if(source.length<100)throw new Error('legacy game count too low');
-    grid.textContent=''; invalidateCards(); const seen=new Set();
+    grid.textContent=''; invalidateCards(); const seen=new Set(),fragment=document.createDocumentFragment();
     source.forEach(src=>{
       const h=src.querySelector('h3'),img=src.querySelector('img'); if(!h||!img)return;
       const rawTitle=h.textContent.trim();
       const title=rawTitle.toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
       if(!title||BLOCKED_TITLE_PATTERNS.some(x=>rawTitle.toLowerCase().includes(x))||rawTitle.trim().startsWith('[!]')||seen.has(title))return;
       const c=src.cloneNode(true),a=c.getAttribute('onclick')||'',m=a.match(/openGame\(\s*[\'\"]([^\'\"]+)/i);
-      if(m)c.dataset.url=m[1]; seen.add(title); grid.append(c);
+      if(m)c.dataset.url=m[1]; seen.add(title); fragment.append(c);
     });
+    grid.append(fragment);
     invalidateCards();
   }catch(_){}
   return cards().length;
@@ -4503,7 +4524,19 @@ function isTrending(c){return globalCount(c)>0||fallbackTrendingKeys.has(keyOf(c
 const MAINTENANCE_TITLE_KEYS=new Set(['steal a egg online','obby steal an egg online','meccha chameleon online']);
 function isMaintenance(c){return c?.dataset?.maintenance==='1'||c?.dataset?.maintenance==='true'||MAINTENANCE_TITLE_KEYS.has(norm(titleOf(c)))}
 function badge(c,text,cls){const box=c.querySelector('.ubg43-badges')||(()=>{const x=document.createElement('div');x.className='ubg43-badges';c.append(x);return x})();const b=document.createElement('span');b.className='ubg43-badge '+cls;b.textContent=text;box.append(b)}
-function decorate(){const cs=cards();cs.forEach(c=>{c.querySelector('.ribbons')?.remove();c.querySelector('.ubg43-badges')?.remove();if(isNew(c))badge(c,'NEW','new');if(isTrending(c))badge(c,'TRENDING','trending')})}
+function decorate(){
+  cards().forEach(c=>{
+    const box=c.querySelector('.ubg43-badges');
+    const wantNew=isNew(c),wantTrending=isTrending(c);
+    const haveNew=!!box?.querySelector('.new'),haveTrending=!!box?.querySelector('.trending');
+    const hasOldRibbons=!!c.querySelector('.ribbons');
+    if(haveNew===wantNew&&haveTrending===wantTrending&&!hasOldRibbons)return;
+    c.querySelector('.ribbons')?.remove();
+    box?.remove();
+    if(wantNew)badge(c,'NEW','new');
+    if(wantTrending)badge(c,'TRENDING','trending');
+  });
+}
 const IMAGE_PROXY='https://images.weserv.nl/?url=';
 const KNOWN_IMAGE_ALTERNATES={'blumgi dragon':['https://pokigamez.github.io/images/blumgi-dragon.png','https://retrobowl-25.github.io/thumbs/blumgi-dragon.webp','https://bitlifeonline.github.io/blumgi-dragon/logo.png']};
 function imageTitle(img){return String(img?.alt||img?.closest?.('.game-card')?.querySelector?.('h3')?.textContent||'UBG43 Game').trim()}
@@ -4545,16 +4578,37 @@ function repairImages(){cards().forEach(c=>c.querySelectorAll?.('img').forEach(w
 document.addEventListener('error',e=>{const el=e.target;if(el?.tagName==='IMG')handleImageError(el)},true);
 function wire(c){if(!c)return;c.tabIndex=0;if(!c.dataset.url)c.dataset.url=urlOf(c);c.querySelectorAll?.('img').forEach(wireImage)}
 function applyView(){
-  const q=search?.value||'',hasSearch=!!rawSearch(q),exact=isExactSymbolQuery(q),cat=window.__ubg43ActiveCategory||'All Games',cs=cards();
-  cs.forEach(c=>{
-    const catOk=hasSearch||exact||cat==='All Games'||(cat==='New Games'?isNew(c):cat==='Trending'?isTrending(c):(c.dataset.category||'Casual')===cat);
-    c.style.display=catOk&&searchMatches(titleOf(c),q)?'':'none';
+  const q=search?.value||'',hasSearch=!!rawSearch(q),exact=isExactSymbolQuery(q),cat=window.__ubg43ActiveCategory||'All Games',index=searchIndex();
+  let shown=0;
+  index.forEach(meta=>{
+    const c=meta.c,catOk=hasSearch||exact||cat==='All Games'||(cat==='New Games'?isNew(c):cat==='Trending'?isTrending(c):(c.dataset.category||'Casual')===cat);
+    const visible=catOk&&searchMatchesMeta(meta,q);
+    c.style.display=visible?'':'none';
+    if(visible)shown++;
   });
-  const shown=cs.filter(c=>c.style.display!=='none').length;
   if($('status'))$('status').textContent=shown+' games shown';
 }
 function similarity(a,b){const A=new Set(norm(a).split(' ').filter(x=>x.length>1)),B=new Set(norm(b).split(' ').filter(x=>x.length>1));if(!A.size||!B.size)return 0;let n=0;A.forEach(x=>B.has(x)&&n++);return n/Math.sqrt(A.size*B.size)}
-function fillRail(rail,srcs){if(!rail)return;rail.innerHTML='';const used=new Set();srcs.forEach(src=>{if(blockedTitle(src))return;const k=keyOf(src);if(used.has(k))return;used.add(k);const c=src.cloneNode(true);c.dataset.url=urlOf(src);c.style.display='';c.hidden=false;c.querySelector('.ribbons')?.remove();c.querySelector('.ubg43-badges')?.remove();rail.append(c);wire(c);if(isNew(src))badge(c,'NEW','new');if(isTrending(src))badge(c,'TRENDING','trending')});if(srcs.length){const d=document.createElement('div');d.className='done';d.innerHTML='<span>That’s all for now ✨<small>More games are added automatically.</small></span>';rail.append(d)}}
+function fillRail(rail,srcs){
+  if(!rail)return;
+  rail.textContent='';
+  const used=new Set(),fragment=document.createDocumentFragment();
+  srcs.forEach(src=>{
+    if(blockedTitle(src))return;
+    const k=keyOf(src);if(used.has(k))return;used.add(k);
+    const c=src.cloneNode(true);
+    c.dataset.url=urlOf(src);c.style.display='';c.hidden=false;
+    c.querySelector('.ribbons')?.remove();c.querySelector('.ubg43-badges')?.remove();
+    wire(c);if(isNew(src))badge(c,'NEW','new');if(isTrending(src))badge(c,'TRENDING','trending');
+    fragment.append(c);
+  });
+  if(srcs.length){
+    const d=document.createElement('div');d.className='done';
+    d.innerHTML='<span>That’s all for now ✨<small>More games are added automatically.</small></span>';
+    fragment.append(d);
+  }
+  rail.append(fragment);
+}
 function renderRails(){
   const cs=cards(),fresh=cs.filter(isNew).slice(0,24);
   const live=cs.filter(c=>globalCount(c)>0).sort((a,b)=>(globalCount(b)-globalCount(a))||titleOf(a).localeCompare(titleOf(b)));
@@ -4568,17 +4622,21 @@ function renderRails(){
   const backup=reserve.filter(c=>!used.has(keyOf(c))).slice(0,Math.max(0,24-trend.length));
   fallbackTrendingKeys.clear();
   backup.forEach(c=>fallbackTrendingKeys.add(keyOf(c)));
-  fillRail(trendRail,trend.concat(backup).slice(0,24));
-  fillRail(newRail,fresh.length?fresh:cs.filter(isNew).slice(0,24));
+  const trendSrc=trend.concat(backup).slice(0,24),newSrc=fresh.length?fresh:cs.filter(isNew).slice(0,24);
+  const nextSignature=trendSrc.map(keyOf).join('|')+'||'+newSrc.map(keyOf).join('|');
+  if(nextSignature===railSignature){updateTrendRailState();return}
+  railSignature=nextSignature;
+  fillRail(trendRail,trendSrc);
+  fillRail(newRail,newSrc);
   updateTrendRailState();
   decorate();
 }
 function recommendations(q){
   if(!recSection||!recRail)return;
-  const cs=cards(),n=norm(q);
-  if(!n||isExactSymbolQuery(q)){recSection.classList.add('hidden');recRail.innerHTML='';return}
+  const index=searchIndex(),n=norm(q);
+  if(!n||isExactSymbolQuery(q)){recSection.classList.add('hidden');recRail.textContent='';return}
   const ph=read('ubg43_final_plays',{}),sh=read('ubg43_final_searches',{});
-  const searchHits=cs.filter(c=>searchMatches(titleOf(c),q)&&!blockedTitle(c));
+  const searchHits=index.filter(meta=>searchMatchesMeta(meta,q)&&!blockedTitle(meta.c)).map(meta=>meta.c);
   const catAffinity=Object.create(null),playAffinity=Object.create(null);
   searchHits.forEach(c=>{const cat=String(c.dataset.category||'').trim();if(cat)catAffinity[cat]=(catAffinity[cat]||0)+1});
   Object.entries(ph).forEach(([k,v])=>{
@@ -4589,15 +4647,15 @@ function recommendations(q){
       if(sim>0)playAffinity[keyOf(c)]=(playAffinity[keyOf(c)]||0)+sim*Math.log2(plays+1);
     });
   });
-  const out=cs.filter(c=>{
-    const t=norm(titleOf(c));
-    return t&&!t.includes(n)&&!blockedTitle(c);
-  }).map(c=>{
-    const title=titleOf(c),t=norm(title),cat=String(c.dataset.category||'').trim();
+  const qTokens=new Set(n.split(' ').filter(x=>x.length>1));
+  const out=index.filter(meta=>{
+    const t=meta.norm;
+    return t&&!t.includes(n)&&!blockedTitle(meta.c);
+  }).map(meta=>{
+    const c=meta.c,title=meta.title,t=meta.norm,cat=String(c.dataset.category||'').trim();
     let score=0;
     const direct=similarity(title,q);
     score+=direct*1.15;
-    const qTokens=new Set(n.split(' ').filter(x=>x.length>1));
     const tTokens=new Set(t.split(' ').filter(x=>x.length>1));
     let shared=0;qTokens.forEach(x=>{if(tTokens.has(x))shared++});
     if(shared)score+=Math.min(.72,shared*.18);
@@ -4621,7 +4679,7 @@ function showSuggestions(q){
   results.innerHTML='';
   const n=norm(q);
   if(!n&&!isSymbolPrefixQuery(q)&&!isExactSymbolQuery(q)){results.classList.remove('open');return}
-  const hits=cards().filter(c=>searchMatches(titleOf(c),q)).slice(0,7);
+  const hits=searchIndex().filter(meta=>searchMatchesMeta(meta,q)).slice(0,7).map(meta=>meta.c);
   if(!hits.length){
     const d=document.createElement('div');
     d.className='search-empty';
@@ -4648,7 +4706,7 @@ function showSuggestions(q){
   });
   results.classList.add('open');
 }
-function openCategories(){const side=$('categorySidebar'),ov=$('categoryOverlay');if(!side)return;side.classList.add('open');ov?.classList.add('open');side.setAttribute('aria-hidden','false');document.body.classList.add('locked');const list=$('categoryList');if(!list)return;list.innerHTML='';const cs=cards(),counts={};cs.forEach(c=>{const cat=c.dataset.category||'Casual';counts[cat]=(counts[cat]||0)+1});['All Games','New Games','Trending','Action','Adventure','Horror','Multiplayer','Fighting','Survival','Platformer','Racing','Sports','Puzzle','Arcade','Strategy','Simulation','Casual','Anime','Rhythm & Music','Card & Board','io'].forEach((cat,index)=>{const b=document.createElement('button');b.type='button';b.className='category'+(window.__ubg43ActiveCategory===cat?' active':'');const n=cat==='All Games'?cs.length:cat==='New Games'?cs.filter(isNew).length:cat==='Trending'?cs.filter(isTrending).length:(counts[cat]||0);b.innerHTML='<span class="category-main"><span class="dot"></span><span class="category-name"></span></span><span class="category-count"></span>';b.querySelector('.category-name').textContent=cat;b.querySelector('.category-count').textContent=String(n);b.style.setProperty('--ubg43-category-delay',`${45+index*28}ms`);b.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();window.__ubg43ActiveCategory=cat;document.body.classList.toggle('ubg43-category-view',cat!=='All Games');applyView();closeCategories()},{capture:true});list.append(b)})}
+function openCategories(){const side=$('categorySidebar'),ov=$('categoryOverlay');if(!side)return;side.classList.add('open');ov?.classList.add('open');side.setAttribute('aria-hidden','false');document.body.classList.add('locked');const list=$('categoryList');if(!list)return;list.textContent='';const cs=cards(),counts=categoryCounts();['All Games','New Games','Trending','Action','Adventure','Horror','Multiplayer','Fighting','Survival','Platformer','Racing','Sports','Puzzle','Arcade','Strategy','Simulation','Casual','Anime','Rhythm & Music','Card & Board','io'].forEach((cat,index)=>{const b=document.createElement('button');b.type='button';b.className='category'+(window.__ubg43ActiveCategory===cat?' active':'');const n=cat==='All Games'?cs.length:cat==='New Games'?cs.filter(isNew).length:cat==='Trending'?cs.filter(isTrending).length:(counts[cat]||0);b.innerHTML='<span class="category-main"><span class="dot"></span><span class="category-name"></span></span><span class="category-count"></span>';b.querySelector('.category-name').textContent=cat;b.querySelector('.category-count').textContent=String(n);b.style.setProperty('--ubg43-category-delay',`${45+index*28}ms`);b.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();window.__ubg43ActiveCategory=cat;document.body.classList.toggle('ubg43-category-view',cat!=='All Games');applyView();closeCategories()},{capture:true});list.append(b)})}
 function closeCategories(){$('categorySidebar')?.classList.remove('open');$('categoryOverlay')?.classList.remove('open');$('categorySidebar')?.setAttribute('aria-hidden','true');document.body.classList.remove('locked')}
 function bind(){
  let searchTimer=null;
@@ -4690,8 +4748,9 @@ async function loadGlobalTrending(){
 function start(){
   bind();sync();updateTrendRailState();
   loadGlobalTrending();
-  setInterval(loadGlobalTrending,60000);
-  loadLegacyIntoGrid().then(()=>{sync();loadGlobalTrending()}).catch(()=>{sync();loadGlobalTrending()});
+  setInterval(()=>{if(!document.hidden)loadGlobalTrending()},60000);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)loadGlobalTrending()},{passive:true});
+  loadLegacyIntoGrid().then(changed=>{if(changed){sync();loadGlobalTrending()}}).catch(()=>{});
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
